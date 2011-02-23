@@ -3,11 +3,14 @@ function keyEvent(e)
 	e=e||window.event;
 	return {code:e.charCode||e.keyCode};
 }
-function mouseEvent(e)
+function mouseEvent(e,key,optns)
 {
 	e=e||window.event;
-	return {pageX:e.pageX||e.clientX,
+	var point= {pageX:e.pageX||e.clientX,
 			pageY:e.pageY||e.clientY};
+	optns[key].x=point.pageX - optns.x;
+	optns[key].y=point.pageY - optns.y;
+	return false;
 }
 var animateFunctions={
 	linear:function(progress,params){return progress;},
@@ -167,7 +170,7 @@ function parseColor(color)
 	}
 	colorKeeper.color.notColor = undefined;
 	return colorKeeper;
-};
+}
 function getOffset(elem) {
     if (elem.getBoundingClientRect) {
         return getOffsetRect(elem)
@@ -213,7 +216,7 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
-	ctx=canvases[object.layer.canvas].optns.ctx;
+	var ctx=canvases[object.layer.canvas].optns.ctx;
 	if (navigator.appName != "Mozilla" && navigator.appName != "Netscape"){point.x=x;point.y=y;}
 	else point=transformPoint(x,y,[[object.transform11.val,object.transform21.val,object.transformdx.val],[object.transform12.val,object.transform22.val,object.transformdy.val]]);
 	if(ctx.isPointInPath===undefined || object.img!==undefined)
@@ -290,14 +293,7 @@ function group()
 	}
 	return group;
 }
-function setXY(e,key,optns)
-{
-	var x = e.pageX - optns.x;
-	var y = e.pageY - optns.y;
-	optns[key].x=x;
-	optns[key].y=y;
-	return false;
-}
+
 
 function layer(idLayer,object,array)
 {

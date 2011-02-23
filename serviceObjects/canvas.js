@@ -48,18 +48,15 @@ jCanvaScript.canvas = function(idCanvas)
 			var canvas=canvases[this.optns.number];
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.anyObjOnMouseClick.val)return;
-				var point=mouseEvent(e);
-				setXY(point,'anyObjOnMouseClick',canvas.optns);
+				mouseEvent(e,'anyObjOnMouseClick',canvas.optns);
 			};
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.anyObjOnMouseDown.val)return;
-				var point=mouseEvent(e);
-				setXY(point,'anyObjOnMouseDown',canvas.optns);
+				mouseEvent(e,'anyObjOnMouseDown',canvas.optns);
 			};
 			this.cnv.onmouseup=function(e){
 				if(!canvas.optns.anyObjOnMouseUp.val)return;
-				var point=mouseEvent(e);
-				setXY(point,'anyObjOnMouseUp',canvas.optns);
+				mouseEvent(e,'anyObjOnMouseUp',canvas.optns);
 			};
 			this.cnv.onkeyup=function(e){
 				canvas.optns.keyUp.code=keyEvent(e).code;
@@ -78,8 +75,7 @@ jCanvaScript.canvas = function(idCanvas)
 			this.cnv.onmousemove=function(e)
 			{
 				if(!canvas.optns.anyObjOnMouseMove.val)return;
-				var event=mouseEvent(e);
-				setXY(event,'anyObjOnMouseMove',canvas.optns);
+				mouseEvent(e,'anyObjOnMouseMove',canvas.optns);
 				if(canvas.optns.drag.object!=false)
 				{
 					var drag=canvas.optns.drag;
@@ -109,6 +105,8 @@ jCanvaScript.canvas = function(idCanvas)
 	{
 		if(composite===undefined)return this.optns.gCO;
 		else this.optns.gCO=composite;
+		for(var i=0;i<this.layers.length;i++)
+			this.layers[i].composite(composite);
 		return this;
 	}
 	canvas.frame=function()
