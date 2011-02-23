@@ -1,3 +1,14 @@
+function keyEvent(e)
+{
+	e=e||window.event;
+	return {code:e.charCode||e.keyCode};
+}
+function mouseEvent(e)
+{
+	e=e||window.event;
+	return {pageX:e.pageX||e.clientX,
+			pageY:e.pageY||e.clientY};
+}
 var animateFunctions={
 	linear:function(progress,params){return progress;},
 	exp:function(progress,params){var n=params.n||2;return Math.pow(progress,n);},

@@ -48,44 +48,38 @@ jCanvaScript.canvas = function(idCanvas)
 			var canvas=canvases[this.optns.number];
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.anyObjOnMouseClick.val)return;
-				e=e||window.event;
-				var point={pageX:e.pageX||e.clientX,pageY:e.pageY||e.clientY};
+				var point=mouseEvent(e);
 				setXY(point,'anyObjOnMouseClick',canvas.optns);
 			};
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.anyObjOnMouseDown.val)return;
-				e=e||window.event;
-				var point={pageX:e.pageX||e.clientX,pageY:e.pageY||e.clientY};
+				var point=mouseEvent(e);
 				setXY(point,'anyObjOnMouseDown',canvas.optns);
 			};
 			this.cnv.onmouseup=function(e){
 				if(!canvas.optns.anyObjOnMouseUp.val)return;
-				e=e||window.event;
-				var point={pageX:e.pageX||e.clientX,pageY:e.pageY||e.clientY};
-				setXY(point,'anyObjOnMouseUp',jCanvaScript.canvas(''+idCanvas+'').optns);
+				var point=mouseEvent(e);
+				setXY(point,'anyObjOnMouseUp',canvas.optns);
 			};
 			this.cnv.onkeyup=function(e){
-				e=e||window.event;
-				canvas.optns.keyUp.code=e.charCode||e.keyCode;
+				canvas.optns.keyUp.code=keyEvent(e).code;
 				canvas.optns.keyUp.val=true;
 			}
 			this.cnv.onkeydown=function(e)
 			{
-				e=e||window.event;
-				canvas.optns.keyDown.code=e.charCode||e.keyCode;
+				canvas.optns.keyDown.code=keyEvent(e).code;
 				canvas.optns.keyDown.val=true;
 			}
 			this.cnv.onkeypress=function(e)
 			{
-				e=e||window.event;
-				canvas.optns.keyPress.code=e.charCode||e.keyCode;
+				canvas.optns.keyPress.code=keyEvent(e).code;
 				canvas.optns.keyPress.val=true;
 			}
 			this.cnv.onmousemove=function(e)
 			{
 				if(!canvas.optns.anyObjOnMouseMove.val)return;
-				e=e||window.event;
-				setXY(e,'anyObjOnMouseMove',canvas.optns);
+				var event=mouseEvent(e);
+				setXY(event,'anyObjOnMouseMove',canvas.optns);
 				if(canvas.optns.drag.object!=false)
 				{
 					var drag=canvas.optns.drag;
