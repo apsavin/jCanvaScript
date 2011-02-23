@@ -1,3 +1,13 @@
+jCanvaScript.circle=function(x,y,radius,color,fill)
+{
+	var circle = shapes(x,y,color,fill);
+	circle.radius={val:radius};
+	circle.draw=function(ctx)
+	{
+		ctx.arc (this.x.val, this.y.val, this.radius.val, 0,pi,true);
+	}
+	return circle;
+}
 jCanvaScript.rect=function(x,y,width,height,color,fill)
 {
 	var rect = shapes(x,y,color,fill);

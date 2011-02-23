@@ -7,7 +7,7 @@ function mouseEvent(e,key,optns)
 {
 	e=e||window.event;
 	var point= {pageX:e.pageX||e.clientX,
-			pageY:e.pageY||e.clientY};
+				pageY:e.pageY||e.clientY};
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
 	return false;
@@ -41,10 +41,10 @@ function multiplyM(m1,m2)
 }
 function transformPoint(x,y,m)
 {
-	var point={x:false,y:false}
-	point.x=(x*m[1][1]-y*m[0][1]+m[0][1]*m[1][2]-m[1][1]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1]);
-	point.y=(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1]);
-	return point;
+	return{
+			x:(x*m[1][1]-y*m[0][1]+m[0][1]*m[1][2]-m[1][1]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1]),
+			y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
+		}
 }
 function getObjectRectangle(object)
 {
