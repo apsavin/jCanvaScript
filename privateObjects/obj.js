@@ -73,9 +73,9 @@ function obj(x,y)
 		this.draggable.params=params;
 		this.draggable.fn=fn||false;
 		var optns=canvases[this.layer.canvas].optns;
-		optns.anyObjOnMouseMove.val=true;
-		optns.anyObjOnMouseDown.val=true;
-		optns.anyObjOnMouseUp.val=true;
+		optns.mousemove.val=true;
+		optns.mousedown.val=true;
+		optns.mouseup.val=true;
 		return this;
 	}
 	draggable.val=false;
@@ -225,63 +225,39 @@ function obj(x,y)
 	},
 	click: function(fn)
 	{
-		if(fn===undefined)this.onclick();
-		else this.onclick = fn;
-		canvases[this.layer.canvas].optns.anyObjOnMouseClick.val=true;
-		return this;
+		return setMouseEvent.call(this,fn,'click');
 	},
 	keypress: function(fn)
 	{
-		if(fn===undefined)this.onkeypress();
-		else this.onkeypress = fn;
-		return this;
+		return setKeyEvent.call(this,fn,'onkeypress');
 	},
 	keydown: function(fn)
 	{
-		if(fn===undefined)this.onkeydown();
-		else this.onkeydown = fn;
-		return this;
+		return setKeyEvent.call(this,fn,'onkeydown');
 	},
 	keyup: function(fn)
 	{
-		if(fn===undefined)this.onkeyup();
-		else this.onkeyup = fn;
-		return this;
+		return setKeyEvent.call(this,fn,'onkeyup');
 	},
 	mousedown: function(fn)
 	{
-		if(fn===undefined)this.onmousedown();
-		else this.onmousedown = fn;
-		canvases[this.layer.canvas].optns.anyObjOnMouseDown.val=true;
-		return this;
+		return setMouseEvent.call(this,fn,'mousedown');
 	},
 	mouseup: function(fn)
 	{
-		if(fn===undefined)this.onmouseup();
-		else this.onmouseup = fn;
-		canvases[this.layer.canvas].optns.anyObjOnMouseUp.val=true;
-		return this;
+		return setMouseEvent.call(this,fn,'mouseup');
 	},
 	mousemove: function(fn)
 	{
-		if(fn===undefined)this.onmousemove();
-		else this.onmousemove = fn;
-		canvases[this.layer.canvas].optns.anyObjOnMouseMove.val=true;
-		return this;
+		return setMouseEvent.call(this,fn,'mousemove');
 	},
 	mouseover: function(fn)
 	{
-		if(fn===undefined)this.onmouseover();
-		else this.onmouseover = fn;
-		canvases[this.layer.canvas].optns.anyObjOnMouseMove.val=true;
-		return this;
+		return setMouseEvent.call(this,fn,'mouseover');
 	},
 	mouseout: function(fn)
 	{
-		if(fn===undefined)this.onmouseout();
-		else this.onmouseout = fn;
-		canvases[this.layer.canvas].optns.anyObjOnMouseMove.val=true;
-		return this;
+		return setMouseEvent.call(this,fn,'mouseout');
 	},
 	draggable:draggable,
 	droppable:droppable,
@@ -571,7 +547,7 @@ function obj(x,y)
 		if(this.clip.val)
 		{
 			var clipObject=this.clip.val;
-			clipObject.visible(true);
+			clipObject.visible(true).animating();
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);

@@ -76,7 +76,7 @@ jCanvaScript.imageData=function(width,height)
 			ctx.putImageData(this.imgData,this.putX.val,this.putY.val);
 	}
 	return imageData;
-},
+}
 jCanvaScript.image=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
 {
 	var image=obj();

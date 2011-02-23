@@ -146,9 +146,14 @@ var jCanvaScript=function(stroke,map)
 		}
 	}
 }
+/**/
 <include src="privateFunctions"/>
+/**/
 <include src="privateObjects"/>
+/**/
 <include src="publicFunctions"/>
+/**/
 <include src="objects"/>
+/**/
 <include src="serviceObjects"/>
 window.jCanvaScript=window.jc=jCanvaScript;})();

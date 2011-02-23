@@ -12,6 +12,20 @@ function mouseEvent(e,key,optns)
 	optns[key].y=point.pageY - optns.y;
 	return false;
 }
+function setMouseEvent(fn,eventName)
+{
+	if(fn===undefined)this['on'+eventName]();
+	else this['on'+eventName] = fn;
+	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
+	canvases[this.layer.canvas].optns[eventName].val=true;
+	return this;
+}
+function setKeyEvent(fn,eventName)
+{
+	if(fn===undefined)this[eventName]();
+	else this[eventName] = fn;
+	return this;
+}
 var animateFunctions={
 	linear:function(progress,params){return progress;},
 	exp:function(progress,params){var n=params.n||2;return Math.pow(progress,n);},
@@ -26,9 +40,9 @@ var animateFunctions={
 		var sum = [1];
 		for(var i=1; i<n; i++) sum[i] = sum[i-1] + Math.pow(b, i/2);
 		var x = 2*sum[n-1]-1;
-		for(var i=0; i<n; i++) 
+		for(var i=0; i<n; i++)
 		{
-			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1) 
+			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
 				return Math.pow(x*(progress-(2*sum[i]-1-Math.pow(b, i/2))/x), 2)+1-Math.pow(b, i);
 		}
 		return 1;
@@ -141,7 +155,7 @@ function parseColor(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.colorR.val=parseInt(color.substr(1,2),16);							
+		colorKeeper.colorR.val=parseInt(color.substr(1,2),16);
 		colorKeeper.colorG.val=parseInt(color.substr(3,2),16);
 		colorKeeper.colorB.val=parseInt(color.substr(5,2),16);
 		colorKeeper.alpha.val=1;
@@ -236,22 +250,22 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.anyObjOnMouseMove.x||optns.anyObjOnMouseDown.x||optns.anyObjOnMouseUp.x||optns.anyObjOnMouseClick.x;
-	var y=optns.anyObjOnMouseMove.y||optns.anyObjOnMouseDown.y||optns.anyObjOnMouseUp.y||optns.anyObjOnMouseClick.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y;
 	if(x!=false)
-	{	
+	{
 		point=isPointInPath(object,x,y);
 	}
 	if(point)
 	{
-		if(optns.anyObjOnMouseMove.x!=false)
-			optns.anyObjOnMouseMove.object=object;
-		if(optns.anyObjOnMouseDown.x!=false)
-			optns.anyObjOnMouseDown.object=object;
-		if(optns.anyObjOnMouseClick.x!=false)
-			optns.anyObjOnMouseClick.object=object;
-		if(optns.anyObjOnMouseUp.x!=false)
-			optns.anyObjOnMouseUp.object=object;
+		if(optns.mousemove.x!=false)
+			optns.mousemove.object=object;
+		if(optns.mousedown.x!=false)
+			optns.mousedown.object=object;
+		if(optns.click.x!=false)
+			optns.click.object=object;
+		if(optns.mouseup.x!=false)
+			optns.mouseup.object=object;
 		optns.point=point;
 	}
 }
@@ -276,7 +290,7 @@ function group()
 						for(var j=0;j<arguments.length;j++)
 						{
 							if(typeof arguments[j]!='object')args[j]=arguments[j];
-							else 
+							else
 							{
 								args[j]={};
 								for(var arg in arguments[j])args[j][arg]=arguments[j][arg];
@@ -369,13 +383,13 @@ function objDeleter(array,limit)
 	var delCount;
 	do
 	{
-		delCount=0;		
+		delCount=0;
 		for(var i=0;i<limit;i++)
 		{
-			if(typeof (array[i].draw)!='function')							
+			if(typeof (array[i].draw)!='function')
 				delCount++;
 			if(delCount)array[i]=array[i+1];
-		}				
+		}
 		if(delCount)
 		{
 			delete array[limit];

@@ -17,7 +17,7 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.id.val=idCanvas;
 	canvas.cnv=document.getElementById(idCanvas);
 	if ('\v'=='v')G_vmlCanvasManager.initElement(canvas.cnv);
-	canvas.optns = 
+	canvas.optns =
 	{
 		number:lastCanvas,
 		ctx: canvas.cnv.getContext('2d'),
@@ -28,10 +28,10 @@ jCanvaScript.canvas = function(idCanvas)
 		keyDown:{val:false,code:false},
 		keyUp:{val:false,code:false},
 		keyPress:{val:false,code:false},
-		anyObjOnMouseMove:{val:false,x:false,y:false,object:false},
-		anyObjOnMouseClick:{val:false,x:false,y:false,object:false},
-		anyObjOnMouseUp:{val:false,x:false,y:false,object:false},
-		anyObjOnMouseDown:{val:false,x:false,y:false,object:false},
+		mousemove:{val:false,x:false,y:false,object:false},
+		click:{val:false,x:false,y:false,object:false},
+		mouseup:{val:false,x:false,y:false,object:false},
+		mousedown:{val:false,x:false,y:false,object:false},
 		drag:{object:false,x:0,y:0},
 		gCO: 'source-over'
 	}
@@ -47,16 +47,16 @@ jCanvaScript.canvas = function(idCanvas)
 			this.optns.y=offset.top;
 			var canvas=canvases[this.optns.number];
 			this.cnv.onclick=function(e){
-				if(!canvas.optns.anyObjOnMouseClick.val)return;
-				mouseEvent(e,'anyObjOnMouseClick',canvas.optns);
+				if(!canvas.optns.click.val)return;
+				mouseEvent(e,'click',canvas.optns);
 			};
 			this.cnv.onmousedown=function(e){
-				if(!canvas.optns.anyObjOnMouseDown.val)return;
-				mouseEvent(e,'anyObjOnMouseDown',canvas.optns);
+				if(!canvas.optns.mousedown.val)return;
+				mouseEvent(e,'mousedown',canvas.optns);
 			};
 			this.cnv.onmouseup=function(e){
-				if(!canvas.optns.anyObjOnMouseUp.val)return;
-				mouseEvent(e,'anyObjOnMouseUp',canvas.optns);
+				if(!canvas.optns.mouseup.val)return;
+				mouseEvent(e,'mouseup',canvas.optns);
 			};
 			this.cnv.onkeyup=function(e){
 				canvas.optns.keyUp.code=keyEvent(e).code;
@@ -74,12 +74,12 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			this.cnv.onmousemove=function(e)
 			{
-				if(!canvas.optns.anyObjOnMouseMove.val)return;
-				mouseEvent(e,'anyObjOnMouseMove',canvas.optns);
+				if(!canvas.optns.mousemove.val)return;
+				mouseEvent(e,'mousemove',canvas.optns);
 				if(canvas.optns.drag.object!=false)
 				{
 					var drag=canvas.optns.drag;
-					var point=transformPoint(canvas.optns.anyObjOnMouseMove.x,canvas.optns.anyObjOnMouseMove.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]])
+					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]])
 					drag.object.x.val=point.x-drag.x;
 					drag.object.y.val=point.y-drag.y;
 					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.x.val,y:drag.object.y.val}));
@@ -126,11 +126,11 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		for(var i=0;i<limit;i++)
 			this.layers[i].draw(this.optns);
-		if(this.optns.anyObjOnMouseMove.x!=false)
+		if(this.optns.mousemove.x!=false)
 		{
-			if(this.optns.anyObjOnMouseMove.object!=false)
+			if(this.optns.mousemove.object!=false)
 			{
-				var mousemoveObject=this.optns.anyObjOnMouseMove.object;
+				var mousemoveObject=this.optns.mousemove.object;
 				if(underMouse===mousemoveObject)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
@@ -163,14 +163,14 @@ jCanvaScript.canvas = function(idCanvas)
 					underMouse=false;
 				}
 			}
-			this.optns.anyObjOnMouseMove.x=false;
+			this.optns.mousemove.x=false;
 		}
-		if(this.optns.anyObjOnMouseDown.object!=false)
+		if(this.optns.mousedown.object!=false)
 		{
-			var mouseDown=this.optns.anyObjOnMouseDown;
+			var mouseDown=this.optns.mousedown;
 			if(typeof mouseDown.object.onmousedown=='function')mouseDown.object.onmousedown({x:mouseDown.x,y:mouseDown.y});
 			if(mouseDown.object.draggable.val==true)
-			{			
+			{
 				var drag=this.optns.drag;
 				drag.object=mouseDown.object.draggable.object.visible(true);
 				drag.fn=mouseDown.object.draggable.fn;
@@ -190,9 +190,9 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			mouseDown.object=false;
 		}
-		if(this.optns.anyObjOnMouseUp.object!=false)
+		if(this.optns.mouseup.object!=false)
 		{
-			var mouseUp=this.optns.anyObjOnMouseUp;
+			var mouseUp=this.optns.mouseup;
 			var drag=this.optns.drag;
 			if(typeof mouseUp.object.onmouseup=='function')mouseUp.object.onmouseup({x:mouseUp.x,y:mouseUp.y});
 			if(mouseUp.object.droppable.val==true && this.optns.drag.init!==undefined)
@@ -218,14 +218,14 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			mouseUp.object=false;
 		}
-		if(this.optns.anyObjOnMouseClick.object!=false)
+		if(this.optns.click.object!=false)
 		{
-			var mouseClick=this.optns.anyObjOnMouseClick;
+			var mouseClick=this.optns.click;
 			if(typeof mouseClick.object.onclick == 'function')
 				mouseClick.object.onclick({x:mouseClick.x,y:mouseClick.y});
 			mouseClick.object=false;
 		}
-		this.optns.anyObjOnMouseMove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.anyObjOnMouseClick.x=this.optns.anyObjOnMouseUp.x=this.optns.anyObjOnMouseDown.x=false;
+		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.mouseup.x=this.optns.mousedown.x=false;
 	}
 	return canvas;
 }
