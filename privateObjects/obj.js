@@ -3,11 +3,8 @@ function obj(x,y)
 	var opacity=function(n)
 	{
 		if(n === undefined) return this.opacity.val;
-		else 
-		{
-			this.opacity.val=n;
-			return this;
-		}
+		this.opacity.val=n;
+		return this;
 	}
 	opacity.val=1;	
 	var fn = [];
@@ -28,7 +25,8 @@ function obj(x,y)
 	var droppable=function(fn)
 	{
 		this.droppable.val=true;
-		this.droppable.fn=fn;
+		if(fn!==undefined)this.droppable.fn=fn;
+		return this;
 	}
 	droppable.val=false;
 	droppable.fn=function(draggedObject){};
@@ -45,21 +43,16 @@ function obj(x,y)
 			fn=object;
 			object=undefined;
 		}
+		this.draggable.shiftX=0;
+		this.draggable.shiftY=0;
 		if(params!==undefined)
 		{
 			if(params.shiftX!==undefined){this.draggable.shiftX=params.shiftX;params.shiftX=undefined;}
-			else this.draggable.shiftX=0;
 			if(params.shiftY!==undefined){this.draggable.shiftY=params.shiftY;params.shiftY=undefined;}
-			else this.draggable.shiftY=0;
-		}
-		else
-		{
-			this.draggable.shiftX=0;
-			this.draggable.shiftY=0;
 		}
 		if(object!==undefined)
 		{
-			if(object.id)if(params===undefined)dragObj=object.visible(false);else dragObj=object.animate(params).visible(false);
+			if(object.id)dragObj=(params===undefined)? object.visible(false) : object.animate(params).visible(false);
 			if(object=='clone')
 			{
 				dragObj=this.clone(params).visible(false);
@@ -69,6 +62,8 @@ function obj(x,y)
 		this.draggable.val=true;
 		this.draggable.x=this.x.val;
 		this.draggable.y=this.y.val;
+		this.draggable.dx=this.transformdx.val;
+		this.draggable.dy=this.transformdy.val;
 		this.draggable.object=dragObj;
 		this.draggable.params=params;
 		this.draggable.fn=fn||false;
@@ -135,8 +130,7 @@ function obj(x,y)
 		clone.level={val:limit,current:limit}
 		canvases[this.layer.canvas].layers[this.layer.number].objs[limit]=clone;
 		if(params===undefined) return clone;
-		clone.animate(params);
-		return clone;
+		return clone.animate(params);
 	},
 	visible:visible,
 	shadowX: {val:0},
@@ -149,26 +143,26 @@ function obj(x,y)
 	shadowColorA: {val:0},
 	shadow: function(options)
 	{
-		if(options.x !== undefined)
+		for(var key in options)
+		switch (key)
 		{
-			this.shadowX.val=options.x;
-		}
-		if(options.y !== undefined)
-		{
-			this.shadowY.val=options.y;
-		}
-		if(options.blur !== undefined)
-		{
-			this.shadowBlur.val=options.blur;
-		}
-		if(options.color !== undefined)
-		{
-			var colorKeeper = parseColor(options.color);
-			this.shadowColor = options.color.val;
-			this.shadowColorR = colorKeeper.colorR;
-			this.shadowColorG = colorKeeper.colorG;
-			this.shadowColorB = colorKeeper.colorB;
-			this.shadowColorA = colorKeeper.alpha;
+			case 'x':
+				this.shadowX.val=options.x;
+				break;
+			case 'y':
+				this.shadowY.val=options.y;
+				break;
+			case 'blur':
+				this.shadowBlur.val=options.blur;
+				break;
+			case 'color':
+				var colorKeeper = parseColor(options.color);
+				this.shadowColor = options.color.val;
+				this.shadowColorR = colorKeeper.colorR;
+				this.shadowColorG = colorKeeper.colorG;
+				this.shadowColorB = colorKeeper.colorB;
+				this.shadowColorA = colorKeeper.alpha;
+				break;
 		}
 		return this;
 	},

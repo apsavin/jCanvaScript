@@ -80,9 +80,8 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					var drag=canvas.optns.drag;
 					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]])
-					drag.object.x.val=point.x-drag.x;
-					drag.object.y.val=point.y-drag.y;
-					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.x.val,y:drag.object.y.val}));
+					drag.object.translate(point.x-drag.x,point.y-drag.y);
+					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.transformdx.val,y:drag.object.transformdy.val}));
 				}
 			};
 			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
@@ -177,16 +176,16 @@ jCanvaScript.canvas = function(idCanvas)
 				drag.init=mouseDown.object;
 				if(drag.init.draggable.params!==undefined)drag.object.animate(drag.init.draggable.params);
 				var point=transformPoint(mouseDown.x,mouseDown.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]]);
-				drag.x=point.x-drag.object.x.val;
-				drag.y=point.y-drag.object.y.val;
+				drag.x=point.x;
+				drag.y=point.y;
 				if(drag.object!=drag.init && drag.init.draggable.type!='clone')
 				{
-					drag.object.x.val=point.x;
-					drag.object.y.val=point.y;
+					drag.object.transformdx.val=point.x;
+					drag.object.transformdy.val=point.y;
 					drag.x=drag.y=0;
 				}
-				drag.object.x.val+=drag.init.draggable.shiftX;
-				drag.object.y.val+=drag.init.draggable.shiftY;
+				drag.object.transformdx.val+=drag.init.draggable.shiftX;
+				drag.object.transformdy.val+=drag.init.draggable.shiftY;
 			}
 			mouseDown.object=false;
 		}
@@ -210,8 +209,8 @@ jCanvaScript.canvas = function(idCanvas)
 					drag.init.visible(true);
 					/*drag.init.x.val=drag.init.draggable.x;?????????? ??????????????????????
 					drag.init.y.val=drag.init.draggable.y;???????????? ??????????*/
-					drag.init.x.val=drag.object.x.val;
-					drag.init.y.val=drag.object.y.val;
+					drag.init.transformdx.val=drag.object.transformdx.val;
+					drag.init.transformdy.val=drag.object.transformdy.val;
 					if(drag.object!=drag.init)drag.object.visible(false);
 					this.optns.drag={object:false,x:0,y:0};
 				}

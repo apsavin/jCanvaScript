@@ -596,11 +596,8 @@ function obj(x,y)
 	var opacity=function(n)
 	{
 		if(n === undefined) return this.opacity.val;
-		else 
-		{
-			this.opacity.val=n;
-			return this;
-		}
+		this.opacity.val=n;
+		return this;
 	}
 	opacity.val=1;	
 	var fn = [];
@@ -621,7 +618,8 @@ function obj(x,y)
 	var droppable=function(fn)
 	{
 		this.droppable.val=true;
-		this.droppable.fn=fn;
+		if(fn!==undefined)this.droppable.fn=fn;
+		return this;
 	}
 	droppable.val=false;
 	droppable.fn=function(draggedObject){};
@@ -638,21 +636,16 @@ function obj(x,y)
 			fn=object;
 			object=undefined;
 		}
+		this.draggable.shiftX=0;
+		this.draggable.shiftY=0;
 		if(params!==undefined)
 		{
 			if(params.shiftX!==undefined){this.draggable.shiftX=params.shiftX;params.shiftX=undefined;}
-			else this.draggable.shiftX=0;
 			if(params.shiftY!==undefined){this.draggable.shiftY=params.shiftY;params.shiftY=undefined;}
-			else this.draggable.shiftY=0;
-		}
-		else
-		{
-			this.draggable.shiftX=0;
-			this.draggable.shiftY=0;
 		}
 		if(object!==undefined)
 		{
-			if(object.id)if(params===undefined)dragObj=object.visible(false);else dragObj=object.animate(params).visible(false);
+			if(object.id)dragObj=(params===undefined)? object.visible(false) : object.animate(params).visible(false);
 			if(object=='clone')
 			{
 				dragObj=this.clone(params).visible(false);
@@ -662,6 +655,8 @@ function obj(x,y)
 		this.draggable.val=true;
 		this.draggable.x=this.x.val;
 		this.draggable.y=this.y.val;
+		this.draggable.dx=this.transformdx.val;
+		this.draggable.dy=this.transformdy.val;
 		this.draggable.object=dragObj;
 		this.draggable.params=params;
 		this.draggable.fn=fn||false;
@@ -728,8 +723,7 @@ function obj(x,y)
 		clone.level={val:limit,current:limit}
 		canvases[this.layer.canvas].layers[this.layer.number].objs[limit]=clone;
 		if(params===undefined) return clone;
-		clone.animate(params);
-		return clone;
+		return clone.animate(params);
 	},
 	visible:visible,
 	shadowX: {val:0},
@@ -742,26 +736,26 @@ function obj(x,y)
 	shadowColorA: {val:0},
 	shadow: function(options)
 	{
-		if(options.x !== undefined)
+		for(var key in options)
+		switch (key)
 		{
-			this.shadowX.val=options.x;
-		}
-		if(options.y !== undefined)
-		{
-			this.shadowY.val=options.y;
-		}
-		if(options.blur !== undefined)
-		{
-			this.shadowBlur.val=options.blur;
-		}
-		if(options.color !== undefined)
-		{
-			var colorKeeper = parseColor(options.color);
-			this.shadowColor = options.color.val;
-			this.shadowColorR = colorKeeper.colorR;
-			this.shadowColorG = colorKeeper.colorG;
-			this.shadowColorB = colorKeeper.colorB;
-			this.shadowColorA = colorKeeper.alpha;
+			case 'x':
+				this.shadowX.val=options.x;
+				break;
+			case 'y':
+				this.shadowY.val=options.y;
+				break;
+			case 'blur':
+				this.shadowBlur.val=options.blur;
+				break;
+			case 'color':
+				var colorKeeper = parseColor(options.color);
+				this.shadowColor = options.color.val;
+				this.shadowColorR = colorKeeper.colorR;
+				this.shadowColorG = colorKeeper.colorG;
+				this.shadowColorB = colorKeeper.colorB;
+				this.shadowColorA = colorKeeper.alpha;
+				break;
 		}
 		return this;
 	},
@@ -1403,22 +1397,22 @@ jCanvaScript.imageData=function(width,height)
 		var index=(x + y * this.width.val) * 4;
 		return [this.data[index+0],this.data[index+1],this.data[index+2],this.data[index+3]/255];
 	}
+	imageData.getX={val:0};
+	imageData.getY={val:0};
 	imageData.getData=function(x,y,width,height)
 	{
-		this.x.val=x;
-		this.y.val=y;
+		this.getX.val=x;
+		this.getY.val=y;
 		this.width.val=width;
 		this.height.val=height;
 		this.getData.val=true;
 		return this;
 	}
 	imageData.getData.val=false;
-	imageData.putX={val:0};
-	imageData.putY={val:0};
 	imageData.putData=function(x,y)
 	{
-		if(x!==undefined)this.putX.val=x;
-		if(y!==undefined)this.putY.val=y;
+		if(x!==undefined)this.x.val=x;
+		if(y!==undefined)this.y.val=y;
 		this.putData.val=true;
 		return this;
 	}
@@ -1442,16 +1436,16 @@ jCanvaScript.imageData=function(width,height)
 		}
 		if (this.getData.val){
 			try{
-				this.imgData=ctx.getImageData(this.x.val,this.y.val,this.width.val,this.height.val);
+				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
 			}catch(e){
 				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-				this.imgData=ctx.getImageData(this.x.val,this.y.val,this.width.val,this.height.val);
+				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
 			}
 			this.data=this.imgData.data;
 			this.getData.val=false;
 		}
 		if(this.putData.val)
-			ctx.putImageData(this.imgData,this.putX.val,this.putY.val);
+			ctx.putImageData(this.imgData,this.x.val,this.y.val);
 	}
 	return imageData;
 }
@@ -1716,9 +1710,8 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					var drag=canvas.optns.drag;
 					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]])
-					drag.object.x.val=point.x-drag.x;
-					drag.object.y.val=point.y-drag.y;
-					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.x.val,y:drag.object.y.val}));
+					drag.object.translate(point.x-drag.x,point.y-drag.y);
+					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.transformdx.val,y:drag.object.transformdy.val}));
 				}
 			};
 			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
@@ -1813,16 +1806,16 @@ jCanvaScript.canvas = function(idCanvas)
 				drag.init=mouseDown.object;
 				if(drag.init.draggable.params!==undefined)drag.object.animate(drag.init.draggable.params);
 				var point=transformPoint(mouseDown.x,mouseDown.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]]);
-				drag.x=point.x-drag.object.x.val;
-				drag.y=point.y-drag.object.y.val;
+				drag.x=point.x;
+				drag.y=point.y;
 				if(drag.object!=drag.init && drag.init.draggable.type!='clone')
 				{
-					drag.object.x.val=point.x;
-					drag.object.y.val=point.y;
+					drag.object.transformdx.val=point.x;
+					drag.object.transformdy.val=point.y;
 					drag.x=drag.y=0;
 				}
-				drag.object.x.val+=drag.init.draggable.shiftX;
-				drag.object.y.val+=drag.init.draggable.shiftY;
+				drag.object.transformdx.val+=drag.init.draggable.shiftX;
+				drag.object.transformdy.val+=drag.init.draggable.shiftY;
 			}
 			mouseDown.object=false;
 		}
@@ -1846,8 +1839,8 @@ jCanvaScript.canvas = function(idCanvas)
 					drag.init.visible(true);
 					/*drag.init.x.val=drag.init.draggable.x;?????????? ??????????????????????
 					drag.init.y.val=drag.init.draggable.y;???????????? ??????????*/
-					drag.init.x.val=drag.object.x.val;
-					drag.init.y.val=drag.object.y.val;
+					drag.init.transformdx.val=drag.object.transformdx.val;
+					drag.init.transformdy.val=drag.object.transformdy.val;
 					if(drag.object!=drag.init)drag.object.visible(false);
 					this.optns.drag={object:false,x:0,y:0};
 				}
