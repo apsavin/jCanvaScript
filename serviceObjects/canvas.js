@@ -182,7 +182,6 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					drag.object.transformdx.val=point.x;
 					drag.object.transformdy.val=point.y;
-					drag.x=drag.y=0;
 				}
 				drag.object.transformdx.val+=drag.init.draggable.shiftX;
 				drag.object.transformdy.val+=drag.init.draggable.shiftY;

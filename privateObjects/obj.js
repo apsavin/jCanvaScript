@@ -269,6 +269,32 @@ function obj(x,y)
 		}
 		return this.animate(parameters);
 	},
+	stop:function(jumpToEnd,runCallbacks)
+	{
+		this.animate.val=false;
+		for(var key in this)
+		{
+			if(this[key]['from']!==undefined)
+			{
+				this[key]['from']=undefined;
+				if(jumpToEnd!==undefined)
+					if(jumpToEnd)
+						this[key]['val']=this[key]['to'];
+			}
+		}		
+		var fnlimit=this.fn.length;
+		if(runCallbacks===undefined)runCallbacks=false;
+		for(var j=0;j<fnlimit;j++)
+		{
+			if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
+			{
+				this.fn[j].enabled=false;
+				if(runCallbacks)
+					this['fn'][j]['func'].apply(this);
+			}
+		}
+		return this;
+	},
 	animate:function(options,duration,easing,onstep,fn)
 	{
 		this.animate.val=true;

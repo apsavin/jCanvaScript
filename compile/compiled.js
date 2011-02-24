@@ -147,6 +147,7 @@ var jCanvaScript=function(stroke,map)
 	}
 }
 /**/
+
 function keyEvent(e)
 {
 	e=e||window.event;
@@ -550,7 +551,9 @@ function objDeleter(array,limit)
 }
 
 
+
 /**/
+
 function grdntsnptrn()
 {
 	var grdntsnptrn={};
@@ -591,6 +594,7 @@ function gradients(colors)
 	}
 	return gradients;
 }
+
 function obj(x,y)
 {	
 	var opacity=function(n)
@@ -861,6 +865,32 @@ function obj(x,y)
 			parameters[parameter]=value;
 		}
 		return this.animate(parameters);
+	},
+	stop:function(jumpToEnd,runCallbacks)
+	{
+		this.animate.val=false;
+		for(var key in this)
+		{
+			if(this[key]['from']!==undefined)
+			{
+				this[key]['from']=undefined;
+				if(jumpToEnd!==undefined)
+					if(jumpToEnd)
+						this[key]['val']=this[key]['to'];
+			}
+		}		
+		var fnlimit=this.fn.length;
+		if(runCallbacks===undefined)runCallbacks=false;
+		for(var j=0;j<fnlimit;j++)
+		{
+			if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
+			{
+				this.fn[j].enabled=false;
+				if(runCallbacks)
+					this['fn'][j]['func'].apply(this);
+			}
+		}
+		return this;
 	},
 	animate:function(options,duration,easing,onstep,fn)
 	{
@@ -1192,6 +1222,7 @@ function obj(x,y)
 	}
 	return obj;
 }
+
 function shapes(x,y,color,fill)
 {
 	if(color===undefined)color='rgba(0,0,0,1)';
@@ -1278,7 +1309,9 @@ function shapes(x,y,color,fill)
 	if(color===undefined)return shape;
 	return shape.color(color);
 }
+
 /**/
+
 jCanvaScript.addObject=function(name,parameters,drawfn)
 {
 	jCanvaScript[name]=function()
@@ -1317,7 +1350,9 @@ jCanvaScript.start=function(idCanvas,fps)
 {
 	lastCanvas=jCanvaScript.canvas(idCanvas).start(fps).layers[0].canvas.number;
 }
+
 /**/
+
 
 jCanvaScript.pattern = function(img,type)
 {
@@ -1370,6 +1405,7 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	}
 	return rGrad;
 }
+
 jCanvaScript.imageData=function(width,height)
 {
 	var imageData=obj();
@@ -1469,6 +1505,7 @@ jCanvaScript.image=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
 	}
 	return image;
 }
+
 jCanvaScript.circle=function(x,y,radius,color,fill)
 {
 	var circle = shapes(x,y,color,fill);
@@ -1627,7 +1664,9 @@ jCanvaScript.text = function(string,x,y,maxWidth,color,fill)
 	}
 	return text;
 }
+
 /**/
+
 jCanvaScript.canvas = function(idCanvas)
 {
 	if(idCanvas===undefined)return canvases[0];
@@ -1812,7 +1851,6 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					drag.object.transformdx.val=point.x;
 					drag.object.transformdy.val=point.y;
-					drag.x=drag.y=0;
 				}
 				drag.object.transformdx.val+=drag.init.draggable.shiftX;
 				drag.object.transformdy.val+=drag.init.draggable.shiftY;
@@ -1858,6 +1896,7 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	return canvas;
 }
+
 jCanvaScript.layer=function(idLayer)
 {
 	if(idLayer===undefined)return canvases[0].layers[0];
@@ -1981,4 +2020,5 @@ jCanvaScript.layer=function(idLayer)
 	}
 	return layer;
 }
+
 window.jCanvaScript=window.jc=jCanvaScript;})();
