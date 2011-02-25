@@ -36,11 +36,13 @@ jCanvaScript.canvas = function(idCanvas)
 		gCO: 'source-over'
 	}
 	canvas.layers=[];
+	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
 	canvas.start=function(fps)
 	{
 		if(fps)
 		{
+			if(this.interval)return this;
 			this.fps=parseInt(1000/fps);
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left;
@@ -72,7 +74,7 @@ jCanvaScript.canvas = function(idCanvas)
 				canvas.optns.keyPress.code=keyEvent(e).code;
 				canvas.optns.keyPress.val=true;
 			}
-			this.cnv.onmousemove=function(e)
+			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
 				if(!canvas.optns.mousemove.val)return;
 				mouseEvent(e,'mousemove',canvas.optns);
@@ -92,11 +94,12 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.pause=function()
 	{
 		clearInterval(this.interval);
+		this.interval=0;
 	}
 	canvas.clear=function()
 	{
 		clearInterval(this.interval);
-		this.layers=[];
+		this.interval=0;
 		jCanvaScript.layer(this.id.val+'Layer_0').canvas(this.id.val);
 		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
 	}

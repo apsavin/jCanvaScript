@@ -65,7 +65,7 @@ jCanvaScript.layer=function(idLayer)
 	layer.down=function(n)
 	{						
 		if(n == undefined)n=1;
-		if(n == 'bottom')n=0;
+		if(n == 'bottom')n=this.level.val;
 		this.level.val-=n;
 		for(var i=0;i<this.objs.length;i++)
 		{
