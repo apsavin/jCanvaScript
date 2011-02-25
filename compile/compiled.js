@@ -148,6 +148,66 @@ var jCanvaScript=function(stroke,map)
 }
 /**/
 
+function animating()
+{
+	if (!this.animate.val)return false;
+	var i=0;
+	var fnlimit=this.fn.length;
+	var progress=1;
+	for(var key in this)
+	{
+		if(this.hasOwnProperty(key))
+		{
+			i++;
+			if(this[key]===undefined)continue;
+			if(this[key]['from']!==undefined)
+			{
+				var property=this[key];
+				var step=property['step'];
+				var duration=property['duration'];
+				var easing=property['easing'];
+				var to=property['to'];
+				var from=property['from'];
+				var val=property['val'];
+				step++;
+				progress=step/duration;
+				if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))val=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
+				if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))val=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
+				if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
+				if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);property['prev']=val;}
+				if(step>duration)
+				{
+					from=undefined;
+					val=to;
+					if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);}
+					for(var j=0;j<fnlimit;j++)
+						if(this.fn[j][key])
+						{
+							this.fn[j][key]=false;
+							this.fn[j].count--;
+						}
+				}
+			}
+			else
+			{
+				for(j=0;j<fnlimit;j++)
+				{
+					if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
+					{
+						this.fn[j].enabled=false;
+						this['fn'][j]['func'].apply(this);
+					}
+				}
+				i--;
+			}
+		}
+	}
+	if (i==0)
+	{
+		this.animate.val=false;
+	}
+	return false;
+}
 function keyEvent(e)
 {
 	e=e||window.event;
@@ -190,7 +250,7 @@ var animateFunctions={
 		var sum = [1];
 		for(var i=1; i<n; i++) sum[i] = sum[i-1] + Math.pow(b, i/2);
 		var x = 2*sum[n-1]-1;
-		for(var i=0; i<n; i++)
+		for(i=0; i<n; i++)
 		{
 			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
 				return Math.pow(x*(progress-(2*sum[i]-1-Math.pow(b, i/2))/x), 2)+1-Math.pow(b, i);
@@ -559,7 +619,6 @@ function grdntsnptrn()
 	var grdntsnptrn={};
 	var tmpObj=obj();
 	grdntsnptrn.animate=tmpObj.animate;
-	grdntsnptrn.animating=tmpObj.animating;
 	grdntsnptrn.layer=tmpObj.layer;
 	grdntsnptrn.id=tmpObj.id;
 	grdntsnptrn.level=tmpObj.level;
@@ -1034,58 +1093,6 @@ function obj(x,y)
 		}
 		return this;
 	},
-	animating:function()
-	{
-		if (!this.animate.val)return false;
-		var i=0;
-		var fnlimit=this.fn.length;
-		var progress=1;
-		for(var key in this)
-		{
-			if(this.hasOwnProperty(key))
-			{
-				i++;
-				if(this[key]===undefined)continue;
-				if(this[key]['from']!==undefined)
-				{
-					this[key]['step']++;
-					progress=this[key]['step']/this[key]['duration'];
-					if(this[key]['easing']['type']=='in' || (this[key]['easing']['type']=='inOut' && progress<0.5))this[key]['val']=(this[key]['to']-this[key]['from'])*animateFunctions[this[key]['easing']['fn']](progress,this[key]['easing'])+this[key]['from'];
-					if(this[key]['easing']['type']=='out' || (this[key]['easing']['type']=='inOut' && progress>0.5))this[key]['val']=(this[key]['to']-this[key]['from'])*(1-animateFunctions[this[key]['easing']['fn']](1-progress,this[key]['easing']))+this[key]['from'];
-					if(this[key]['onstep'])this[key]['onstep'].fn.call(this,this[key]['onstep']);
-					if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);this[key]['prev']=this[key]['val'];}
-					if(this[key]['step']>this[key]['duration'])
-					{
-						this[key]['from']=undefined;	
-						this[key]['val']=this[key]['to'];
-						if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);}
-						for(var j=0;j<fnlimit;j++)
-							if(this.fn[j][key])
-							{
-								this.fn[j][key]=false;
-								this.fn[j].count--;
-							}
-					}
-				}
-				else 
-				{
-					for(j=0;j<fnlimit;j++)
-					{
-						if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
-						{
-							this.fn[j].enabled=false;
-							this['fn'][j]['func'].apply(this);
-						}
-					}
-					i--;
-				}
-			}
-		}
-		if (i==0)
-		{
-			this.animate.val=false;
-		}
-	},
 	setMatrix:function(m)
 	{
 		this.transform11.val=m[0][0];
@@ -1164,13 +1171,13 @@ function obj(x,y)
 		if(this.clip.val)
 		{
 			var clipObject=this.clip.val;
-			clipObject.visible(true).animating();
+			animating.call(clipObject.visible(true));
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
-		this.animating();
+		animating.call(this);
 		this.setOptns(ctx);
 		ctx.beginPath();
 		return true;
@@ -1361,7 +1368,7 @@ jCanvaScript.pattern = function(img,type)
 	pattern.type={val:type||'repeat'};
 	pattern.create = function(ctx)
 	{
-		this.animating();
+		animating.call(this);
 		this.val = ctx.createPattern(this.img.val,this.type.val);
 	}
 	return pattern;
@@ -1376,7 +1383,7 @@ jCanvaScript.lGradient=function(x1,y1,x2,y2,colors)
 	lGrad.y2 = {val:y2};
 	lGrad.create = function(ctx)
 	{
-		this.animating();
+		animating.call(this);
 		this.val=ctx.createLinearGradient(this.x1.val,this.y1.val,this.x2.val,this.y2.val);
 		for(var i=0;i<=this.n;i++)
 		{
@@ -1396,7 +1403,7 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	rGrad.r2 = {val:r2};
 	rGrad.create = function(ctx)
 	{
-		this.animating();
+		animating.call(this);
 		this.val=ctx.createRadialGradient(this.x1.val,this.y1.val,this.r1.val,this.x2.val,this.y2.val,this.r2.val);  
 		for(var i=0;i<=this.n;i++)
 		{
@@ -1705,11 +1712,13 @@ jCanvaScript.canvas = function(idCanvas)
 		gCO: 'source-over'
 	}
 	canvas.layers=[];
+	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
 	canvas.start=function(fps)
 	{
 		if(fps)
 		{
+			if(this.interval)return this;
 			this.fps=parseInt(1000/fps);
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left;
@@ -1741,7 +1750,7 @@ jCanvaScript.canvas = function(idCanvas)
 				canvas.optns.keyPress.code=keyEvent(e).code;
 				canvas.optns.keyPress.val=true;
 			}
-			this.cnv.onmousemove=function(e)
+			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
 				if(!canvas.optns.mousemove.val)return;
 				mouseEvent(e,'mousemove',canvas.optns);
@@ -1761,11 +1770,12 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.pause=function()
 	{
 		clearInterval(this.interval);
+		this.interval=0;
 	}
 	canvas.clear=function()
 	{
 		clearInterval(this.interval);
-		this.layers=[];
+		this.interval=0;
 		jCanvaScript.layer(this.id.val+'Layer_0').canvas(this.id.val);
 		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
 	}
@@ -1917,7 +1927,6 @@ jCanvaScript.layer=function(idLayer)
 	layer.id=tmpObj.id;
 	layer.id.val=idLayer;
 	layer.animate=tmpObj.animate;
-	layer.animating=tmpObj.animating;
 	layer.optns={
 		anyObjDeleted: false,
 		anyObjLevelChanged: false,
@@ -1964,7 +1973,7 @@ jCanvaScript.layer=function(idLayer)
 	layer.down=function(n)
 	{						
 		if(n == undefined)n=1;
-		if(n == 'bottom')n=0;
+		if(n == 'bottom')n=this.level.val;
 		this.level.val-=n;
 		for(var i=0;i<this.objs.length;i++)
 		{
@@ -1987,7 +1996,7 @@ jCanvaScript.layer=function(idLayer)
 	}
 	layer.draw=function(canvasOptns)
 	{
-		this.animating();
+		animating.call(this);
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
 		limit=this.objs.length;
 		for(var i=0;i<limitGrdntsNPtrns;i++)
@@ -2007,13 +2016,14 @@ jCanvaScript.layer=function(idLayer)
 		canvasOptns.ctx.globalCompositeOperation = this.optns.gCO;
 		for(i=0;i<limit;i++)
 		{
-			if(typeof (this.objs[i].draw)=='function')
-				if(this.objs[i].beforeDraw(canvasOptns.ctx))	
+			var object=this.objs[i];
+			if(typeof (object.draw)=='function')
+				if(object.beforeDraw(canvasOptns.ctx))
 				{
-					if(typeof (this.objs[i].draw)=='function')
+					if(typeof (object.draw)=='function')
 					{
-						this.objs[i].draw(canvasOptns.ctx);
-						this.objs[i].afterDraw(canvasOptns);
+						object.draw(canvasOptns.ctx);
+						object.afterDraw(canvasOptns);
 					}
 				}
 		}

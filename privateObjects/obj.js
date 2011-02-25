@@ -437,58 +437,6 @@ function obj(x,y)
 		}
 		return this;
 	},
-	animating:function()
-	{
-		if (!this.animate.val)return false;
-		var i=0;
-		var fnlimit=this.fn.length;
-		var progress=1;
-		for(var key in this)
-		{
-			if(this.hasOwnProperty(key))
-			{
-				i++;
-				if(this[key]===undefined)continue;
-				if(this[key]['from']!==undefined)
-				{
-					this[key]['step']++;
-					progress=this[key]['step']/this[key]['duration'];
-					if(this[key]['easing']['type']=='in' || (this[key]['easing']['type']=='inOut' && progress<0.5))this[key]['val']=(this[key]['to']-this[key]['from'])*animateFunctions[this[key]['easing']['fn']](progress,this[key]['easing'])+this[key]['from'];
-					if(this[key]['easing']['type']=='out' || (this[key]['easing']['type']=='inOut' && progress>0.5))this[key]['val']=(this[key]['to']-this[key]['from'])*(1-animateFunctions[this[key]['easing']['fn']](1-progress,this[key]['easing']))+this[key]['from'];
-					if(this[key]['onstep'])this[key]['onstep'].fn.call(this,this[key]['onstep']);
-					if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);this[key]['prev']=this[key]['val'];}
-					if(this[key]['step']>this[key]['duration'])
-					{
-						this[key]['from']=undefined;	
-						this[key]['val']=this[key]['to'];
-						if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);}
-						for(var j=0;j<fnlimit;j++)
-							if(this.fn[j][key])
-							{
-								this.fn[j][key]=false;
-								this.fn[j].count--;
-							}
-					}
-				}
-				else 
-				{
-					for(j=0;j<fnlimit;j++)
-					{
-						if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
-						{
-							this.fn[j].enabled=false;
-							this['fn'][j]['func'].apply(this);
-						}
-					}
-					i--;
-				}
-			}
-		}
-		if (i==0)
-		{
-			this.animate.val=false;
-		}
-	},
 	setMatrix:function(m)
 	{
 		this.transform11.val=m[0][0];
@@ -567,13 +515,13 @@ function obj(x,y)
 		if(this.clip.val)
 		{
 			var clipObject=this.clip.val;
-			clipObject.visible(true).animating();
+			animating.call(clipObject.visible(true));
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
-		this.animating();
+		animating.call(this);
 		this.setOptns(ctx);
 		ctx.beginPath();
 		return true;

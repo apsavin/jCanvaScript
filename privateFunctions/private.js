@@ -1,3 +1,67 @@
+function animating()
+{
+	if (!this.animate.val)return false;
+	var i=0;
+	var fnlimit=this.fn.length;
+	var progress=1;
+	for(var key in this)
+	{
+		if(this.hasOwnProperty(key))
+		{
+			i++;
+			if(this[key]===undefined)continue;
+			if(this[key]['from']!==undefined)
+			{
+				var property=this[key];
+				var step=property['step'];
+				var duration=property['duration'];
+				var easing=property['easing'];
+				var to=property['to'];
+				var from=property['from'];
+				var val=property['val'];
+				property['step']++;
+				progress=step/duration;
+				if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))property['val']=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
+				if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))property['val']=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
+				if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
+				if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);property['prev']=val;}
+				if(step>duration)
+				{
+					property['from']=undefined;
+					property['val']=to;
+					if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);}
+					for(var j=0;j<fnlimit;j++)
+					{
+						var fn=this.fn[j];
+						if(fn[key])
+						{
+							fn[key]=false;
+							fn.count--;
+						}
+					}
+				}
+			}
+			else
+			{
+				for(j=0;j<fnlimit;j++)
+				{
+					fn=this.fn[j];
+					if(fn['func'] != 0 && !fn['count'] && fn.enabled)
+					{
+						fn.enabled=false;
+						fn['func'].apply(this);
+					}
+				}
+				i--;
+			}
+		}
+	}
+	if (i==0)
+	{
+		this.animate.val=false;
+	}
+	return this;
+}
 function keyEvent(e)
 {
 	e=e||window.event;
@@ -40,7 +104,7 @@ var animateFunctions={
 		var sum = [1];
 		for(var i=1; i<n; i++) sum[i] = sum[i-1] + Math.pow(b, i/2);
 		var x = 2*sum[n-1]-1;
-		for(var i=0; i<n; i++)
+		for(i=0; i<n; i++)
 		{
 			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
 				return Math.pow(x*(progress-(2*sum[i]-1-Math.pow(b, i/2))/x), 2)+1-Math.pow(b, i);

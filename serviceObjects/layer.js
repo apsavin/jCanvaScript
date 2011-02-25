@@ -18,7 +18,6 @@ jCanvaScript.layer=function(idLayer)
 	layer.id=tmpObj.id;
 	layer.id.val=idLayer;
 	layer.animate=tmpObj.animate;
-	layer.animating=tmpObj.animating;
 	layer.optns={
 		anyObjDeleted: false,
 		anyObjLevelChanged: false,
@@ -88,7 +87,7 @@ jCanvaScript.layer=function(idLayer)
 	}
 	layer.draw=function(canvasOptns)
 	{
-		this.animating();
+		animating.call(this);
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
 		limit=this.objs.length;
 		for(var i=0;i<limitGrdntsNPtrns;i++)
@@ -108,13 +107,14 @@ jCanvaScript.layer=function(idLayer)
 		canvasOptns.ctx.globalCompositeOperation = this.optns.gCO;
 		for(i=0;i<limit;i++)
 		{
-			if(typeof (this.objs[i].draw)=='function')
-				if(this.objs[i].beforeDraw(canvasOptns.ctx))	
+			var object=this.objs[i];
+			if(typeof (object.draw)=='function')
+				if(object.beforeDraw(canvasOptns.ctx))
 				{
-					if(typeof (this.objs[i].draw)=='function')
+					if(typeof (object.draw)=='function')
 					{
-						this.objs[i].draw(canvasOptns.ctx);
-						this.objs[i].afterDraw(canvasOptns);
+						object.draw(canvasOptns.ctx);
+						object.afterDraw(canvasOptns);
 					}
 				}
 		}

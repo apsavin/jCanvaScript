@@ -3,7 +3,6 @@ function grdntsnptrn()
 	var grdntsnptrn={};
 	var tmpObj=obj();
 	grdntsnptrn.animate=tmpObj.animate;
-	grdntsnptrn.animating=tmpObj.animating;
 	grdntsnptrn.layer=tmpObj.layer;
 	grdntsnptrn.id=tmpObj.id;
 	grdntsnptrn.level=tmpObj.level;
