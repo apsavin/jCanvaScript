@@ -45,6 +45,7 @@ jCanvaScript.layer=function(idLayer)
 			this.objs[i].layer.number=this.level.val;
 			this.objs[i].layer.canvas=newCanvas;
 		}
+		canvases[this.canvas.number].optns.redraw++;
 		return this;
 	}
 	layer.canvas.val=canvases[lastCanvas].id.val;
@@ -59,6 +60,7 @@ jCanvaScript.layer=function(idLayer)
 			this.objs[i].layer.number=this.level.val;
 		}
 		canvases[this.canvas.number].optns.anyLayerLevelChanged = true;
+		canvases[this.canvas.number].optns.redraw++;
 		return this;
 	}
 	layer.down=function(n)
@@ -71,18 +73,21 @@ jCanvaScript.layer=function(idLayer)
 			this.objs[i].layer.number=this.level.val;
 		}
 		canvases[this.canvas.number].optns.anyLayerLevelChanged = true;
+		canvases[this.canvas.number].optns.redraw++;
 		return this;
 	}
 	layer.del=function()
 	{
 		canvases[this.canvas.number].optns.anyLayerDeleted = true;
 		this.draw = false;
+		canvases[this.canvas.number].optns.redraw++;
 		return;
 	}
 	layer.composite=function(composite)
 	{
 		if(composite===undefined)return this.optns.gCO;
 		else this.optns.gCO=composite;
+		canvases[this.canvas.number].optns.redraw++;
 		return this;
 	}
 	layer.draw=function(canvasOptns)

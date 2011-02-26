@@ -4,6 +4,7 @@ function obj(x,y)
 	{
 		if(n === undefined) return this.opacity.val;
 		this.opacity.val=n;
+		redraw(this);
 		return this;
 	}
 	opacity.val=1;	
@@ -19,6 +20,7 @@ function obj(x,y)
 	{
 		if(visibility===undefined)return this.visible.val;
 		this.visible.val=visibility;
+		redraw(this);
 		return this;
 	}
 	visible.val=true;
@@ -164,6 +166,7 @@ function obj(x,y)
 				this.shadowColorA = colorKeeper.alpha;
 				break;
 		}
+		redraw(this);
 		return this;
 	},
 	setOptns:function(ctx)
@@ -182,6 +185,7 @@ function obj(x,y)
 		if(n == 'top')n=canvases[this.layer.canvas].layers[this.layer.number].objs.length-1;
 		this.level.val+=n;
 		canvases[this.layer.canvas].layers[this.layer.number].optns.anyObjLevelChanged = true;
+		redraw(this);
 		return this;
 	},
 	down:function(n)
@@ -190,6 +194,7 @@ function obj(x,y)
 		if(n == 'bottom')n=this.level.val;
 		this.level.val-=n;
 		canvases[this.layer.canvas].layers[this.layer.number].optns.anyObjLevelChanged = true;
+		redraw(this);
 		return this;
 	},
 	level:function(n)
@@ -197,6 +202,7 @@ function obj(x,y)
 		if(n == undefined)return this.level.val;
 		this.level.val=n;
 		canvases[this.layer.canvas].layers[this.layer.number].optns.anyObjLevelChanged = true;
+		redraw(this);
 		return this;
 	},
 	layer:olayer,
@@ -205,6 +211,7 @@ function obj(x,y)
 	{
 		this.draw=false;
 		canvases[this.layer.canvas].layers[this.layer.number].optns.anyObjDeleted = true;
+		redraw(this);
 	},
 	focus:focus,
 	blur:function(fn)
@@ -380,10 +387,15 @@ function obj(x,y)
 		if(options.color !== undefined)
 		{
 			var colorKeeper=parseColor(options.color);
-			options.colorR=colorKeeper.colorR.val;
-			options.colorG=colorKeeper.colorG.val;
-			options.colorB=colorKeeper.colorB.val;
-			options.alpha=colorKeeper.alpha.val;
+			if(colorKeeper.color.notColor)
+				this.color.notColor=colorKeeper.color.notColor;
+			else
+			{
+				options.colorR=colorKeeper.colorR.val;
+				options.colorG=colorKeeper.colorG.val;
+				options.colorB=colorKeeper.colorB.val;
+				options.alpha=colorKeeper.alpha.val;
+			}
 			options.color = undefined;
 		}
 		if(options.shadowColor !== undefined)
@@ -407,6 +419,7 @@ function obj(x,y)
 			else
 				if (options.level=='bottom')options.level=0;	
 		}
+		var re = /^[A-z]*$/;
 		for(var key in options)
 		{
 			if(this[key] !== undefined && options[key]!==undefined)
@@ -419,22 +432,30 @@ function obj(x,y)
 						{
 							options[key]=this[key]['val']+parseInt(options[key].charAt(0)+options[key].substr(2));
 						}
-						else options[key]=parseInt(options[key]);
+						else if(re.test(options[key]))options[key]=parseInt(options[key]);
+						else this[key]['val']=options[key];
 					}
-					this[key]['from']=this[key]['val'];
-					this[key]['to']=options[key];
-					this[key]['duration']=duration;
-					this[key]['step']=1;
-					this[key]['easing']=easing;
-					this[key]['onstep']=onstep;
-					if(fn)
+					if(duration==1)this[key]['val']=options[key];
+					else
 					{
-						this.fn[fnlimit][key]=true;
-						this.fn[fnlimit].count++;
+						this[key]['from']=this[key]['val'];
+						this[key]['to']=options[key];
+						this[key]['duration']=duration;
+						this[key]['step']=1;
+						this[key]['easing']=easing;
+						this[key]['onstep']=onstep;
+						if(fn)
+						{
+							this.fn[fnlimit][key]=true;
+							this.fn[fnlimit].count++;
+						}
 					}
 				}
 			}
 		}
+		if(duration==1 && options['rotateAngle'])
+			this.rotate(this.rotateAngle.val,this.rotateX.val,this.rotateY.val);
+		redraw(this);
 		return this;
 	},
 	setMatrix:function(m)
@@ -445,6 +466,7 @@ function obj(x,y)
 		this.transform22.val=m[1][1];
 		this.transformdx.val=m[0][2];
 		this.transformdy.val=m[1][2];
+		redraw(this);
 	},
 	translate:function(x,y)
 	{
@@ -531,6 +553,7 @@ function obj(x,y)
 		if(object===undefined)return this.clip.val;
 		object.visible(false);
 		this.clip.val=object;
+		redraw(this);
 		return this;
 	},
 	afterDraw:function(optns)
@@ -570,6 +593,7 @@ function obj(x,y)
 		obj.layer.number=0;
 		obj.layer.canvas=lastCanvas;
 		obj.layer.val=canvases[lastCanvas].layers[0].id.val;
+		redraw(obj);
 	}
 	return obj;
 }

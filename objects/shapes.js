@@ -114,23 +114,17 @@ jCanvaScript.text = function(string,x,y,maxWidth,color,fill)
 	text.maxWidth={val:maxWidth||false};
 	text.font=function(font)
 	{
-		if(font===undefined)return this.font.val;
-		this.font.val=font;
-		return this;
+		return this.attr('font',font);
 	}
 	text.font.val="10px sans-serif";
 	text.align=function(align)
 	{
-		if(align===undefined)return this.align.val;
-		this.align.val=align;
-		return this;
+		return this.attr('align',align);
 	}
 	text.align.val="start";
 	text.baseline=function(baseline)
 	{
-		if(baseline===undefined)return this.baseline.val;
-		this.baseline.val=baseline;
-		return this;
+		return this.attr('baseline',baseline);
 	}
 	text.baseline.val="alphabetic";
 	text.setShapeOptns = text.setOptns;

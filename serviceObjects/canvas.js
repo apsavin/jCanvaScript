@@ -33,7 +33,8 @@ jCanvaScript.canvas = function(idCanvas)
 		mouseup:{val:false,x:false,y:false,object:false},
 		mousedown:{val:false,x:false,y:false,object:false},
 		drag:{object:false,x:0,y:0},
-		gCO: 'source-over'
+		gCO: 'source-over',
+		redraw:1
 	}
 	canvas.layers=[];
 	canvas.interval=0;
@@ -61,18 +62,15 @@ jCanvaScript.canvas = function(idCanvas)
 				mouseEvent(e,'mouseup',canvas.optns);
 			};
 			this.cnv.onkeyup=function(e){
-				canvas.optns.keyUp.code=keyEvent(e).code;
-				canvas.optns.keyUp.val=true;
+				keyEvent(e,'keyUp',canvas.optns);
 			}
 			this.cnv.onkeydown=function(e)
 			{
-				canvas.optns.keyDown.code=keyEvent(e).code;
-				canvas.optns.keyDown.val=true;
+				keyEvent(e,'keyDown',canvas.optns);
 			}
 			this.cnv.onkeypress=function(e)
 			{
-				canvas.optns.keyPress.code=keyEvent(e).code;
-				canvas.optns.keyPress.val=true;
+				keyEvent(e,'keyPress',canvas.optns);
 			}
 			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
@@ -100,8 +98,11 @@ jCanvaScript.canvas = function(idCanvas)
 	{
 		clearInterval(this.interval);
 		this.interval=0;
+		this.layers=[];
 		jCanvaScript.layer(this.id.val+'Layer_0').canvas(this.id.val);
 		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
+		this.optns.redraw++;
+		return this;
 	}
 	canvas.composite=function(composite)
 	{
@@ -109,22 +110,25 @@ jCanvaScript.canvas = function(idCanvas)
 		else this.optns.gCO=composite;
 		for(var i=0;i<this.layers.length;i++)
 			this.layers[i].composite(composite);
+		this.optns.redraw++;
 		return this;
 	}
 	canvas.frame=function()
 	{
+		if(!this.optns.redraw)return;
+		this.optns.redraw--;
 		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
 		var limit=this.layers.length;
 		if(limit==0)return;
-		if(this.anyLayerLevelChanged)
+		if(this.optns.anyLayerLevelChanged)
 		{
 			levelChanger(this.layers);
-			this.anyLayerLevelChanged=false;
+			this.optns.anyLayerLevelChanged=false;
 		}
-		if(this.anyLayerDeleted)
+		if(this.optns.anyLayerDeleted)
 		{
 			limit=objDeleter(this.layers,limit);
-			this.anyLayerDeleted=false;
+			this.optns.anyLayerDeleted=false;
 		}
 		for(var i=0;i<limit;i++)
 			this.layers[i].draw(this.optns);

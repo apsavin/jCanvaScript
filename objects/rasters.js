@@ -18,6 +18,7 @@ jCanvaScript.imageData=function(width,height)
 		this.data[index+1] = colorKeeper.colorG.val;
 		this.data[index+2] = colorKeeper.colorB.val;
 		this.data[index+3] = colorKeeper.alpha.val*255;
+		redraw(this);
 		return this;
 	}
 	imageData.getPixel=function(x,y)
@@ -42,6 +43,7 @@ jCanvaScript.imageData=function(width,height)
 		if(x!==undefined)this.x.val=x;
 		if(y!==undefined)this.y.val=y;
 		this.putData.val=true;
+		redraw(this);
 		return this;
 	}
 	imageData.putData.val=false;

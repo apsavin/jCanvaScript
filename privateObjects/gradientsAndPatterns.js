@@ -19,6 +19,7 @@ function grdntsnptrn()
 	}
 	grdntsnptrn.level.val=canvases[lastCanvas].layers[0].grdntsnptrns.length;
 	canvases[lastCanvas].layers[0].grdntsnptrns[grdntsnptrn.level.val]=grdntsnptrn;
+	redraw(grdntsnptrn);
 	return grdntsnptrn;
 }
 function gradients(colors)

@@ -1,3 +1,9 @@
+function redraw(object)
+{
+	var canvas=canvases[object.layer.canvas];
+	if(canvas.optns.redraw<2)canvas.optns.redraw++;
+}
+
 function animating()
 {
 	if (!this.animate.val)return false;
@@ -60,12 +66,15 @@ function animating()
 	{
 		this.animate.val=false;
 	}
+	else redraw(this);
 	return this;
 }
-function keyEvent(e)
+function keyEvent(e,key,optns)
 {
 	e=e||window.event;
-	return {code:e.charCode||e.keyCode};
+	optns[key].code=e.charCode||e.keyCode;
+	optns[key].val=true;
+	return false;
 }
 function mouseEvent(e,key,optns)
 {
@@ -74,6 +83,7 @@ function mouseEvent(e,key,optns)
 				pageY:e.pageY||e.clientY};
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
+	optns.redraw++;
 	return false;
 }
 function setMouseEvent(fn,eventName)
@@ -375,6 +385,7 @@ function group()
 
 function layer(idLayer,object,array)
 {
+	redraw(object);
 	if (idLayer===undefined)return object.layer.val;
 	if(object.layer.val==idLayer)return object;
 	var oldIndex={i:object.layer.canvas,j:object.layer.number};
@@ -386,10 +397,12 @@ function layer(idLayer,object,array)
 	canvases[newIndex.i].layers[newIndex.j][array][object.level.val]=object;
 	object.layer.number=newIndex.j;
 	object.layer.canvas=newIndex.i;
+	redraw(object);
 	return object;
 }
 function canvas(idCanvas,object,array)
 {
+	redraw(object);
 	if(idCanvas===undefined)return canvases[object.layer.canvas].id.val;
 	if(canvases[object.layer.canvas].id.val==idCanvas)return object;
 	var oldIndex={
@@ -407,6 +420,7 @@ function canvas(idCanvas,object,array)
 			object.layer.canvas=i;
 			object.layer.val=canvases[i].layers[0].id.val;
 		}
+	redraw(object);
 	return object;
 }
 
