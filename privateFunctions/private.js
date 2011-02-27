@@ -332,12 +332,6 @@ function isPointInPath(object,x,y)
 	var ctx=canvases[object.canvas.number].optns.ctx;
 	point.x=x;
 	point.y=y;
-/*	if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-	{
-		var layer=canvases[object.canvas.number].layers[object.layer.number];
-		point=transformPoint(point.x,point.y,layer.matrix());
-		point=transformPoint(point.x,point.y,object.matrix());
-	}*/
 	if(ctx.isPointInPath===undefined || object.img!==undefined || object.imgData!==undefined)
 	{
 		var rectangle=getObjectRectangle(object);

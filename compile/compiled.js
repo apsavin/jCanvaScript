@@ -482,12 +482,6 @@ function isPointInPath(object,x,y)
 	var ctx=canvases[object.canvas.number].optns.ctx;
 	point.x=x;
 	point.y=y;
-/*	if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-	{
-		var layer=canvases[object.canvas.number].layers[object.layer.number];
-		point=transformPoint(point.x,point.y,layer.matrix());
-		point=transformPoint(point.x,point.y,object.matrix());
-	}*/
 	if(ctx.isPointInPath===undefined || object.img!==undefined || object.imgData!==undefined)
 	{
 		var rectangle=getObjectRectangle(object);
@@ -817,7 +811,7 @@ function obj(x,y,service)
 		var clone=shapes('rgba(0,0,0,0)');
 		for(var key in this)
 		{
-			if(key=='id' || key=='level' || key=="draggable" || key=="droppable" || key=="click" || key.substr(0,5)=="mouse" || key.substr(0,3)=="key")continue;
+			if(key=='id' || key=='level' || key=='canvas' || key=='layer' || key=="draggable" || key=="droppable" || key=="click" || key.substr(0,5)=="mouse" || key.substr(0,3)=="key")continue;
 			if(!clone.hasOwnProperty(key))
 			{
 				switch(typeof this[key])
@@ -831,9 +825,7 @@ function obj(x,y,service)
 				clone[key][subKey]=this[key][subKey];
 			}
 		}
-		var limit=canvases[this.canvas.number].layers[this.layer.number].objs.length;
-		clone.level={val:limit,current:limit}
-		canvases[this.canvas.number].layers[this.layer.number].objs[limit]=clone;
+		clone.layer(canvases[this.canvas.number].layers[this.layer.number].id.val);
 		if(params===undefined) return clone;
 		return clone.animate(params);
 	},
@@ -1163,8 +1155,15 @@ function obj(x,y,service)
 				}
 			}
 		}
-		if(duration==1 && options['rotateAngle'])
-			this.rotate(this.rotateAngle.val,this.rotateX.val,this.rotateY.val);
+		if(duration==1)
+		{
+			if(options['rotateAngle'])
+				this.rotate(this.rotateAngle.val,this.rotateX.val,this.rotateY.val);
+			if(options['translateX']||options['translateY'])
+				this.translate(this.translateX.val,this.translateY.val);
+			if(options['scaleX']||options['scaleY'])
+				this.scale(this.scaleX.val,this.scaleY.val);
+		}
 		redraw(this);
 		return this;
 	},
@@ -1183,7 +1182,10 @@ function obj(x,y,service)
 	translateY:{val:0},
 	translate:function(x,y)
 	{
-		this.translate.matrix=[[1,0,x],[0,1,y]];
+		if(this.translate.matrix)
+			this.translate.matrix=multiplyM(this.translate.matrix,[[1,0,x],[0,1,y]]);
+		else
+			this.translate.matrix=[[1,0,x],[0,1,y]];
 		redraw(this);
 		return this;
 	},
@@ -1192,7 +1194,10 @@ function obj(x,y,service)
 	scale:function(x,y)
 	{
 		if(y===undefined)y=x;
-		this.scale.matrix=[[x,0,this.x.val*(1-x)],[0,y,this.y.val*(1-y)]];
+		if(this.scale.matrix)
+			this.scale.matrix=multiplyM(this.scale.matrix,[[x,0,this.x.val*(1-x)],[0,y,this.y.val*(1-y)]]);
+		else
+			this.scale.matrix=[[x,0,this.x.val*(1-x)],[0,y,this.y.val*(1-y)]];
 		redraw(this);
 		return this;
 	},
@@ -1205,9 +1210,10 @@ function obj(x,y,service)
 		x=Math.PI*x/180;
 		var cos=Math.cos(x);
 		var sin=Math.sin(x);
+		var matrix=[];
 		if(x1===undefined)
 		{
-			this.rotate.matrix=[[cos,-sin,0],[sin,cos,0]];
+			matrix=[[cos,-sin,0],[sin,cos,0]];
 		}
 		else 
 		{
@@ -1225,8 +1231,12 @@ function obj(x,y,service)
 					y1=point.y+y1.y;
 				}
 			}
-			this.rotate.matrix=[[cos,-sin,-x1*(cos-1)+y1*sin],[sin,cos,-y1*(cos-1)-x1*sin]];
-		}	
+			matrix=[[cos,-sin,-x1*(cos-1)+y1*sin],[sin,cos,-y1*(cos-1)-x1*sin]];
+		}
+		if(this.rotate.matrix)
+				this.rotate.matrix=multiplyM(this.rotate.matrix,matrix);
+			else
+				this.rotate.matrix=matrix;
 		return this;
 	},
 	transform11:{val:1},
@@ -2075,13 +2085,45 @@ jCanvaScript.layer=function(idLayer)
 	{
 		ctx.setTransform(1,0,0,1,0,0);
 		layer.setObjOptns(ctx);
-		/*ctx.globalAlpha = this.opacity.val;
-		ctx.shadowOffsetX = this.shadowX.val;
-		ctx.shadowOffsetY = this.shadowY.val;
-		ctx.shadowBlur = this.shadowBlur.val;
-		ctx.shadowColor = 'rgba('+this.shadowColorR.val+','+this.shadowColorG.val+','+this.shadowColorB.val+','+this.shadowColorA.val+')';
-		ctx.setTransform(this.transform11.val,this.transform12.val,this.transform21.val,this.transform22.val,this.transformdx.val,this.transformdy.val);*/
 		return this;
+	}
+	layer.clone=function(idLayer,params)
+	{
+		var clone=jCanvaScript.layer(idLayer);
+		for(var key in this)
+		{
+			if(key=='id' || key=='canvas' || key=='level' || key=="draggable" || key=="droppable" || key=="click" || key.substr(0,5)=="mouse" || key.substr(0,3)=="key")continue;
+			if(key=='objs')
+			{
+				for(var i=0;i<this.objs.length;i++)
+				{
+					this.objs[i].clone().layer(idLayer);
+				}
+				continue;
+			}
+			if(!clone.hasOwnProperty(key))
+			{
+				switch(typeof this[key])
+				{
+					case 'object':clone[key]={};break;
+					default:clone[key]=this[key];
+				}
+			}
+			for(var subKey in this[key])
+			{
+				clone[key][subKey]=this[key][subKey];
+			}
+		}
+		clone.canvas(canvases[this.canvas.number].id.val);
+		if(params===undefined) return clone;
+		return clone.animate(params);
+	}
+	layer.isPointIn=function(x,y,global)
+	{
+		for(var i=0;i<this.objs.length;i++)
+			if(this.objs[i].isPointIn(x,y,global))
+				return true;
+		return false;
 	}
 	layer.draw=function(canvasOptns)
 	{

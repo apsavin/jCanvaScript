@@ -86,13 +86,45 @@ jCanvaScript.layer=function(idLayer)
 	{
 		ctx.setTransform(1,0,0,1,0,0);
 		layer.setObjOptns(ctx);
-		/*ctx.globalAlpha = this.opacity.val;
-		ctx.shadowOffsetX = this.shadowX.val;
-		ctx.shadowOffsetY = this.shadowY.val;
-		ctx.shadowBlur = this.shadowBlur.val;
-		ctx.shadowColor = 'rgba('+this.shadowColorR.val+','+this.shadowColorG.val+','+this.shadowColorB.val+','+this.shadowColorA.val+')';
-		ctx.setTransform(this.transform11.val,this.transform12.val,this.transform21.val,this.transform22.val,this.transformdx.val,this.transformdy.val);*/
 		return this;
+	}
+	layer.clone=function(idLayer,params)
+	{
+		var clone=jCanvaScript.layer(idLayer);
+		for(var key in this)
+		{
+			if(key=='id' || key=='canvas' || key=='level' || key=="draggable" || key=="droppable" || key=="click" || key.substr(0,5)=="mouse" || key.substr(0,3)=="key")continue;
+			if(key=='objs')
+			{
+				for(var i=0;i<this.objs.length;i++)
+				{
+					this.objs[i].clone().layer(idLayer);
+				}
+				continue;
+			}
+			if(!clone.hasOwnProperty(key))
+			{
+				switch(typeof this[key])
+				{
+					case 'object':clone[key]={};break;
+					default:clone[key]=this[key];
+				}
+			}
+			for(var subKey in this[key])
+			{
+				clone[key][subKey]=this[key][subKey];
+			}
+		}
+		clone.canvas(canvases[this.canvas.number].id.val);
+		if(params===undefined) return clone;
+		return clone.animate(params);
+	}
+	layer.isPointIn=function(x,y,global)
+	{
+		for(var i=0;i<this.objs.length;i++)
+			if(this.objs[i].isPointIn(x,y,global))
+				return true;
+		return false;
 	}
 	layer.draw=function(canvasOptns)
 	{
