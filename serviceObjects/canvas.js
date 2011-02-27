@@ -202,8 +202,11 @@ jCanvaScript.canvas = function(idCanvas)
 					drag.y=point.y;
 					if(drag.object!=drag.init && drag.init.draggable.type!='clone')
 					{
-						drag.object.transformdx.val=point.x;
-						drag.object.transformdy.val=point.y;
+						point.x=-drag.object.x.val+point.x;
+						point.y=-drag.object.y.val+point.y;
+						drag.x-=point.x;
+						drag.y-=point.y;
+						drag.object.transform(1,0,0,1,point.x,point.y);
 					}
 					drag.object.transformdx.val+=drag.init.draggable.shiftX;
 					drag.object.transformdy.val+=drag.init.draggable.shiftY;

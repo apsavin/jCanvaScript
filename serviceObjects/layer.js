@@ -18,8 +18,7 @@ jCanvaScript.layer=function(idLayer)
 	layer.optns={
 		anyObjDeleted: false,
 		anyObjLevelChanged: false,
-		gCO: canvases[lastCanvas].optns.gCO,
-		isPointInPath:false
+		gCO: canvases[lastCanvas].optns.gCO
 	}
 	layer.canvas=function(idCanvas)
 	{
@@ -87,6 +86,17 @@ jCanvaScript.layer=function(idLayer)
 		ctx.setTransform(1,0,0,1,0,0);
 		layer.setObjOptns(ctx);
 		return this;
+	}
+	layer.afterDraw=function(optns)
+	{
+		optns.ctx.closePath();
+		optns.ctx.restore();
+		if(this.clip.val)
+		{
+			var clipObject=this.clip.val;
+			if(clipObject.afterDrawObj)clipObject.afterDrawObj(optns);
+			else clipObject.afterDraw();
+		}
 	}
 	layer.clone=function(idLayer,params)
 	{

@@ -297,7 +297,14 @@ function obj(x,y,service)
 				this[key]['from']=undefined;
 				if(jumpToEnd!==undefined)
 					if(jumpToEnd)
+					{
 						this[key]['val']=this[key]['to'];
+						if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);}
+						if(key=='translateX'){this.translate(this[key]['val']-this[key]['prev'],0);}
+						if(key=='translateY'){this.translate(0,this[key]['val']-this[key]['prev']);}
+						if(key=='scaleX'){this.scale(this[key]['val']-this[key]['prev'],0);}
+						if(key=='scaleY'){this.scale(0,this[key]['val']-this[key]['prev']);}
+					}
 			}
 		}		
 		var fnlimit=this.fn.length;
@@ -555,6 +562,7 @@ function obj(x,y,service)
 			var m=multiplyM(this.matrix(),[[m11,m21,dx],[m12,m22,dy]]);
 			this.matrix(m);
 		}
+		redraw(this);
 		return this;
 	},
 	beforeDraw:function(ctx)

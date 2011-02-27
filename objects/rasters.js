@@ -34,10 +34,17 @@ jCanvaScript.imageData=function(width,height)
 		this.getY.val=y;
 		this.width.val=width;
 		this.height.val=height;
-		this.getData.val=true;
+		var ctx=canvases[this.canvas.number].optns.ctx;
+		try{
+				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
+			}catch(e){
+				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
+		}
+		this.data=this.imgData.data;
+		redraw(this);
 		return this;
 	}
-	imageData.getData.val=false;
 	imageData.putData=function(x,y)
 	{
 		if(x!==undefined)this.x.val=x;
@@ -59,20 +66,10 @@ jCanvaScript.imageData=function(width,height)
 	imageData.draw=function(ctx)
 	{
 		if(this.imgData===undefined)
-		{	
+		{
 			this.imgData=ctx.createImageData(this.width.val,this.height.val);
 			this.imgData.data=this.data.concat();
 			this.data=this.imgData.data;
-		}
-		if (this.getData.val){
-			try{
-				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
-			}catch(e){
-				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
-			}
-			this.data=this.imgData.data;
-			this.getData.val=false;
 		}
 		if(this.putData.val)
 			ctx.putImageData(this.imgData,this.x.val,this.y.val);

@@ -344,14 +344,15 @@ function isPointInPath(object,x,y)
 		{
 			ctx.save();
 			ctx.setTransform(1,0,0,1,0,0);
+			if(ctx.isPointInPath(point.x,point.y)){
+				ctx.restore();
+				return point;
+			}
+			ctx.restore();
 		}
 		if(ctx.isPointInPath(point.x,point.y)){
-			if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-				ctx.restore();
 			return point;
 		}
-		if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-				ctx.restore();
 	}
 	return false
 }
@@ -366,7 +367,6 @@ function checkMouseEvents(object,optns)
 	}
 	if(point)
 	{
-		canvases[object.canvas.number].layers[object.layer.number].optns.isPointInPath=true;
 		if(optns.mousemove.x!=false)
 			optns.mousemove.object=object;
 		if(optns.mousedown.x!=false)

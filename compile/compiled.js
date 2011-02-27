@@ -494,14 +494,15 @@ function isPointInPath(object,x,y)
 		{
 			ctx.save();
 			ctx.setTransform(1,0,0,1,0,0);
+			if(ctx.isPointInPath(point.x,point.y)){
+				ctx.restore();
+				return point;
+			}
+			ctx.restore();
 		}
 		if(ctx.isPointInPath(point.x,point.y)){
-			if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-				ctx.restore();
 			return point;
 		}
-		if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-				ctx.restore();
 	}
 	return false
 }
@@ -516,7 +517,6 @@ function checkMouseEvents(object,optns)
 	}
 	if(point)
 	{
-		canvases[object.canvas.number].layers[object.layer.number].optns.isPointInPath=true;
 		if(optns.mousemove.x!=false)
 			optns.mousemove.object=object;
 		if(optns.mousedown.x!=false)
@@ -998,7 +998,14 @@ function obj(x,y,service)
 				this[key]['from']=undefined;
 				if(jumpToEnd!==undefined)
 					if(jumpToEnd)
+					{
 						this[key]['val']=this[key]['to'];
+						if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);}
+						if(key=='translateX'){this.translate(this[key]['val']-this[key]['prev'],0);}
+						if(key=='translateY'){this.translate(0,this[key]['val']-this[key]['prev']);}
+						if(key=='scaleX'){this.scale(this[key]['val']-this[key]['prev'],0);}
+						if(key=='scaleY'){this.scale(0,this[key]['val']-this[key]['prev']);}
+					}
 			}
 		}		
 		var fnlimit=this.fn.length;
@@ -1256,6 +1263,7 @@ function obj(x,y,service)
 			var m=multiplyM(this.matrix(),[[m11,m21,dx],[m12,m22,dy]]);
 			this.matrix(m);
 		}
+		redraw(this);
 		return this;
 	},
 	beforeDraw:function(ctx)
@@ -1519,10 +1527,17 @@ jCanvaScript.imageData=function(width,height)
 		this.getY.val=y;
 		this.width.val=width;
 		this.height.val=height;
-		this.getData.val=true;
+		var ctx=canvases[this.canvas.number].optns.ctx;
+		try{
+				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
+			}catch(e){
+				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
+		}
+		this.data=this.imgData.data;
+		redraw(this);
 		return this;
 	}
-	imageData.getData.val=false;
 	imageData.putData=function(x,y)
 	{
 		if(x!==undefined)this.x.val=x;
@@ -1544,20 +1559,10 @@ jCanvaScript.imageData=function(width,height)
 	imageData.draw=function(ctx)
 	{
 		if(this.imgData===undefined)
-		{	
+		{
 			this.imgData=ctx.createImageData(this.width.val,this.height.val);
 			this.imgData.data=this.data.concat();
 			this.data=this.imgData.data;
-		}
-		if (this.getData.val){
-			try{
-				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
-			}catch(e){
-				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-				this.imgData=ctx.getImageData(this.getX.val,this.getY.val,this.width.val,this.height.val);
-			}
-			this.data=this.imgData.data;
-			this.getData.val=false;
 		}
 		if(this.putData.val)
 			ctx.putImageData(this.imgData,this.x.val,this.y.val);
@@ -1944,8 +1949,11 @@ jCanvaScript.canvas = function(idCanvas)
 					drag.y=point.y;
 					if(drag.object!=drag.init && drag.init.draggable.type!='clone')
 					{
-						drag.object.transformdx.val=point.x;
-						drag.object.transformdy.val=point.y;
+						point.x=-drag.object.x.val+point.x;
+						point.y=-drag.object.y.val+point.y;
+						drag.x-=point.x;
+						drag.y-=point.y;
+						drag.object.transform(1,0,0,1,point.x,point.y);
 					}
 					drag.object.transformdx.val+=drag.init.draggable.shiftX;
 					drag.object.transformdy.val+=drag.init.draggable.shiftY;
@@ -2017,8 +2025,7 @@ jCanvaScript.layer=function(idLayer)
 	layer.optns={
 		anyObjDeleted: false,
 		anyObjLevelChanged: false,
-		gCO: canvases[lastCanvas].optns.gCO,
-		isPointInPath:false
+		gCO: canvases[lastCanvas].optns.gCO
 	}
 	layer.canvas=function(idCanvas)
 	{
@@ -2086,6 +2093,17 @@ jCanvaScript.layer=function(idLayer)
 		ctx.setTransform(1,0,0,1,0,0);
 		layer.setObjOptns(ctx);
 		return this;
+	}
+	layer.afterDraw=function(optns)
+	{
+		optns.ctx.closePath();
+		optns.ctx.restore();
+		if(this.clip.val)
+		{
+			var clipObject=this.clip.val;
+			if(clipObject.afterDrawObj)clipObject.afterDrawObj(optns);
+			else clipObject.afterDraw();
+		}
 	}
 	layer.clone=function(idLayer,params)
 	{
