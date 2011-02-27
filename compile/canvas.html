@@ -7,8 +7,10 @@
 			jc.start(idCanvas,25);
 			jc.rect(0,0,800,580,"#00FFFF",1)
 			jc.rect(0,0,300,300,"#000000",1)
+				//.composite('xor')
 				.layer('1');
 			jc.circle(150,150,50,"#ff0000",1)
+			//	.composite('source-over')
 				.layer('1');
 			jc.layer('1')
 				.draggable()
