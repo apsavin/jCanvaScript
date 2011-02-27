@@ -1,6 +1,6 @@
 function redraw(object)
 {
-	var canvas=canvases[object.layer.canvas];
+	var canvas=canvases[object.canvas.number];
 	if(canvas.optns.redraw<2)canvas.optns.redraw++;
 }
 
@@ -31,11 +31,19 @@ function animating()
 				if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))property['val']=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
 				if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
 				if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);property['prev']=val;}
+				if(key=='translateX'){this.translate(val-property['prev'],0);property['prev']=val;}
+				if(key=='translateY'){this.translate(0,val-property['prev']);property['prev']=val;}
+				if(key=='scaleX'){this.scale(val-property['prev'],0);property['prev']=val;}
+				if(key=='scaleY'){this.scale(0,val-property['prev']);property['prev']=val;}
 				if(step>duration)
 				{
 					property['from']=undefined;
 					property['val']=to;
 					if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);}
+					if(key=='translateX'){this.translate(val-property['prev'],0);}
+					if(key=='translateY'){this.translate(0,val-property['prev']);}
+					if(key=='scaleX'){this.scale(val-property['prev'],0);}
+					if(key=='scaleY'){this.scale(0,val-property['prev']);}
 					for(var j=0;j<fnlimit;j++)
 					{
 						var fn=this.fn[j];
@@ -74,6 +82,7 @@ function keyEvent(e,key,optns)
 	e=e||window.event;
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
+	optns.redraw++;
 	return false;
 }
 function mouseEvent(e,key,optns)
@@ -91,7 +100,7 @@ function setMouseEvent(fn,eventName)
 	if(fn===undefined)this['on'+eventName]();
 	else this['on'+eventName] = fn;
 	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
-	canvases[this.layer.canvas].optns[eventName].val=true;
+	canvases[this.canvas.number].optns[eventName].val=true;
 	return this;
 }
 function setKeyEvent(fn,eventName)
@@ -182,11 +191,30 @@ function getObjectRectangle(object)
 		points.height=maxY-minY;
 		return points;
 	}
+	if(object.objs!==undefined)
+	{
+		for(i=0;i<object.objs.length;i++)
+		{
+			var rect=getObjectRectangle(object.objs[i]);
+			if(points.x>rect.x || !i)points.x=rect.x;
+			if(points.y>rect.y || !i)points.y=rect.y;
+			if(points.width<rect.width || !i)points.width=rect.width;
+			if(points.height<rect.height || !i)points.height=rect.height;
+		}
+		return points;
+	}
 	return false;
 }
 function getObjectCenter(object)
 {
 	var point={};
+	if(object.objs!==undefined || object.img!==undefined)
+	{
+		var rect=getObjectRectangle(object);
+		point.x=(rect.x*2+rect.width)/2;
+		point.y=(rect.y*2+rect.height)/2;
+		return point;
+	}
 	if(object.width!==undefined && object.height!==undefined)
 	{
 		point.x=(object.x.val*2+object.width.val)/2;
@@ -195,12 +223,9 @@ function getObjectCenter(object)
 	}
 	if(object.radius!==undefined)
 	{
-		if(object.startAngle===undefined)
-		{
-			point.x=object.x.val;
-			point.y=object.y.val;
-			return point;
-		}
+		point.x=object.x.val;
+		point.y=object.y.val;
+		return point;
 	}
 	if(object.shapesCount!==undefined)
 	{
@@ -223,7 +248,7 @@ function parseColor(color)
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={level:color.level.val,
-									canvas:color.layer.canvas,
+									canvas:color.canvas.number,
 									layer:color.layer.number}
 		return colorKeeper;
 	}
@@ -304,20 +329,35 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
-	var ctx=canvases[object.layer.canvas].optns.ctx;
-	if (navigator.appName != "Mozilla" && navigator.appName != "Netscape"){point.x=x;point.y=y;}
-	else point=transformPoint(x,y,[[object.transform11.val,object.transform21.val,object.transformdx.val],[object.transform12.val,object.transform22.val,object.transformdy.val]]);
-	if(ctx.isPointInPath===undefined || object.img!==undefined)
+	var ctx=canvases[object.canvas.number].optns.ctx;
+	point.x=x;
+	point.y=y;
+/*	if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
+	{
+		var layer=canvases[object.canvas.number].layers[object.layer.number];
+		point=transformPoint(point.x,point.y,layer.matrix());
+		point=transformPoint(point.x,point.y,object.matrix());
+	}*/
+	if(ctx.isPointInPath===undefined || object.img!==undefined || object.imgData!==undefined)
 	{
 		var rectangle=getObjectRectangle(object);
-		point=transformPoint(x,y,[[object.transform11.val,object.transform21.val,object.transformdx.val],[object.transform12.val,object.transform22.val,object.transformdy.val]]);
+		point=transformPoint(x,y,object.matrix());
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
 	else
 	{
+		if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
+		{
+			ctx.save();
+			ctx.setTransform(1,0,0,1,0,0);
+		}
 		if(ctx.isPointInPath(point.x,point.y)){
+			if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
+				ctx.restore();
 			return point;
 		}
+		if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
+				ctx.restore();
 	}
 	return false
 }
@@ -332,6 +372,7 @@ function checkMouseEvents(object,optns)
 	}
 	if(point)
 	{
+		canvases[object.canvas.number].layers[object.layer.number].optns.isPointInPath=true;
 		if(optns.mousemove.x!=false)
 			optns.mousemove.object=object;
 		if(optns.mousedown.x!=false)
@@ -388,7 +429,7 @@ function layer(idLayer,object,array)
 	redraw(object);
 	if (idLayer===undefined)return object.layer.val;
 	if(object.layer.val==idLayer)return object;
-	var oldIndex={i:object.layer.canvas,j:object.layer.number};
+	var oldIndex={i:object.canvas.number,j:object.layer.number};
 	object.layer.val=idLayer;
 	var newLayer=jCanvaScript.layer(idLayer);
 	var newIndex={i:newLayer.canvas.number,j:newLayer.level.val};
@@ -396,17 +437,17 @@ function layer(idLayer,object,array)
 	object.level.val=object.level.current=canvases[newIndex.i].layers[newIndex.j][array].length;
 	canvases[newIndex.i].layers[newIndex.j][array][object.level.val]=object;
 	object.layer.number=newIndex.j;
-	object.layer.canvas=newIndex.i;
+	object.canvas.number=newIndex.i;
 	redraw(object);
 	return object;
 }
 function canvas(idCanvas,object,array)
 {
 	redraw(object);
-	if(idCanvas===undefined)return canvases[object.layer.canvas].id.val;
-	if(canvases[object.layer.canvas].id.val==idCanvas)return object;
+	if(idCanvas===undefined)return canvases[object.canvas.number].id.val;
+	if(canvases[object.canvas.number].id.val==idCanvas)return object;
 	var oldIndex={
-		i:object.layer.canvas,
+		i:object.canvas.number,
 		j:object.layer.number
 	};
 	jCanvaScript.canvas(idCanvas);
@@ -417,7 +458,7 @@ function canvas(idCanvas,object,array)
 			object.level.val=object.level.current=canvases[i].layers[0][array].length;
 			canvases[i].layers[0][array][object.level.val]=object;
 			object.layer.number=0;
-			object.layer.canvas=i;
+			object.canvas.number=i;
 			object.layer.val=canvases[i].layers[0].id.val;
 		}
 	redraw(object);
@@ -456,25 +497,16 @@ function levelChanger(array)
 		}
 	}
 }
-function objDeleter(array,limit)
+function objDeleter(array)
 {
-	var delCount;
-	do
+	for(var i=0;i<array.length;i++)
 	{
-		delCount=0;
-		for(var i=0;i<limit;i++)
+		if(typeof (array[i].draw)!='function')
 		{
-			if(typeof (array[i].draw)!='function')
-				delCount++;
-			if(delCount)array[i]=array[i+1];
+			array.splice(i,1);
+			i--;
 		}
-		if(delCount)
-		{
-			delete array[limit];
-			limit--;
-			array.length--;
-		}
-	}while(delCount!=0);
-	return limit;
+	}
+	return array.length;
 }
 

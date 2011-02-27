@@ -8,20 +8,18 @@ jCanvaScript.layer=function(idLayer)
 		for (var j=0;j<limit;j++)
 			if(canvases[i].layers[j].id.val==idLayer)return canvases[i].layers[j];
 	}
-	var layer={};
-	var tmpObj=obj();
+	var layer=obj(0,0,true);
 	limit=canvases[lastCanvas].layers.length;
 	canvases[lastCanvas].layers[limit]=layer;
 	layer.objs = [];
 	layer.grdntsnptrns = [];
 	layer.level={val:limit,current:limit};
-	layer.id=tmpObj.id;
 	layer.id.val=idLayer;
-	layer.animate=tmpObj.animate;
 	layer.optns={
 		anyObjDeleted: false,
 		anyObjLevelChanged: false,
-		gCO: canvases[lastCanvas].optns.gCO
+		gCO: canvases[lastCanvas].optns.gCO,
+		isPointInPath:false
 	}
 	layer.canvas=function(idCanvas)
 	{
@@ -83,16 +81,21 @@ jCanvaScript.layer=function(idLayer)
 		canvases[this.canvas.number].optns.redraw++;
 		return;
 	}
-	layer.composite=function(composite)
+	layer.setObjOptns=layer.setOptns;
+	layer.setOptns=function(ctx)
 	{
-		if(composite===undefined)return this.optns.gCO;
-		else this.optns.gCO=composite;
-		canvases[this.canvas.number].optns.redraw++;
+		ctx.setTransform(1,0,0,1,0,0);
+		layer.setObjOptns(ctx);
+		/*ctx.globalAlpha = this.opacity.val;
+		ctx.shadowOffsetX = this.shadowX.val;
+		ctx.shadowOffsetY = this.shadowY.val;
+		ctx.shadowBlur = this.shadowBlur.val;
+		ctx.shadowColor = 'rgba('+this.shadowColorR.val+','+this.shadowColorG.val+','+this.shadowColorB.val+','+this.shadowColorA.val+')';
+		ctx.setTransform(this.transform11.val,this.transform12.val,this.transform21.val,this.transform22.val,this.transformdx.val,this.transformdy.val);*/
 		return this;
 	}
 	layer.draw=function(canvasOptns)
 	{
-		animating.call(this);
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
 		limit=this.objs.length;
 		for(var i=0;i<limitGrdntsNPtrns;i++)
@@ -106,7 +109,7 @@ jCanvaScript.layer=function(idLayer)
 		}
 		if(this.optns.anyObjDeleted)
 		{
-			limit=objDeleter(this.objs,limit);
+			limit=objDeleter(this.objs);
 			this.optns.anyObjDeleted = false;
 		}
 		canvasOptns.ctx.globalCompositeOperation = this.optns.gCO;
@@ -114,6 +117,8 @@ jCanvaScript.layer=function(idLayer)
 		{
 			var object=this.objs[i];
 			if(typeof (object.draw)=='function')
+			{
+				this.setOptns(canvasOptns.ctx);
 				if(object.beforeDraw(canvasOptns.ctx))
 				{
 					if(typeof (object.draw)=='function')
@@ -122,6 +127,7 @@ jCanvaScript.layer=function(idLayer)
 						object.afterDraw(canvasOptns);
 					}
 				}
+			}
 		}
 	}
 	return layer;

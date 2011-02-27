@@ -34,5 +34,5 @@ jCanvaScript.pause=function(idCanvas)
 }
 jCanvaScript.start=function(idCanvas,fps)
 {
-	lastCanvas=jCanvaScript.canvas(idCanvas).start(fps).layers[0].canvas.number;
+	jCanvaScript.canvas(idCanvas).start(fps);
 }

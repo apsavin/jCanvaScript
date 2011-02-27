@@ -1,0 +1,25 @@
+<head>
+<script type="text/javascript" src="jQuery 1.4.2.js"></script>
+<script type="text/javascript" src="compiled.js"></script>
+<script>
+		function start(idCanvas)
+		{
+			jc.start(idCanvas,25);
+			jc.rect(0,0,800,580,"#00FFFF",1)
+			jc.rect(0,0,300,300,"#000000",1)
+				.layer('1');
+			jc.circle(150,150,50,"#ff0000",1)
+				.layer('1');
+			jc.layer('1')
+				.draggable()
+				.rotate(45,'center')
+				.translate(100,0)
+				.animate({rotate:{angle:500}},3000);
+		}
+</script>
+</head>
+<html>
+<body onload="start('cnv');">
+	<canvas id="cnv" width="800" height="580" tabIndex="0" ></canvas>
+</body>
+</html>

@@ -1,7 +1,7 @@
 function grdntsnptrn()
 {
 	var grdntsnptrn={};
-	var tmpObj=obj();
+	var tmpObj=obj(0,0,true);
 	grdntsnptrn.animate=tmpObj.animate;
 	grdntsnptrn.layer=tmpObj.layer;
 	grdntsnptrn.id=tmpObj.id;
@@ -12,11 +12,11 @@ function grdntsnptrn()
 	}
 	grdntsnptrn.layer.val=canvases[lastCanvas].id.val+'Layer_0';
 	grdntsnptrn.layer.number=0
-	grdntsnptrn.layer.canvas=lastCanvas;
 	grdntsnptrn.canvas=function(idCanvas)
 	{
 		return canvas(idCanvas,this,'grdntsnptrns');
 	}
+	grdntsnptrn.canvas.number=lastCanvas;
 	grdntsnptrn.level.val=canvases[lastCanvas].layers[0].grdntsnptrns.length;
 	canvases[lastCanvas].layers[0].grdntsnptrns[grdntsnptrn.level.val]=grdntsnptrn;
 	redraw(grdntsnptrn);

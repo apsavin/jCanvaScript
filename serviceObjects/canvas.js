@@ -41,10 +41,11 @@ jCanvaScript.canvas = function(idCanvas)
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
 	canvas.start=function(fps)
 	{
+		lastCanvas=this.layers[0].canvas.number;
 		if(fps)
 		{
 			if(this.interval)return this;
-			this.fps=parseInt(1000/fps);
+			this.fps=fps;
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left;
 			this.optns.y=offset.top;
@@ -79,7 +80,7 @@ jCanvaScript.canvas = function(idCanvas)
 				if(canvas.optns.drag.object!=false)
 				{
 					var drag=canvas.optns.drag;
-					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]])
+					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,drag.object.matrix());
 					drag.object.translate(point.x-drag.x,point.y-drag.y);
 					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.transformdx.val,y:drag.object.transformdy.val}));
 				}
@@ -127,11 +128,23 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(this.optns.anyLayerDeleted)
 		{
-			limit=objDeleter(this.layers,limit);
+			limit=objDeleter(this.layers);
 			this.optns.anyLayerDeleted=false;
 		}
 		for(var i=0;i<limit;i++)
-			this.layers[i].draw(this.optns);
+		{
+			this.optns.ctx.globalCompositeOperation=this.optns.gCO;
+			var object=this.layers[i];
+			if(typeof (object.draw)=='function')
+				if(object.beforeDraw(this.optns.ctx))
+				{
+					if(typeof (object.draw)=='function')
+					{
+						object.draw(this.optns);
+						object.afterDraw(this.optns);
+					}
+				}
+		}
 		if(this.optns.mousemove.x!=false)
 		{
 			if(this.optns.mousemove.object!=false)
@@ -169,56 +182,61 @@ jCanvaScript.canvas = function(idCanvas)
 					underMouse=false;
 				}
 			}
-			this.optns.mousemove.x=false;
 		}
 		if(this.optns.mousedown.object!=false)
 		{
 			var mouseDown=this.optns.mousedown;
-			if(typeof mouseDown.object.onmousedown=='function')mouseDown.object.onmousedown({x:mouseDown.x,y:mouseDown.y});
-			if(mouseDown.object.draggable.val==true)
+			var mouseDownObjects=[mouseDown.object,canvases[mouseDown.object.canvas.number].layers[mouseDown.object.layer.number]];
+			for(i=0;i<2;i++)
 			{
-				var drag=this.optns.drag;
-				drag.object=mouseDown.object.draggable.object.visible(true);
-				drag.fn=mouseDown.object.draggable.fn;
-				drag.init=mouseDown.object;
-				if(drag.init.draggable.params!==undefined)drag.object.animate(drag.init.draggable.params);
-				var point=transformPoint(mouseDown.x,mouseDown.y,[[drag.object.transform11.val,drag.object.transform21.val,drag.object.transformdx.val],[drag.object.transform12.val,drag.object.transform22.val,drag.object.transformdy.val]]);
-				drag.x=point.x;
-				drag.y=point.y;
-				if(drag.object!=drag.init && drag.init.draggable.type!='clone')
+				if(typeof mouseDownObjects[i].onmousedown=='function')mouseDownObjects[i].onmousedown({x:mouseDown.x,y:mouseDown.y});
+				if(mouseDownObjects[i].draggable.val==true)
 				{
-					drag.object.transformdx.val=point.x;
-					drag.object.transformdy.val=point.y;
+					var drag=this.optns.drag;
+					drag.object=mouseDownObjects[i].draggable.object.visible(true);
+					drag.fn=mouseDownObjects[i].draggable.fn;
+					drag.init=mouseDownObjects[i];
+					if(drag.init.draggable.params!==undefined)drag.object.animate(drag.init.draggable.params);
+					var point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
+					drag.x=point.x;
+					drag.y=point.y;
+					if(drag.object!=drag.init && drag.init.draggable.type!='clone')
+					{
+						drag.object.transformdx.val=point.x;
+						drag.object.transformdy.val=point.y;
+					}
+					drag.object.transformdx.val+=drag.init.draggable.shiftX;
+					drag.object.transformdy.val+=drag.init.draggable.shiftY;
 				}
-				drag.object.transformdx.val+=drag.init.draggable.shiftX;
-				drag.object.transformdy.val+=drag.init.draggable.shiftY;
 			}
 			mouseDown.object=false;
 		}
 		if(this.optns.mouseup.object!=false)
 		{
 			var mouseUp=this.optns.mouseup;
+			var mouseUpObjects=[mouseUp.object,canvases[mouseUp.object.canvas.number].layers[mouseUp.object.layer.number]];
 			var drag=this.optns.drag;
-			if(typeof mouseUp.object.onmouseup=='function')mouseUp.object.onmouseup({x:mouseUp.x,y:mouseUp.y});
-			if(mouseUp.object.droppable.val==true && this.optns.drag.init!==undefined)
+			for(i=0;i<2;i++)
 			{
-				if(drag.init==drag.object)
-					drag.init.visible(true);
-				if(typeof mouseUp.object.droppable.fn=='function')mouseUp.object.droppable.fn.call(mouseUp.object,drag.init);
-				drag={object:false,x:0,y:0};
-			}
-			else
-			{
-				if(drag.init!==undefined)
+				if(typeof mouseUpObjects[i].onmouseup=='function')mouseUpObjects[i].onmouseup({x:mouseUp.x,y:mouseUp.y});
+				if(mouseUpObjects[i].droppable.val==true && this.optns.drag.init!==undefined)
 				{
-					drag.object.visible(false);
-					drag.init.visible(true);
-					/*drag.init.x.val=drag.init.draggable.x;?????????? ??????????????????????
-					drag.init.y.val=drag.init.draggable.y;???????????? ??????????*/
-					drag.init.transformdx.val=drag.object.transformdx.val;
-					drag.init.transformdy.val=drag.object.transformdy.val;
-					if(drag.object!=drag.init)drag.object.visible(false);
-					this.optns.drag={object:false,x:0,y:0};
+					if(drag.init==drag.object)
+						drag.init.visible(true);
+					if(typeof mouseUpObjects[i].droppable.fn=='function')mouseUpObjects[i].droppable.fn.call(mouseUpObjects[i],drag.init);
+					drag={object:false,x:0,y:0};
+				}
+				else
+				{
+					if(drag.init!==undefined)
+					{
+						drag.object.visible(false);
+						drag.init.visible(true);
+						drag.init.transformdx.val=drag.object.transformdx.val;
+						drag.init.transformdy.val=drag.object.transformdy.val;
+						if(drag.object!=drag.init)drag.object.visible(false);
+						this.optns.drag={object:false,x:0,y:0};
+					}
 				}
 			}
 			mouseUp.object=false;
@@ -226,11 +244,13 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
-			if(typeof mouseClick.object.onclick == 'function')
-				mouseClick.object.onclick({x:mouseClick.x,y:mouseClick.y});
+			var mouseClickObjects=[mouseClick.object,canvases[mouseClick.object.canvas.number].layers[mouseClick.object.layer.number]];
+			for(i=0;i<2;i++)
+				if(typeof mouseClickObjects[i].onclick == 'function')
+					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
 			mouseClick.object=false;
 		}
-		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.mouseup.x=this.optns.mousedown.x=false;
+		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;
 }
