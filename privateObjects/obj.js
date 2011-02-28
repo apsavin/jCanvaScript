@@ -172,11 +172,6 @@ function obj(x,y,service)
 		ctx.shadowBlur = this.shadowBlur.val;
 		ctx.globalCompositeOperation=this.composite.val;
 		ctx.shadowColor = 'rgba('+this.shadowColorR.val+','+this.shadowColorG.val+','+this.shadowColorB.val+','+this.shadowColorA.val+')';
-		if(this.translate.matrix)
-		{
-			this.matrix(multiplyM(this.matrix(),this.translate.matrix));
-			this.translate.matrix=false;
-		}
 		if(this.scale.matrix)
 		{
 			this.matrix(multiplyM(this.matrix(),this.scale.matrix));
@@ -488,10 +483,7 @@ function obj(x,y,service)
 	translateY:{val:0},
 	translate:function(x,y)
 	{
-		if(this.translate.matrix)
-			this.translate.matrix=multiplyM(this.translate.matrix,[[1,0,x],[0,1,y]]);
-		else
-			this.translate.matrix=[[1,0,x],[0,1,y]];
+		this.matrix(multiplyM(this.matrix(),[[1,0,x],[0,1,y]]));
 		redraw(this);
 		return this;
 	},
@@ -579,8 +571,8 @@ function obj(x,y,service)
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
-		animating.call(this);
 		this.setOptns(ctx);
+		animating.call(this);
 		ctx.beginPath();
 		return true;
 	},
@@ -621,7 +613,7 @@ function obj(x,y,service)
 		return false;
 	}
 	}
-	obj.translate.matrix=obj.rotate.matrix=obj.scale.matrix=false;
+	obj.rotate.matrix=obj.scale.matrix=false;
 	if(service===undefined && canvases[lastCanvas]!==undefined && canvases[lastCanvas].layers[0]!==undefined)
 	{	
 		obj.level.val=obj.level.current=canvases[lastCanvas].layers[0].objs.length;

@@ -5,23 +5,37 @@
 		function start(idCanvas)
 		{
 			jc.start(idCanvas,25);
-			jc.rect(0,0,800,580,"#00FFFF",1)
-			jc.rect(0,0,300,300,"#000000",1)
-				//.composite('xor')
-				.layer('1');
-			jc.circle(150,150,50,"#ff0000",1)
-			//	.composite('source-over')
-				.layer('1');
-			jc.layer('1')
-				.draggable()
-				.rotate(45,'center')
-				.translate(100,0)
-				.clone('2',{translate:{y:100}});
+			var enrollImg=new Image();
+			 enrollImg.src="logo.png";
+
+			 function enrollBlink()
+			 {
+				elem=jc('#enrollBlink');
+				 elem.visible(true).translate(-300,-300)
+				 .animate({translate:{x:300,y:300}},1000,function()
+					{
+						this.visible(false);
+					});
+			 }
+
+			// jc.image(enrollImg,0,0);
+			 jc.line([[28,40],[64,80],[121,18],[106,3],[64,41],[44,24]],'rgba(0,255,0,0.4)',1).opacity(0).id('enrollGreen');
+
+			 var colors=[[0.25,'rgba(255,255,255,0)'],
+			 [0.5,'rgba(255,255,255,0.5)'],
+			 [0.75,'rgba(255,255,255,0)']];
+			 var gradient=jc.lGradient(100,100,200,200,colors);
+			 jc.rect(0,0,264,300,gradient,1)
+				.visible(false)
+				.translate(300,300)
+				.id('enrollBlink');
+
+			  setInterval(function(){enrollBlink();},3000); 
 		}
 </script>
 </head>
 <html>
-<body onload="start('cnv');">
+<body onload="start('cnv');" style="background:black;">
 	<canvas id="cnv" width="800" height="580" tabIndex="0" ></canvas>
 </body>
 </html>
