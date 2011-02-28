@@ -479,27 +479,26 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
-	var ctx=canvases[object.canvas.number].optns.ctx;
-	point.x=x;
-	point.y=y;
+	var canvas=canvases[object.canvas.number];
+	var ctx=canvas.optns.ctx;
+	var layer=canvas.layers[object.layer.number];
+	if ((navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
+	{
+		point.x=x;
+		point.y=y;
+	}
+	else
+	{
+		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
+	}
 	if(ctx.isPointInPath===undefined || object.img!==undefined || object.imgData!==undefined)
 	{
 		var rectangle=getObjectRectangle(object);
-		point=transformPoint(x,y,object.matrix());
+		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
 	else
 	{
-		if (!(navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-		{
-			ctx.save();
-			ctx.setTransform(1,0,0,1,0,0);
-			if(ctx.isPointInPath(point.x,point.y)){
-				ctx.restore();
-				return point;
-			}
-			ctx.restore();
-		}
 		if(ctx.isPointInPath(point.x,point.y)){
 			return point;
 		}
