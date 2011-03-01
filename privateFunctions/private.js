@@ -286,16 +286,11 @@ function parseColor(color)
 	return colorKeeper;
 }
 function getOffset(elem) {
-	var pos={top:-1,left:-1};
-	do{
 		if (elem.getBoundingClientRect) {
-			pos= getOffsetRect(elem)
+			return getOffsetRect(elem)
 		} else {
-			pos= getOffsetSum(elem)
+			return getOffsetSum(elem)
 		}
-	}
-	while(pos.top<0 || pos.left<0)
-	return pos;
 }
 
 function getOffsetSum(elem) {

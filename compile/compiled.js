@@ -14,7 +14,6 @@ var underMouse = false;
 var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
 	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
-else FireFox_lt4=false;
 var regHasLetters = /[A-z]+?/;
 var jCanvaScript=function(stroke,map)
 {
@@ -441,16 +440,11 @@ function parseColor(color)
 	return colorKeeper;
 }
 function getOffset(elem) {
-	var pos={top:-1,left:-1};
-	do{
 		if (elem.getBoundingClientRect) {
-			pos= getOffsetRect(elem)
+			return getOffsetRect(elem)
 		} else {
-			pos= getOffsetSum(elem)
+			return getOffsetSum(elem)
 		}
-	}
-	while(pos.top<0 || pos.left<0)
-	return pos;
 }
 
 function getOffsetSum(elem) {
