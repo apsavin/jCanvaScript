@@ -11,6 +11,11 @@ var pi=Math.PI*2;
 var lastCanvas=0;
 var lastLayer=0;
 var underMouse = false;
+var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
+if (FireFox!="" && FireFox!==null)
+	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
+else FireFox_lt4=false;
+var regHasLetters = /[A-z]+?/;
 var jCanvaScript=function(stroke,map)
 {
 	if(stroke===undefined)return this;
@@ -156,76 +161,77 @@ function redraw(object)
 
 function animating()
 {
-	if (!this.animate.val)return false;
-	var i=0;
-	var fnlimit=this.fn.length;
+	var limit=this.animateQueue.length;
 	var progress=1;
-	for(var key in this)
+	for(var q=0;q<limit;q++)
 	{
-		if(this.hasOwnProperty(key))
+		var queue=this.animateQueue[q];
+		for(var key in queue)
 		{
-			i++;
-			if(this[key]===undefined)continue;
-			if(this[key]['from']!==undefined)
+			if(this.hasOwnProperty(key) && this[key]!==undefined)
 			{
-				var property=this[key];
-				var step=property['step'];
-				var duration=property['duration'];
-				var easing=property['easing'];
-				var to=property['to'];
-				var from=property['from'];
-				var val=property['val'];
-				property['step']++;
-				progress=step/duration;
-				if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))property['val']=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
-				if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))property['val']=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
-				if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
-				if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);property['prev']=val;}
-				if(key=='translateX'){this.translate(val-property['prev'],0);property['prev']=val;}
-				if(key=='translateY'){this.translate(0,val-property['prev']);property['prev']=val;}
-				if(key=='scaleX'){this.scale(val-property['prev'],0);property['prev']=val;}
-				if(key=='scaleY'){this.scale(0,val-property['prev']);property['prev']=val;}
-				if(step>duration)
+				if(queue[key])
 				{
-					property['from']=undefined;
-					property['val']=to;
-					if(key=='rotateAngle'){this.rotate(val-property['prev'],this.rotateX.val,this.rotateY.val);}
-					if(key=='translateX'){this.translate(val-property['prev'],0);}
-					if(key=='translateY'){this.translate(0,val-property['prev']);}
-					if(key=='scaleX'){this.scale(val-property['prev'],0);}
-					if(key=='scaleY'){this.scale(0,val-property['prev']);}
-					for(var j=0;j<fnlimit;j++)
+					var property=queue[key];
+					var step=property['step'];
+					var duration=property['duration'];
+					var easing=property['easing'];
+					var to=property['to'];
+					var from=property['from'];
+					var thisKey=this[key];
+					property['step']++;
+					progress=step/duration;
+					animateTransforms(key,this);
+					if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))thisKey['val']=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
+					if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))thisKey['val']=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
+					if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
+					if(step>duration)
 					{
-						var fn=this.fn[j];
-						if(fn[key])
-						{
-							fn[key]=false;
-							fn.count--;
-						}
+						queue[key]=false;
+						thisKey['val']=to;
+						animateTransforms(key,this);
+						queue.animateKeyCount--;
 					}
 				}
-			}
-			else
-			{
-				for(j=0;j<fnlimit;j++)
+				else
 				{
-					fn=this.fn[j];
-					if(fn['func'] != 0 && !fn['count'] && fn.enabled)
-					{
-						fn.enabled=false;
-						fn['func'].apply(this);
+					if(!queue.animateKeyCount){
+						if(queue.animateFn!==undefined)queue.animateFn.apply(this);
+						this.animateQueue.splice(q,1);
+						q--;
 					}
 				}
-				i--;
 			}
 		}
 	}
-	if (i==0)
-	{
-		this.animate.val=false;
-	}
+	if (limit==0)this.animate.val=false;
 	else redraw(this);
 	return this;
+}
+function animateTransforms(key,object)
+{
+	var property=object[key];
+	switch(key)
+	{
+		case 'rotateAngle':
+			object.rotate(property['val']-property['prev'],object.rotateX.val,object.rotateY.val);
+			break;
+		case 'translateX':
+			object.translate(property['val']-property['prev'],0);
+			break;
+		case 'translateY':
+			object.translate(0,property['val']-property['prev']);
+			break;
+		case 'scaleX':
+			object.scale(property['val']-property['prev'],0);
+			break;
+		case 'scaleY':
+			object.scale(0,property['val']-property['prev']);
+			break;
+		default:
+			return;
+	}
+	property['prev']=property['val'];
 }
 function keyEvent(e,key,optns)
 {
@@ -435,11 +441,16 @@ function parseColor(color)
 	return colorKeeper;
 }
 function getOffset(elem) {
-    if (elem.getBoundingClientRect) {
-        return getOffsetRect(elem)
-    } else {
-        return getOffsetSum(elem)
-    }
+	var pos={top:-1,left:-1};
+	do{
+		if (elem.getBoundingClientRect) {
+			pos= getOffsetRect(elem)
+		} else {
+			pos= getOffsetSum(elem)
+		}
+	}
+	while(pos.top<0 || pos.left<0)
+	return pos;
 }
 
 function getOffsetSum(elem) {
@@ -482,12 +493,9 @@ function isPointInPath(object,x,y)
 	var canvas=canvases[object.canvas.number];
 	var ctx=canvas.optns.ctx;
 	var layer=canvas.layers[object.layer.number];
-	if ((navigator.appName != "Mozilla" && navigator.appName != "Netscape"))
-	{
-		point.x=x;
-		point.y=y;
-	}
-	else
+	point.x=x;
+	point.y=y;
+	if(FireFox_lt4)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
@@ -705,7 +713,7 @@ function obj(x,y,service)
 		return this.attr('opacity',n);
 	}
 	opacity.val=1;	
-	var fn = [];
+	var animateQueue = [];
 	var name = function(name)
 	{
 		return this.attr('name',name)
@@ -799,7 +807,7 @@ function obj(x,y,service)
 	x:{val:x||0},
 	y:{val:y||0},
 	opacity:opacity,
-	fn:fn,
+	animateQueue:animateQueue,
 	id:function(id)
 	{
 		return this.attr('id',id);
@@ -985,39 +993,27 @@ function obj(x,y,service)
 	stop:function(jumpToEnd,runCallbacks)
 	{
 		this.animate.val=false;
-		for(var key in this)
-		{
-			if(this[key]['from']!==undefined)
-			{
-				this[key]['from']=undefined;
-				if(jumpToEnd!==undefined)
-					if(jumpToEnd)
-					{
-						this[key]['val']=this[key]['to'];
-						if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);}
-						if(key=='translateX'){this.translate(this[key]['val']-this[key]['prev'],0);}
-						if(key=='translateY'){this.translate(0,this[key]['val']-this[key]['prev']);}
-						if(key=='scaleX'){this.scale(this[key]['val']-this[key]['prev'],0);}
-						if(key=='scaleY'){this.scale(0,this[key]['val']-this[key]['prev']);}
-					}
-			}
-		}		
-		var fnlimit=this.fn.length;
 		if(runCallbacks===undefined)runCallbacks=false;
-		for(var j=0;j<fnlimit;j++)
+		if(jumpToEnd===undefined)jumpToEnd=false;
+		for(var q=0;q<this.animateQueue.length;q++)
 		{
-			if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
+			var queue=this.animateQueue[q];
+			if(runCallbacks)queue.animateFn.call(this);
+			if(jumpToEnd)
+			for(var key in queue)
 			{
-				this.fn[j].enabled=false;
-				if(runCallbacks)
-					this['fn'][j]['func'].apply(this);
+				if(queue[key]['from']!==undefined)
+				{
+					this[key]['val']=this[key]['to'];
+					animateTransforms(key,this);
+				}
 			}
 		}
+		this.animateQueue=[];
 		return this;
 	},
 	animate:function(options,duration,easing,onstep,fn)
 	{
-		this.animate.val=true;
 		if(duration===undefined)duration=1;
 		else
 		{
@@ -1110,19 +1106,18 @@ function obj(x,y,service)
 			options.shadowColorA=colorKeeper.alpha.val;
 			options.shadowColor = undefined;
 		}
-		if (fn)
-		{
-			var fnlimit=this.fn.length;
-			this.fn[fnlimit]={func:fn,count:0,enabled:true};
-		}
 		if (options.level !== undefined)
 		{
 			canvases[this.canvas.number].layers[this.layer.number].optns.anyObjLevelChanged = true;
 			if(options.level=='top')options.level=canvases[this.canvas.number].layers[this.layer.number].objs[this.level.val].length-1;
-			else
-				if (options.level=='bottom')options.level=0;	
+			if (options.level=='bottom')options.level=0;	
 		}
-		var re = /[A-z]+?/;
+		if(duration>1)
+		{
+			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
+			if (fn) queue.animateFn=fn;
+			this.animate.val=true;
+		}
 		for(var key in options)
 		{
 			if(this[key] !== undefined && options[key]!==undefined)
@@ -1135,23 +1130,21 @@ function obj(x,y,service)
 						{
 							options[key]=this[key]['val']+parseInt(options[key].charAt(0)+options[key].substr(2));
 						}
-						else if(!re.test(options[key]))options[key]=parseInt(options[key]);
+						else if(!regHasLetters.test(options[key]))options[key]=parseInt(options[key]);
 						else this[key]['val']=options[key];
 					}
 					if(duration==1)this[key]['val']=options[key];
 					else
 					{
-						this[key]['from']=this[key]['val'];
-						this[key]['to']=options[key];
-						this[key]['duration']=duration;
-						this[key]['step']=1;
-						this[key]['easing']=easing;
-						this[key]['onstep']=onstep;
-						if(fn)
-						{
-							this.fn[fnlimit][key]=true;
-							this.fn[fnlimit].count++;
+						queue[key]={
+							from:this[key]['val'],
+							to:options[key],
+							duration:duration,
+							step:1,
+							easing:easing,
+							onstep:onstep
 						}
+						queue.animateKeyCount++;
 					}
 				}
 			}
@@ -1265,14 +1258,14 @@ function obj(x,y,service)
 		{
 			var clipObject=this.clip.val;
 			clipObject.visible.val=true;
-			animating.call(clipObject);
+			if (clipObject.animate.val)animating.call(clipObject);
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
 		this.setOptns(ctx);
-		animating.call(this);
+		if (this.animate.val)animating.call(this);
 		ctx.beginPath();
 		return true;
 	},
@@ -1437,7 +1430,7 @@ jCanvaScript.pattern = function(img,type)
 	pattern.type={val:type||'repeat'};
 	pattern.create = function(ctx)
 	{
-		animating.call(this);
+		if(this.animate.val)animating.call(this);
 		this.val = ctx.createPattern(this.img.val,this.type.val);
 	}
 	return pattern;
@@ -1452,7 +1445,7 @@ jCanvaScript.lGradient=function(x1,y1,x2,y2,colors)
 	lGrad.y2 = {val:y2};
 	lGrad.create = function(ctx)
 	{
-		animating.call(this);
+		if(this.animate.val)animating.call(this);
 		this.val=ctx.createLinearGradient(this.x1.val,this.y1.val,this.x2.val,this.y2.val);
 		for(var i=0;i<=this.n;i++)
 		{
@@ -1472,7 +1465,7 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	rGrad.r2 = {val:r2};
 	rGrad.create = function(ctx)
 	{
-		animating.call(this);
+		if(this.animate.val)animating.call(this);
 		this.val=ctx.createRadialGradient(this.x1.val,this.y1.val,this.r1.val,this.x2.val,this.y2.val,this.r2.val);  
 		for(var i=0;i<=this.n;i++)
 		{
@@ -1843,15 +1836,6 @@ jCanvaScript.canvas = function(idCanvas)
 		this.optns.redraw++;
 		return this;
 	}
-	canvas.composite=function(composite)
-	{
-		if(composite===undefined)return this.optns.gCO;
-		else this.optns.gCO=composite;
-		for(var i=0;i<this.layers.length;i++)
-			this.layers[i].composite(composite);
-		this.optns.redraw++;
-		return this;
-	}
 	canvas.frame=function()
 	{
 		if(!this.optns.redraw)return;
@@ -1871,7 +1855,6 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		for(var i=0;i<limit;i++)
 		{
-			this.optns.ctx.globalCompositeOperation=this.optns.gCO;
 			var object=this.layers[i];
 			if(typeof (object.draw)=='function')
 				if(object.beforeDraw(this.optns.ctx))

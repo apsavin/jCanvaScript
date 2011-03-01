@@ -5,7 +5,7 @@ function obj(x,y,service)
 		return this.attr('opacity',n);
 	}
 	opacity.val=1;	
-	var fn = [];
+	var animateQueue = [];
 	var name = function(name)
 	{
 		return this.attr('name',name)
@@ -99,7 +99,7 @@ function obj(x,y,service)
 	x:{val:x||0},
 	y:{val:y||0},
 	opacity:opacity,
-	fn:fn,
+	animateQueue:animateQueue,
 	id:function(id)
 	{
 		return this.attr('id',id);
@@ -285,39 +285,27 @@ function obj(x,y,service)
 	stop:function(jumpToEnd,runCallbacks)
 	{
 		this.animate.val=false;
-		for(var key in this)
-		{
-			if(this[key]['from']!==undefined)
-			{
-				this[key]['from']=undefined;
-				if(jumpToEnd!==undefined)
-					if(jumpToEnd)
-					{
-						this[key]['val']=this[key]['to'];
-						if(key=='rotateAngle'){this.rotate(this[key]['val']-this[key]['prev'],this.rotateX.val,this.rotateY.val);}
-						if(key=='translateX'){this.translate(this[key]['val']-this[key]['prev'],0);}
-						if(key=='translateY'){this.translate(0,this[key]['val']-this[key]['prev']);}
-						if(key=='scaleX'){this.scale(this[key]['val']-this[key]['prev'],0);}
-						if(key=='scaleY'){this.scale(0,this[key]['val']-this[key]['prev']);}
-					}
-			}
-		}		
-		var fnlimit=this.fn.length;
 		if(runCallbacks===undefined)runCallbacks=false;
-		for(var j=0;j<fnlimit;j++)
+		if(jumpToEnd===undefined)jumpToEnd=false;
+		for(var q=0;q<this.animateQueue.length;q++)
 		{
-			if(this['fn'][j]['func'] != 0 && !this['fn'][j]['count'] && this.fn[j].enabled)
+			var queue=this.animateQueue[q];
+			if(runCallbacks)queue.animateFn.call(this);
+			if(jumpToEnd)
+			for(var key in queue)
 			{
-				this.fn[j].enabled=false;
-				if(runCallbacks)
-					this['fn'][j]['func'].apply(this);
+				if(queue[key]['from']!==undefined)
+				{
+					this[key]['val']=this[key]['to'];
+					animateTransforms(key,this);
+				}
 			}
 		}
+		this.animateQueue=[];
 		return this;
 	},
 	animate:function(options,duration,easing,onstep,fn)
 	{
-		this.animate.val=true;
 		if(duration===undefined)duration=1;
 		else
 		{
@@ -410,19 +398,18 @@ function obj(x,y,service)
 			options.shadowColorA=colorKeeper.alpha.val;
 			options.shadowColor = undefined;
 		}
-		if (fn)
-		{
-			var fnlimit=this.fn.length;
-			this.fn[fnlimit]={func:fn,count:0,enabled:true};
-		}
 		if (options.level !== undefined)
 		{
 			canvases[this.canvas.number].layers[this.layer.number].optns.anyObjLevelChanged = true;
 			if(options.level=='top')options.level=canvases[this.canvas.number].layers[this.layer.number].objs[this.level.val].length-1;
-			else
-				if (options.level=='bottom')options.level=0;	
+			if (options.level=='bottom')options.level=0;	
 		}
-		var re = /[A-z]+?/;
+		if(duration>1)
+		{
+			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
+			if (fn) queue.animateFn=fn;
+			this.animate.val=true;
+		}
 		for(var key in options)
 		{
 			if(this[key] !== undefined && options[key]!==undefined)
@@ -435,23 +422,21 @@ function obj(x,y,service)
 						{
 							options[key]=this[key]['val']+parseInt(options[key].charAt(0)+options[key].substr(2));
 						}
-						else if(!re.test(options[key]))options[key]=parseInt(options[key]);
+						else if(!regHasLetters.test(options[key]))options[key]=parseInt(options[key]);
 						else this[key]['val']=options[key];
 					}
 					if(duration==1)this[key]['val']=options[key];
 					else
 					{
-						this[key]['from']=this[key]['val'];
-						this[key]['to']=options[key];
-						this[key]['duration']=duration;
-						this[key]['step']=1;
-						this[key]['easing']=easing;
-						this[key]['onstep']=onstep;
-						if(fn)
-						{
-							this.fn[fnlimit][key]=true;
-							this.fn[fnlimit].count++;
+						queue[key]={
+							from:this[key]['val'],
+							to:options[key],
+							duration:duration,
+							step:1,
+							easing:easing,
+							onstep:onstep
 						}
+						queue.animateKeyCount++;
 					}
 				}
 			}
@@ -565,14 +550,14 @@ function obj(x,y,service)
 		{
 			var clipObject=this.clip.val;
 			clipObject.visible.val=true;
-			animating.call(clipObject);
+			if (clipObject.animate.val)animating.call(clipObject);
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
 		this.setOptns(ctx);
-		animating.call(this);
+		if (this.animate.val)animating.call(this);
 		ctx.beginPath();
 		return true;
 	},

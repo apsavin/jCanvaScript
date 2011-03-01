@@ -6,7 +6,7 @@ jCanvaScript.pattern = function(img,type)
 	pattern.type={val:type||'repeat'};
 	pattern.create = function(ctx)
 	{
-		animating.call(this);
+		if(this.animate.val)animating.call(this);
 		this.val = ctx.createPattern(this.img.val,this.type.val);
 	}
 	return pattern;
@@ -21,7 +21,7 @@ jCanvaScript.lGradient=function(x1,y1,x2,y2,colors)
 	lGrad.y2 = {val:y2};
 	lGrad.create = function(ctx)
 	{
-		animating.call(this);
+		if(this.animate.val)animating.call(this);
 		this.val=ctx.createLinearGradient(this.x1.val,this.y1.val,this.x2.val,this.y2.val);
 		for(var i=0;i<=this.n;i++)
 		{
@@ -41,7 +41,7 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	rGrad.r2 = {val:r2};
 	rGrad.create = function(ctx)
 	{
-		animating.call(this);
+		if(this.animate.val)animating.call(this);
 		this.val=ctx.createRadialGradient(this.x1.val,this.y1.val,this.r1.val,this.x2.val,this.y2.val,this.r2.val);  
 		for(var i=0;i<=this.n;i++)
 		{

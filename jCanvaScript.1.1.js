@@ -11,6 +11,11 @@ var pi=Math.PI*2;
 var lastCanvas=0;
 var lastLayer=0;
 var underMouse = false;
+var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
+if (FireFox!="" && FireFox!==null)
+	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
+else FireFox_lt4=false;
+var regHasLetters = /[A-z]+?/;
 var jCanvaScript=function(stroke,map)
 {
 	if(stroke===undefined)return this;

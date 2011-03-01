@@ -105,15 +105,6 @@ jCanvaScript.canvas = function(idCanvas)
 		this.optns.redraw++;
 		return this;
 	}
-	canvas.composite=function(composite)
-	{
-		if(composite===undefined)return this.optns.gCO;
-		else this.optns.gCO=composite;
-		for(var i=0;i<this.layers.length;i++)
-			this.layers[i].composite(composite);
-		this.optns.redraw++;
-		return this;
-	}
 	canvas.frame=function()
 	{
 		if(!this.optns.redraw)return;
@@ -133,7 +124,6 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		for(var i=0;i<limit;i++)
 		{
-			this.optns.ctx.globalCompositeOperation=this.optns.gCO;
 			var object=this.layers[i];
 			if(typeof (object.draw)=='function')
 				if(object.beforeDraw(this.optns.ctx))
