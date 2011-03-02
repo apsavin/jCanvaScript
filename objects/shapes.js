@@ -45,7 +45,7 @@ jCanvaScript.line=function(points,color,fill)
 	line.shapesCount=points.length;
 	line.draw=function(ctx)
 	{
-		ctx.moveTo(this.x.val,this.y.val);
+		ctx.moveTo(this.x0.val,this.y0.val);
 		for(var j=1;j<this.shapesCount;j++)
 		{
 			ctx.lineTo(this['x'+j].val,this['y'+j].val);
@@ -67,7 +67,7 @@ jCanvaScript.qCurve=function(points,color,fill)
 	qCurve.shapesCount=points.length;
 	qCurve.draw=function(ctx)
 	{
-		ctx.moveTo(this.x.val,this.y.val);
+		ctx.moveTo(this.x0.val,this.y0.val);
 		for(var j=1;j<this.shapesCount;j++)
 		{
 			ctx.quadraticCurveTo(this['cp1x'+j].val,this['cp1y'+j].val,this['x'+j].val,this['y'+j].val);
@@ -90,7 +90,7 @@ jCanvaScript.bCurve=function(points,color,fill)
 	bCurve.shapesCount=points.length;
 	bCurve.draw=function(ctx)
 	{
-		ctx.moveTo(this.x.val,this.y.val);
+		ctx.moveTo(this.x0.val,this.y0.val);
 		for(var j=1;j<this.shapesCount;j++)
 		{
 			ctx.bezierCurveTo(this['cp1x'+j].val,this['cp1y'+j].val,this['cp2x'+j].val,this['cp2y'+j].val,this['x'+j].val,this['y'+j].val);

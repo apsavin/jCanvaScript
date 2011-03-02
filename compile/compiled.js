@@ -154,8 +154,7 @@ var jCanvaScript=function(stroke,map)
 
 function redraw(object)
 {
-	var canvas=canvases[object.canvas.number];
-	if(canvas.optns.redraw<2)canvas.optns.redraw++;
+	canvases[object.canvas.number].optns.redraw++;
 }
 
 function animating()
@@ -1615,7 +1614,7 @@ jCanvaScript.line=function(points,color,fill)
 	line.shapesCount=points.length;
 	line.draw=function(ctx)
 	{
-		ctx.moveTo(this.x.val,this.y.val);
+		ctx.moveTo(this.x0.val,this.y0.val);
 		for(var j=1;j<this.shapesCount;j++)
 		{
 			ctx.lineTo(this['x'+j].val,this['y'+j].val);
@@ -1637,7 +1636,7 @@ jCanvaScript.qCurve=function(points,color,fill)
 	qCurve.shapesCount=points.length;
 	qCurve.draw=function(ctx)
 	{
-		ctx.moveTo(this.x.val,this.y.val);
+		ctx.moveTo(this.x0.val,this.y0.val);
 		for(var j=1;j<this.shapesCount;j++)
 		{
 			ctx.quadraticCurveTo(this['cp1x'+j].val,this['cp1y'+j].val,this['x'+j].val,this['y'+j].val);
@@ -1660,7 +1659,7 @@ jCanvaScript.bCurve=function(points,color,fill)
 	bCurve.shapesCount=points.length;
 	bCurve.draw=function(ctx)
 	{
-		ctx.moveTo(this.x.val,this.y.val);
+		ctx.moveTo(this.x0.val,this.y0.val);
 		for(var j=1;j<this.shapesCount;j++)
 		{
 			ctx.bezierCurveTo(this['cp1x'+j].val,this['cp1y'+j].val,this['cp2x'+j].val,this['cp2y'+j].val,this['x'+j].val,this['y'+j].val);
@@ -1807,7 +1806,7 @@ jCanvaScript.canvas = function(idCanvas)
 					var drag=canvas.optns.drag;
 					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,drag.object.matrix());
 					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:drag.object.transformdx.val,y:drag.object.transformdy.val}));
+					if(drag.fn)drag.fn.call(drag.object,({x:canvas.optns.mousemove.x,y:canvas.optns.mousemove.y}));
 				}
 			};
 			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
@@ -2148,6 +2147,26 @@ jCanvaScript.layer=function(idLayer)
 		}
 	}
 	return layer;
+}
+
+jCanvaScript.point=function(x,y)
+{
+	var point={
+		attr:function(parameter,value){
+			if(value===undefined)return this[parameter].val;
+			this[parameter].val=value;
+			return this;
+		}
+	};
+	point.x=function(x){return this.attr('x',x);}
+	point.x.val=x||0;
+	point.y=function(y){return this.attr('y',y);}
+	point.y.val=y||0;
+	point.translate=function(x,y){
+		this.x(this.x.val+x);
+		this.y(this.y.val+y);
+	}
+	return point;
 }
 
 window.jCanvaScript=window.jc=jCanvaScript;})();

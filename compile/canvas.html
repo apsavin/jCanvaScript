@@ -1,41 +1,28 @@
+<html>
 <head>
-<script type="text/javascript" src="jQuery 1.4.2.js"></script>
-<script type="text/javascript" src="compiled.js"></script>
+<script src="compiled.js"></script>
 <script>
-		function start(idCanvas)
-		{
-			jc.start(idCanvas,25);
-			var enrollImg=new Image();
-			 enrollImg.src="logo.png";
-
-			 function enrollBlink()
-			 {
-				elem=jc('#enrollBlink');
-				 elem.visible(true).translate(-300,-300)
-				 .animate({translate:{x:300,y:300}},1000,function()
-					{
-						this.visible(false);
-					});
-			 }
-
-			// jc.image(enrollImg,0,0);
-			 jc.line([[28,40],[64,80],[121,18],[106,3],[64,41],[44,24]],'rgba(0,255,0,0.4)',1).opacity(0).id('enrollGreen');
-
-			 var colors=[[0.25,'rgba(255,255,255,0)'],
-			 [0.5,'rgba(255,255,255,0.5)'],
-			 [0.75,'rgba(255,255,255,0)']];
-			 var gradient=jc.lGradient(100,100,200,200,colors);
-			 jc.rect(0,0,264,300,gradient,1)
-				.visible(false)
-				.translate(300,300)
-				.id('enrollBlink');
-
-			  setInterval(function(){enrollBlink();},3000); 
-		}
+	var myLine;
+	function start(idCanvas)
+	{
+		jc.start(idCanvas,30);
+		myLine=jc.line([[50,50],[150,50]],"#FF0000");
+		jc.circle(50,50,20,"#00FF00",1)
+			.id('0')
+			.name('circles')
+			.clone({x:150})
+			.id('1');
+		jc('.circles').draggable(function(point){
+				var id=this.id();
+				myLine
+					.attr('x'+id,point.x)
+					.attr('y'+id,point.y);
+			});
+		
+	}
 </script>
 </head>
-<html>
-<body onload="start('cnv');" style="background:black;">
+<body onload="start('cnv');">
 	<canvas id="cnv" width="800" height="580" tabIndex="0" ></canvas>
 </body>
 </html>
