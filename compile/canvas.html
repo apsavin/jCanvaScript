@@ -3,21 +3,31 @@
 <script src="compiled.js"></script>
 <script>
 	var myLine;
+	var myCircle;
+	var circleCount=2;
+	function drag(point)
+	{
+		var id=this.id();
+		myLine
+			.attr('x'+id,point.x)
+			.attr('y'+id,point.y);
+	}
 	function start(idCanvas)
 	{
 		jc.start(idCanvas,30);
+		jc.rect(0,0,800,580,'rgba(0,0,0,0)',1).click(function(point){
+				myLine.addPoint(point.x,point.y);
+				jc.circle(point.x,point.y,20,"#00FF00",1)
+					.id(circleCount++)
+					.draggable(drag);
+			});
 		myLine=jc.line([[50,50],[150,50]],"#FF0000");
-		jc.circle(50,50,20,"#00FF00",1)
+		myCircle=jc.circle(50,50,20,"#00FF00",1)
 			.id('0')
 			.name('circles')
 			.clone({x:150})
 			.id('1');
-		jc('.circles').draggable(function(point){
-				var id=this.id();
-				myLine
-					.attr('x'+id,point.x)
-					.attr('y'+id,point.y);
-			});
+		jc('.circles').draggable(drag);
 		
 	}
 </script>

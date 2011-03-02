@@ -43,6 +43,11 @@ jCanvaScript.line=function(points,color,fill)
 		line['y'+j]={val:points[j][1]};
 	}
 	line.shapesCount=points.length;
+	line.addPoint=function(x,y){
+		this['x'+this.shapesCount]={val:x};
+		this['y'+this.shapesCount]={val:y};
+		this.shapesCount++;
+	}
 	line.draw=function(ctx)
 	{
 		ctx.moveTo(this.x0.val,this.y0.val);
