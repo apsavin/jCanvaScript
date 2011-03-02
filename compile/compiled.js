@@ -1806,7 +1806,7 @@ jCanvaScript.canvas = function(idCanvas)
 					var drag=canvas.optns.drag;
 					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,drag.object.matrix());
 					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:canvas.optns.mousemove.x,y:canvas.optns.mousemove.y}));
+					if(drag.fn)drag.fn.call(drag.object,({x:canvas.optns.mousemove.x-drag.x,y:canvas.optns.mousemove.y-drag.y}));
 				}
 			};
 			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
@@ -2147,26 +2147,6 @@ jCanvaScript.layer=function(idLayer)
 		}
 	}
 	return layer;
-}
-
-jCanvaScript.point=function(x,y)
-{
-	var point={
-		attr:function(parameter,value){
-			if(value===undefined)return this[parameter].val;
-			this[parameter].val=value;
-			return this;
-		}
-	};
-	point.x=function(x){return this.attr('x',x);}
-	point.x.val=x||0;
-	point.y=function(y){return this.attr('y',y);}
-	point.y.val=y||0;
-	point.translate=function(x,y){
-		this.x(this.x.val+x);
-		this.y(this.y.val+y);
-	}
-	return point;
 }
 
 window.jCanvaScript=window.jc=jCanvaScript;})();
