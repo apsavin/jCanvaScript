@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.0
+ * jCanvaScript JavaScript Library v 1.1.3
  * http://jcscript.com/
  *
  * Copyright 2010, Alexander Savin
@@ -15,6 +15,36 @@ var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
 	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
 var regHasLetters = /[A-z]+?/;
+function findById(i,j,stroke)
+{
+	var limit=canvases[i].layers[j].objs.length;
+	for(var k=0;k<limit;k++)
+		if('#'+canvases[i].layers[j].objs[k].id.val==stroke)return canvases[i].layers[j].objs[k];
+	limit=canvases[i].layers[j].grdntsnptrns.length;
+	for(k=0;k<limit;k++)
+		if('#'+canvases[i].layers[j].grdntsnptrns[k].id.val==stroke)return canvases[i].layers[j].grdntsnptrns[k];
+	return false;
+}
+function findByName(i,j,myGroup,stroke)
+{
+	var limit=canvases[i].layers[j].objs.length;
+	for(var k=0;k<limit;k++)
+		if(('.'+canvases[i].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
+	limit=canvases[i].layers[j].grdntsnptrns.length;
+	for(k=0;k<limit;k++)
+		if(('.'+canvases[i].layers[j].grdntsnptrns[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+	return myGroup;
+}
+function findByCanvasAndLayer(i,j,myGroup)
+{
+	var limit=canvases[i].layers[j].objs.length;
+	for(var k=0;k<limit;k++)
+		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
+	limit=canvases[i].layers[j].grdntsnptrns.length;
+	for(k=0;k<limit;k++)
+		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+	return myGroup;
+}
 var jCanvaScript=function(stroke,map)
 {
 	if(stroke===undefined)return this;
@@ -37,9 +67,8 @@ var jCanvaScript=function(stroke,map)
 				limitL=canvases[i].layers.length;
 				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[i].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if('#'+canvases[i].layers[j].objs[k].id.val==stroke)return canvases[i].layers[j].objs[k];
+					var element=findById(i,j,stroke);
+					if(element)return element;
 				}
 			}
 		}
@@ -51,9 +80,7 @@ var jCanvaScript=function(stroke,map)
 				limitL=canvases[i].layers.length;
 				for (var j=0;j<limitL;j++)
 				{
-					limit=canvases[i].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if(('.'+canvases[i].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];;
+					myGroup=findByName(i,j,myGroup,stroke);
 				}
 			}
 			return myGroup;
@@ -63,7 +90,7 @@ var jCanvaScript=function(stroke,map)
 	{
 		if(map.canvas!==undefined)
 		{
-			for(var i=0;i<limitC;i++)
+			for(i=0;i<limitC;i++)
 				if(canvases[i].id.val==map.canvas){canvas=i;break;}
 		}
 		if(map.layer!==undefined)
@@ -71,15 +98,15 @@ var jCanvaScript=function(stroke,map)
 			if(canvas!=-1)
 			{
 				limit=canvases[canvas].layers.length;
-				for(var i=0;i<limit;i++)
+				for(i=0;i<limit;i++)
 					if(canvases[canvas].layers[i].id.val==map.layer){layer=i;break;}
 			}
 			else
 			{
-				for(var i=0;i<limitC;i++)
+				for(i=0;i<limitC;i++)
 				{
 					limit=canvases[i].layers.length;
-					for (var j=0;j<limit;j++)
+					for (j=0;j<limit;j++)
 					{
 						if(canvases[i].layers[j].id.val==map.layer){canvas=i;layer=j;break;}
 					}
@@ -93,32 +120,27 @@ var jCanvaScript=function(stroke,map)
 			limitL=canvases[canvas].layers.length;
 			if (stroke===undefined)
 			{
-				var myGroup=group();
-				for (var j=0;j<limitL;j++)
+				myGroup=group();
+				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[canvas].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[j].objs[k];
+					myGroup=findByCanvasAndLayer(canvas,j,myGroup);
 				}
 				return myGroup;
 			}
 			if(stroke.charAt(0)=='#')
 			{
-				for (var j=0;j<limitL;j++)
+				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[canvas].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if('#'+canvases[canvas].layers[j].objs[k].id.val==stroke)return canvases[canvas].layers[j].objs[k];
+					element=findById(canvas,j,stroke);
+					if(element)return element;
 				}
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				var myGroup=group();
-				for (var j=0;j<limitL;j++)
+				myGroup=group();
+				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[canvas].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if(('.'+canvases[canvas].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[j].objs[k];
+					myGroup=findByName(canvas,j,myGroup,stroke);
 				}
 				return myGroup;
 			}
@@ -127,34 +149,26 @@ var jCanvaScript=function(stroke,map)
 		{
 			if(stroke===undefined)
 			{
-				var myGroup=group();
-				limit=canvases[canvas].layers[layer].objs.length;
-				for(var k=0;k<limit;k++)
-					myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[layer].objs[k];
-				return myGroup;
+				myGroup=group();
+				return findByCanvasAndLayer(canvas,layer,myGroup);
 			}
 			if(stroke.charAt(0)=='#')
 			{
-				limit=canvases[canvas].layers[layer].objs.length;
-				for(var k=0;k<limit;k++)
-					if('#'+canvases[canvas].layers[layer].objs[k].id.val==stroke)return canvases[canvas].layers[layer].objs[k];
+				return findById(canvas,layer,stroke);
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				var myGroup=group();
-				limit=canvases[canvas].layers[layer].objs.length;
-				for(var k=0;k<limit;k++)
-					if(('.'+canvases[canvas].layers[layer].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[layer].objs[k];
-				return myGroup;
+				myGroup=group();
+				return findByName(canvas,layer,myGroup,stroke)
 			}
 		}
 	}
 }
-/**/
+
 
 function redraw(object)
 {
-	canvases[object.canvas.number].optns.redraw++;
+	canvases[object.canvas.number].optns.redraw=1;
 }
 
 function animating()
@@ -656,15 +670,18 @@ function objDeleter(array)
 
 
 
-/**/
 
 function grdntsnptrn()
 {
 	var grdntsnptrn={};
 	var tmpObj=obj(0,0,true);
 	grdntsnptrn.animate=tmpObj.animate;
+	grdntsnptrn.animateQueue=tmpObj.animateQueue;
+	grdntsnptrn.attr=tmpObj.attr;
 	grdntsnptrn.layer=tmpObj.layer;
 	grdntsnptrn.id=tmpObj.id;
+	grdntsnptrn.name=tmpObj.name;
+
 	grdntsnptrn.level=tmpObj.level;
 	grdntsnptrn.layer=function(idLayer)
 	{
@@ -685,18 +702,77 @@ function grdntsnptrn()
 function gradients(colors)
 {
 	var gradients = grdntsnptrn();
-	gradients.n=0;
-	for (var i=0; i<colors.length;i++)
-	{
-		gradients['pos'+i] = {val:colors[i][0]};
-		var colorKeeper = parseColor(colors[i][1]);
+	gradients.colorStopsCount=0;
+	gradients.paramNames=['pos','colorR','colorG','colorB','alpha'];
+	gradients.addColorStop=function(pos,color){
+		redraw(this);
+		var colorKeeper = parseColor(color);
+		var i=this.colorStopsCount;
+		gradients['pos'+i] = {val:pos};
 		gradients['colorR'+i] = colorKeeper.colorR;
 		gradients['colorG'+i] = colorKeeper.colorG;
 		gradients['colorB'+i] = colorKeeper.colorB;
 		gradients['alpha'+i] = colorKeeper.alpha;
-		gradients.n=i;
+		this.colorStopsCount++;
+		return this;
 	}
-	return gradients;
+	gradients.animateObj=gradients.animate;
+	gradients.animate=function(parameters,duration,easing,onstep,fn){
+		for(var key in parameters)
+		{
+			if(key.substr(0,5)=='color')
+			{
+				var i=key.substring(5);
+				var colorKeeper=parseColor(parameters[key]);
+				parameters['colorR'+i] = colorKeeper.colorR.val;
+				parameters['colorG'+i] = colorKeeper.colorG.val;
+				parameters['colorB'+i] = colorKeeper.colorB.val;
+				parameters['alpha'+i] = colorKeeper.alpha.val;
+			}
+		}
+		this.animateObj(parameters,duration,easing,onstep,fn);
+	}
+	gradients.delColorStop=function(i)
+	{
+		redraw(this);
+		var colorStops=this.colorStops();
+		colorStops.splice(i,1);
+		if(colorStops.length>0)this.colorStops(colorStops);
+		else this.colorStopsCount=0;
+		return this;
+	}
+	gradients.colorStops=function(array)
+	{
+		var names=this.paramNames;
+		if(array===undefined){
+			array=[];
+			for(var j=0;j<this.colorStopsCount;j++)
+			{
+				array[j]=[];
+				for(var i=0;i<names.length;i++)
+					array[j][i]=this[names[i]+j].val;
+			}
+			return array;
+		}
+		redraw(this);
+		var oldCount=this.colorStopsCount;
+		var limit=array.length;
+		if(array[0].length==2)
+			for(j=0;j<limit;j++)
+				this.addColorStop(array[j][0], array[j][1]);
+		else
+			for(j=0;j<limit;j++)
+				for(i=0;i<names.length;i++)
+					this[names[i]+j]={val:array[j][i]};
+		for(j=limit;j<oldCount;j++)
+			for(i=0;i<names.length;i++)
+				this[names[i]+j]=undefined;
+		this.colorStopsCount=limit;
+		return this;
+	}
+	if (colors==undefined)
+		return gradients;
+	else return gradients.colorStops(colors);
 }
 
 function lines(color,fill){
@@ -1429,7 +1505,6 @@ function shapes(x,y,color,fill)
 	return shape.color(color);
 }
 
-/**/
 
 jCanvaScript.addObject=function(name,parameters,drawfn)
 {
@@ -1470,7 +1545,6 @@ jCanvaScript.start=function(idCanvas,fps)
 	jCanvaScript.canvas(idCanvas).start(fps);
 }
 
-/**/
 
 
 jCanvaScript.pattern = function(img,type)
@@ -1497,9 +1571,9 @@ jCanvaScript.lGradient=function(x1,y1,x2,y2,colors)
 	{
 		if(this.animate.val)animating.call(this);
 		this.val=ctx.createLinearGradient(this.x1.val,this.y1.val,this.x2.val,this.y2.val);
-		for(var i=0;i<=this.n;i++)
+		for(var i=0;i<this.colorStopsCount;i++)
 		{
-			this.val.addColorStop(this['pos'+i].val,'rgba('+this['colorR'+i].val+','+this['colorG'+i].val+','+this['colorB'+i].val+','+this['alpha'+i].val+')');
+			this.val.addColorStop(this['pos'+i].val,'rgba('+parseInt(this['colorR'+i].val)+','+parseInt(this['colorG'+i].val)+','+parseInt(this['colorB'+i].val)+','+this['alpha'+i].val+')');
 		}
 	}
 	return lGrad;
@@ -1517,9 +1591,9 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	{
 		if(this.animate.val)animating.call(this);
 		this.val=ctx.createRadialGradient(this.x1.val,this.y1.val,this.r1.val,this.x2.val,this.y2.val,this.r2.val);  
-		for(var i=0;i<=this.n;i++)
+		for(var i=0;i<this.colorStopsCount;i++)
 		{
-			this.val.addColorStop(this['pos'+i].val,'rgba('+this['colorR'+i].val+','+this['colorG'+i].val+','+this['colorB'+i].val+','+this['alpha'+i].val+')');  
+			this.val.addColorStop(this['pos'+i].val,'rgba('+parseInt(this['colorR'+i].val)+','+parseInt(this['colorG'+i].val)+','+parseInt(this['colorB'+i].val)+','+this['alpha'+i].val+')');
 		}
 	}
 	return rGrad;
@@ -1762,7 +1836,6 @@ jCanvaScript.text = function(string,x,y,maxWidth,color,fill)
 	return text;
 }
 
-/**/
 
 jCanvaScript.canvas = function(idCanvas)
 {

@@ -1,6 +1,6 @@
 function redraw(object)
 {
-	canvases[object.canvas.number].optns.redraw++;
+	canvases[object.canvas.number].optns.redraw=1;
 }
 
 function animating()

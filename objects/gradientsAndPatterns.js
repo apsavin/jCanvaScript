@@ -23,9 +23,9 @@ jCanvaScript.lGradient=function(x1,y1,x2,y2,colors)
 	{
 		if(this.animate.val)animating.call(this);
 		this.val=ctx.createLinearGradient(this.x1.val,this.y1.val,this.x2.val,this.y2.val);
-		for(var i=0;i<=this.n;i++)
+		for(var i=0;i<this.colorStopsCount;i++)
 		{
-			this.val.addColorStop(this['pos'+i].val,'rgba('+this['colorR'+i].val+','+this['colorG'+i].val+','+this['colorB'+i].val+','+this['alpha'+i].val+')');
+			this.val.addColorStop(this['pos'+i].val,'rgba('+parseInt(this['colorR'+i].val)+','+parseInt(this['colorG'+i].val)+','+parseInt(this['colorB'+i].val)+','+this['alpha'+i].val+')');
 		}
 	}
 	return lGrad;
@@ -43,9 +43,9 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	{
 		if(this.animate.val)animating.call(this);
 		this.val=ctx.createRadialGradient(this.x1.val,this.y1.val,this.r1.val,this.x2.val,this.y2.val,this.r2.val);  
-		for(var i=0;i<=this.n;i++)
+		for(var i=0;i<this.colorStopsCount;i++)
 		{
-			this.val.addColorStop(this['pos'+i].val,'rgba('+this['colorR'+i].val+','+this['colorG'+i].val+','+this['colorB'+i].val+','+this['alpha'+i].val+')');  
+			this.val.addColorStop(this['pos'+i].val,'rgba('+parseInt(this['colorR'+i].val)+','+parseInt(this['colorG'+i].val)+','+parseInt(this['colorB'+i].val)+','+this['alpha'+i].val+')');
 		}
 	}
 	return rGrad;

@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.0
+ * jCanvaScript JavaScript Library v 1.1.3
  * http://jcscript.com/
  *
  * Copyright 2010, Alexander Savin
@@ -15,6 +15,36 @@ var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
 	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
 var regHasLetters = /[A-z]+?/;
+function findById(i,j,stroke)
+{
+	var limit=canvases[i].layers[j].objs.length;
+	for(var k=0;k<limit;k++)
+		if('#'+canvases[i].layers[j].objs[k].id.val==stroke)return canvases[i].layers[j].objs[k];
+	limit=canvases[i].layers[j].grdntsnptrns.length;
+	for(k=0;k<limit;k++)
+		if('#'+canvases[i].layers[j].grdntsnptrns[k].id.val==stroke)return canvases[i].layers[j].grdntsnptrns[k];
+	return false;
+}
+function findByName(i,j,myGroup,stroke)
+{
+	var limit=canvases[i].layers[j].objs.length;
+	for(var k=0;k<limit;k++)
+		if(('.'+canvases[i].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
+	limit=canvases[i].layers[j].grdntsnptrns.length;
+	for(k=0;k<limit;k++)
+		if(('.'+canvases[i].layers[j].grdntsnptrns[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+	return myGroup;
+}
+function findByCanvasAndLayer(i,j,myGroup)
+{
+	var limit=canvases[i].layers[j].objs.length;
+	for(var k=0;k<limit;k++)
+		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
+	limit=canvases[i].layers[j].grdntsnptrns.length;
+	for(k=0;k<limit;k++)
+		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+	return myGroup;
+}
 var jCanvaScript=function(stroke,map)
 {
 	if(stroke===undefined)return this;
@@ -37,9 +67,8 @@ var jCanvaScript=function(stroke,map)
 				limitL=canvases[i].layers.length;
 				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[i].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if('#'+canvases[i].layers[j].objs[k].id.val==stroke)return canvases[i].layers[j].objs[k];
+					var element=findById(i,j,stroke);
+					if(element)return element;
 				}
 			}
 		}
@@ -51,9 +80,7 @@ var jCanvaScript=function(stroke,map)
 				limitL=canvases[i].layers.length;
 				for (var j=0;j<limitL;j++)
 				{
-					limit=canvases[i].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if(('.'+canvases[i].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];;
+					myGroup=findByName(i,j,myGroup,stroke);
 				}
 			}
 			return myGroup;
@@ -63,7 +90,7 @@ var jCanvaScript=function(stroke,map)
 	{
 		if(map.canvas!==undefined)
 		{
-			for(var i=0;i<limitC;i++)
+			for(i=0;i<limitC;i++)
 				if(canvases[i].id.val==map.canvas){canvas=i;break;}
 		}
 		if(map.layer!==undefined)
@@ -71,15 +98,15 @@ var jCanvaScript=function(stroke,map)
 			if(canvas!=-1)
 			{
 				limit=canvases[canvas].layers.length;
-				for(var i=0;i<limit;i++)
+				for(i=0;i<limit;i++)
 					if(canvases[canvas].layers[i].id.val==map.layer){layer=i;break;}
 			}
 			else
 			{
-				for(var i=0;i<limitC;i++)
+				for(i=0;i<limitC;i++)
 				{
 					limit=canvases[i].layers.length;
-					for (var j=0;j<limit;j++)
+					for (j=0;j<limit;j++)
 					{
 						if(canvases[i].layers[j].id.val==map.layer){canvas=i;layer=j;break;}
 					}
@@ -93,32 +120,27 @@ var jCanvaScript=function(stroke,map)
 			limitL=canvases[canvas].layers.length;
 			if (stroke===undefined)
 			{
-				var myGroup=group();
-				for (var j=0;j<limitL;j++)
+				myGroup=group();
+				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[canvas].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[j].objs[k];
+					myGroup=findByCanvasAndLayer(canvas,j,myGroup);
 				}
 				return myGroup;
 			}
 			if(stroke.charAt(0)=='#')
 			{
-				for (var j=0;j<limitL;j++)
+				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[canvas].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if('#'+canvases[canvas].layers[j].objs[k].id.val==stroke)return canvases[canvas].layers[j].objs[k];
+					element=findById(canvas,j,stroke);
+					if(element)return element;
 				}
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				var myGroup=group();
-				for (var j=0;j<limitL;j++)
+				myGroup=group();
+				for (j=0;j<limitL;j++)
 				{
-					limit=canvases[canvas].layers[j].objs.length;
-					for(var k=0;k<limit;k++)
-						if(('.'+canvases[canvas].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[j].objs[k];
+					myGroup=findByName(canvas,j,myGroup,stroke);
 				}
 				return myGroup;
 			}
@@ -127,37 +149,25 @@ var jCanvaScript=function(stroke,map)
 		{
 			if(stroke===undefined)
 			{
-				var myGroup=group();
-				limit=canvases[canvas].layers[layer].objs.length;
-				for(var k=0;k<limit;k++)
-					myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[layer].objs[k];
-				return myGroup;
+				myGroup=group();
+				return findByCanvasAndLayer(canvas,layer,myGroup);
 			}
 			if(stroke.charAt(0)=='#')
 			{
-				limit=canvases[canvas].layers[layer].objs.length;
-				for(var k=0;k<limit;k++)
-					if('#'+canvases[canvas].layers[layer].objs[k].id.val==stroke)return canvases[canvas].layers[layer].objs[k];
+				return findById(canvas,layer,stroke);
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				var myGroup=group();
-				limit=canvases[canvas].layers[layer].objs.length;
-				for(var k=0;k<limit;k++)
-					if(('.'+canvases[canvas].layers[layer].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[canvas].layers[layer].objs[k];
-				return myGroup;
+				myGroup=group();
+				return findByName(canvas,layer,myGroup,stroke)
 			}
 		}
 	}
 }
-/**/
+
 <include src="privateFunctions"/>
-/**/
 <include src="privateObjects"/>
-/**/
 <include src="publicFunctions"/>
-/**/
 <include src="objects"/>
-/**/
 <include src="serviceObjects"/>
 window.jCanvaScript=window.jc=jCanvaScript;})();
