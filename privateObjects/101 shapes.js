@@ -64,7 +64,7 @@ proto.text=function(){
 	this._baseline="alphabetic";
 	this.setOptns = function(ctx)
 	{
-		proto.text.prototype.setOptns(ctx);
+		proto.text.prototype.setOptns.call(this,ctx);
 		ctx.textBaseline=this._baseline;
 		ctx.font=this._font;
 		ctx.textAlign=this._align;
@@ -93,7 +93,7 @@ proto.text=function(){
 				maxWidth=false;
 			}
 		}
-		proto.text.prototype.base.call(this,x,y,color,fill);
+		proto.text.prototype.base.call(this,x,y,color,fill||1);
 		this._string=string;
 		this._maxWidth=maxWidth||false;
 		return this;

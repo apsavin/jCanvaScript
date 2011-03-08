@@ -1491,7 +1491,7 @@ proto.bCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.circle.prototype.base.call(this,color,fill);
+		proto.bCurve.prototype.base.call(this,color,fill);
 		if(points!==undefined)this.points(points);
 		return this;
 	}
@@ -1566,7 +1566,7 @@ proto.text=function(){
 	this._baseline="alphabetic";
 	this.setOptns = function(ctx)
 	{
-		proto.text.prototype.setOptns(ctx);
+		proto.text.prototype.setOptns.call(this,ctx);
 		ctx.textBaseline=this._baseline;
 		ctx.font=this._font;
 		ctx.textAlign=this._align;
@@ -1595,7 +1595,7 @@ proto.text=function(){
 				maxWidth=false;
 			}
 		}
-		proto.text.prototype.base.call(this,x,y,color,fill);
+		proto.text.prototype.base.call(this,x,y,color,fill||1);
 		this._string=string;
 		this._maxWidth=maxWidth||false;
 		return this;
@@ -1989,7 +1989,8 @@ proto.imageData=function()
 		if(this.imgData===undefined)
 		{
 			this.imgData=ctx.createImageData(this._width,this._height);
-			this.imgData.data=this.data.concat();
+			for(var i=0;i<this._width*this._height*4;i++)
+				this.imgData.data[i]=this.data[i];
 			this.data=this.imgData.data;
 		}
 		if(this._putData)
@@ -1997,7 +1998,7 @@ proto.imageData=function()
 	}
 	this.base=function(width,height)
 	{
-		proto.image.prototype.base.call();
+		proto.imageData.prototype.base.call(this);
 		if(height===undefined)
 		{
 			var oldImageData=width;
@@ -2032,7 +2033,7 @@ proto.image=function()
 	}
 	this.base=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
 	{
-		proto.image.prototype.base.call();
+		proto.image.prototype.base.call(this);
 		this._img=img;
 		this._swidth=swidth||false;
 		this._sheight=sheight||false;

@@ -50,7 +50,7 @@ proto.bCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.circle.prototype.base.call(this,color,fill);
+		proto.bCurve.prototype.base.call(this,color,fill);
 		if(points!==undefined)this.points(points);
 		return this;
 	}
