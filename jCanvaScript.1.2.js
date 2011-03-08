@@ -1,8 +1,8 @@
 /*!
- * jCanvaScript JavaScript Library v 1.1.3
+ * jCanvaScript JavaScript Library v 1.2
  * http://jcscript.com/
  *
- * Copyright 2010, Alexander Savin
+ * Copyright 2011, Alexander Savin
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(){
@@ -19,20 +19,20 @@ function findById(i,j,stroke)
 {
 	var limit=canvases[i].layers[j].objs.length;
 	for(var k=0;k<limit;k++)
-		if('#'+canvases[i].layers[j].objs[k].id.val==stroke)return canvases[i].layers[j].objs[k];
+		if('#'+canvases[i].layers[j].objs[k].optns.id==stroke)return canvases[i].layers[j].objs[k];
 	limit=canvases[i].layers[j].grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if('#'+canvases[i].layers[j].grdntsnptrns[k].id.val==stroke)return canvases[i].layers[j].grdntsnptrns[k];
+		if('#'+canvases[i].layers[j].grdntsnptrns[k].optns.id==stroke)return canvases[i].layers[j].grdntsnptrns[k];
 	return false;
 }
 function findByName(i,j,myGroup,stroke)
 {
 	var limit=canvases[i].layers[j].objs.length;
 	for(var k=0;k<limit;k++)
-		if(('.'+canvases[i].layers[j].objs[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
+		if(('.'+canvases[i].layers[j].objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
 	limit=canvases[i].layers[j].grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if(('.'+canvases[i].layers[j].grdntsnptrns[k].name.val)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+		if(('.'+canvases[i].layers[j].grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
 	return myGroup;
 }
 function findByCanvasAndLayer(i,j,myGroup)
@@ -91,7 +91,7 @@ var jCanvaScript=function(stroke,map)
 		if(map.canvas!==undefined)
 		{
 			for(i=0;i<limitC;i++)
-				if(canvases[i].id.val==map.canvas){canvas=i;break;}
+				if(canvases[i].optns.id==map.canvas){canvas=i;break;}
 		}
 		if(map.layer!==undefined)
 		{
@@ -99,7 +99,7 @@ var jCanvaScript=function(stroke,map)
 			{
 				limit=canvases[canvas].layers.length;
 				for(i=0;i<limit;i++)
-					if(canvases[canvas].layers[i].id.val==map.layer){layer=i;break;}
+					if(canvases[canvas].layers[i].optns.id==map.layer){layer=i;break;}
 			}
 			else
 			{
@@ -108,7 +108,7 @@ var jCanvaScript=function(stroke,map)
 					limit=canvases[i].layers.length;
 					for (j=0;j<limit;j++)
 					{
-						if(canvases[i].layers[j].id.val==map.layer){canvas=i;layer=j;break;}
+						if(canvases[i].layers[j].optns.id==map.layer){canvas=i;layer=j;break;}
 					}
 					if (layer>-1)break;
 				}

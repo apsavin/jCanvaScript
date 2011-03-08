@@ -1,15 +1,14 @@
-function lines(color,fill){
-	var lines=shapes(0,0,color,fill);
-	lines.shapesCount=0;
-	lines.addPoint=function(){
+proto.lines=function()
+{
+	this.addPoint=function(){
 		redraw(this);
 		var names=this.pointNames;
 		for(var i=0;i<names.length;i++)
-				this[names[i]+this.shapesCount]={val:arguments[i]};
+				this[names[i]+this.shapesCount]=arguments[i];
 		this.shapesCount++;
 		return this;
 	}
-	lines.delPoint=function(x,y,radius){
+	this.delPoint=function(x,y,radius){
 		redraw(this);
 		if(y===undefined)
 		{
@@ -20,7 +19,7 @@ function lines(color,fill){
 		else{
 			radius=radius||0;
 			for(var j=0;j<this.shapesCount;j++)
-				if(this['x'+j].val<x+radius && this['x'+j].val>x-radius && this['y'+j].val<y+radius && this['y'+j].val<y+radius)
+				if(this['_x'+j]<x+radius && this['_x'+j]>x-radius && this['_y'+j]<y+radius && this['_y'+j]<y+radius)
 				{
 					this.delPoint(j);
 					j--;
@@ -28,7 +27,7 @@ function lines(color,fill){
 		}
 		return this;
 	}
-	lines.points=function(points)
+	this.points=function(points)
 	{
 		var names=this.pointNames;
 		if(points===undefined){
@@ -37,7 +36,7 @@ function lines(color,fill){
 			{
 				points[j]=[];
 				for(var i=0;i<names.length;i++)
-					points[j][i]=this[names[i]+j].val;
+					points[j][i]=this[names[i]+j];
 			}
 			return points;
 		}
@@ -46,11 +45,17 @@ function lines(color,fill){
 		this.shapesCount=points.length;
 		for(j=0;j<this.shapesCount;j++)
 			for(i=0;i<names.length;i++)
-				this[names[i]+j]={val:points[j][i]};
+				this[names[i]+j]=points[j][i];
 		for(j=this.shapesCount;j<oldCount;j++)
 			for(i=0;i<names.length;i++)
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	return lines;
+	this.base=function(color,fill)
+	{
+		proto.lines.prototype.base.call(this,0,0,color,fill);
+		this.shapesCount=0;
+		return this;
+	}
 }
+proto.lines.prototype=new proto.shape;

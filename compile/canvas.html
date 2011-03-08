@@ -1,7 +1,7 @@
 <html>
 <head>
 <script src="jCanvaScript.1.1.3.js"></script>
-<script>
+<script>/*
 	var myLine;
 	var myCircle;
 	var circleCount=2;
@@ -25,6 +25,7 @@
 		jc.rect(0,0,800,580,grad,1).click(function(point){
 				myLine.addPoint(point.x,point.y);
 				jc.circle(point.x,point.y,20,"#00FF00",1)
+					.animate({radius:30},500,function(){this.opacity(0.5);})
 					.id(circleCount++)
 					.draggable(drag);
 			});
@@ -35,7 +36,19 @@
 			.clone({x:150})
 			.id('1');
 		jc('.circles').draggable(drag);
-		
+	}*/
+	
+	function start(idCanvas){
+		jc.start(idCanvas);
+		var time=0;
+		for(i=0;i<10;i++){
+			var start=new Date();
+			for(j=0;j<5000;j++)
+				jc.circle(50,50,50);
+			var end=new Date();
+			time+=end.getTime()-start.getTime();
+		}
+		alert(time/10);
 	}
 </script>
 </head>
