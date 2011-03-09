@@ -9,12 +9,14 @@ proto.groups=function()
 			if(typeof tmp[key]=='function' && this[key]===undefined)
 			{
 				this[key]=function(){
+					var argumentsClone=[];
 					for(var i=0;i<this.elements.length;i++)
 					{
 						var element=this.elements[i];
+						take(argumentsClone,arguments);
 						if(typeof element[arguments.callee.val]=='function')
 						{
-							element[arguments.callee.val].apply(element,arguments);
+							element[arguments.callee.val].apply(element,argumentsClone);
 						}
 					}
 					return this;
