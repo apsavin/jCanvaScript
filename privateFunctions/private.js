@@ -375,7 +375,7 @@ function isPointInPath(object,x,y)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
-	if(ctx.isPointInPath===undefined || object.img!==undefined || object.imgData!==undefined)
+	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined)
 	{
 		var rectangle=getObjectRectangle(object);
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
