@@ -104,6 +104,10 @@ proto.object=function()
 	{
 		return setMouseEvent.call(this,fn,'click');
 	}
+	this.dblclick = function(fn)
+	{
+		return setMouseEvent.call(this,fn,'dblclick');
+	}
 	this.keypress= function(fn)
 	{
 		return setKeyEvent.call(this,fn,'onkeypress');

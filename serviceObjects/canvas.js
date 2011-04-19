@@ -30,12 +30,14 @@ jCanvaScript.canvas = function(idCanvas)
 		keyPress:{val:false,code:false},
 		mousemove:{val:false,x:false,y:false,object:false},
 		click:{val:false,x:false,y:false,object:false},
+		dblclick:{val:false,x:false,y:false,object:false},
 		mouseup:{val:false,x:false,y:false,object:false},
 		mousedown:{val:false,x:false,y:false,object:false},
 		drag:{object:false,x:0,y:0},
 		gCO: 'source-over',
 		redraw:1
 	}
+	canvas.toDataURL=function(){return canvas.cnv.toDataURL.apply(canvas.cnv,arguments);}
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
@@ -54,6 +56,10 @@ jCanvaScript.canvas = function(idCanvas)
 				if(!canvas.optns.click.val)return;
 				mouseEvent(e,'click',canvas.optns);
 			};
+			this.cnv.ondblclick=function(e){
+				if(!canvas.optns.dblclick.val)return;
+				mouseEvent(e,'dblclick',canvas.optns);
+			}
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.mousedown.val)return;
 				mouseEvent(e,'mousedown',canvas.optns);
@@ -238,13 +244,18 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
+			var mouseDblClick=this.optns.dblclick;
 			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
 			for(i=0;i<2;i++)
+			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
 					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
+				if(typeof mouseClickObjects[i].ondblclick == 'function')
+					mouseClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+			}
 			mouseClick.object=false;
 		}
-		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
+		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;
 }

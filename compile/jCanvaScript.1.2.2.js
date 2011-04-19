@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.2.1
+ * jCanvaScript JavaScript Library v 1.2.2
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -335,6 +335,17 @@ function transformPoint(x,y,m)
 function getObjectRectangle(object)
 {
 	var points={};
+	if(object._proto=='text')
+	{
+		var ctx=canvases[object.optns.canvas.number].optns.ctx;
+		var height=parseInt(object._font);
+		points.x=object._x;
+		points.y=object._y-height;
+		object.setOptns(ctx);
+		points.width=ctx.measureText(object._string).width;
+		points.height=height;
+		return points;
+	}
 	if(object._img!==undefined)
 	{
 		points.x=object._sx;
@@ -397,7 +408,7 @@ function getObjectRectangle(object)
 function getObjectCenter(object)
 {
 	var point={};
-	if(object.objs!==undefined || object._img!==undefined)
+	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
 		var rect=getObjectRectangle(object);
 		point.x=(rect.x*2+rect.width)/2;
@@ -543,7 +554,7 @@ function isPointInPath(object,x,y)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
-	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined)
+	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=getObjectRectangle(object);
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
@@ -560,8 +571,8 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x||optns.dblclick.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y||optns.dblclick.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
@@ -572,7 +583,7 @@ function checkMouseEvents(object,optns)
 			optns.mousemove.object=object;
 		if(optns.mousedown.x!=false)
 			optns.mousedown.object=object;
-		if(optns.click.x!=false)
+		if(optns.click.x!=false || optns.dblclick.x!=false)
 			optns.click.object=object;
 		if(optns.mouseup.x!=false)
 			optns.mouseup.object=object;
@@ -822,6 +833,10 @@ proto.object=function()
 	this.click= function(fn)
 	{
 		return setMouseEvent.call(this,fn,'click');
+	}
+	this.dblclick = function(fn)
+	{
+		return setMouseEvent.call(this,fn,'dblclick');
 	}
 	this.keypress= function(fn)
 	{
@@ -2243,12 +2258,14 @@ jCanvaScript.canvas = function(idCanvas)
 		keyPress:{val:false,code:false},
 		mousemove:{val:false,x:false,y:false,object:false},
 		click:{val:false,x:false,y:false,object:false},
+		dblclick:{val:false,x:false,y:false,object:false},
 		mouseup:{val:false,x:false,y:false,object:false},
 		mousedown:{val:false,x:false,y:false,object:false},
 		drag:{object:false,x:0,y:0},
 		gCO: 'source-over',
 		redraw:1
 	}
+	canvas.toDataURL=function(){return canvas.cnv.toDataURL.apply(canvas.cnv,arguments);}
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
@@ -2267,6 +2284,10 @@ jCanvaScript.canvas = function(idCanvas)
 				if(!canvas.optns.click.val)return;
 				mouseEvent(e,'click',canvas.optns);
 			};
+			this.cnv.ondblclick=function(e){
+				if(!canvas.optns.dblclick.val)return;
+				mouseEvent(e,'dblclick',canvas.optns);
+			}
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.mousedown.val)return;
 				mouseEvent(e,'mousedown',canvas.optns);
@@ -2451,13 +2472,18 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
+			var mouseDblClick=this.optns.dblclick;
 			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
 			for(i=0;i<2;i++)
+			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
 					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
+				if(typeof mouseClickObjects[i].ondblclick == 'function')
+					mouseClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+			}
 			mouseClick.object=false;
 		}
-		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
+		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;
 }

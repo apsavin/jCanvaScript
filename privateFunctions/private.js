@@ -167,6 +167,17 @@ function transformPoint(x,y,m)
 function getObjectRectangle(object)
 {
 	var points={};
+	if(object._proto=='text')
+	{
+		var ctx=canvases[object.optns.canvas.number].optns.ctx;
+		var height=parseInt(object._font);
+		points.x=object._x;
+		points.y=object._y-height;
+		object.setOptns(ctx);
+		points.width=ctx.measureText(object._string).width;
+		points.height=height;
+		return points;
+	}
 	if(object._img!==undefined)
 	{
 		points.x=object._sx;
@@ -229,7 +240,7 @@ function getObjectRectangle(object)
 function getObjectCenter(object)
 {
 	var point={};
-	if(object.objs!==undefined || object._img!==undefined)
+	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
 		var rect=getObjectRectangle(object);
 		point.x=(rect.x*2+rect.width)/2;
@@ -375,7 +386,7 @@ function isPointInPath(object,x,y)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
-	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined)
+	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=getObjectRectangle(object);
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
@@ -392,8 +403,8 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x||optns.dblclick.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y||optns.dblclick.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
@@ -404,7 +415,7 @@ function checkMouseEvents(object,optns)
 			optns.mousemove.object=object;
 		if(optns.mousedown.x!=false)
 			optns.mousedown.object=object;
-		if(optns.click.x!=false)
+		if(optns.click.x!=false || optns.dblclick.x!=false)
 			optns.click.object=object;
 		if(optns.mouseup.x!=false)
 			optns.mouseup.object=object;
