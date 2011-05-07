@@ -5,11 +5,12 @@ jCanvaScript.addObject=function(name,parameters,drawfn)
 		this.base=proto[name].base;
 		this._proto=name;
 	};
-	proto[name].prototype=new proto.shape;
-	proto[name].draw=drawfn;
-	proto[name].base=function(name,parameters,args)
+	var protoItem=proto[name];
+	protoItem.prototype=new proto.shape;
+	protoItem.draw=drawfn;
+	protoItem.base=function(name,parameters,args)
 	{
-		proto[name].prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
+		protoItem.prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
 		var i=0;
 		for(var key in parameters)
 		{

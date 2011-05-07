@@ -1,48 +1,49 @@
 /*!
- * jCanvaScript JavaScript Library v 1.2.2
+ * jCanvaScript JavaScript Library v 1.2.3
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(){
-var canvases = [];
-var pi=Math.PI*2;
-var lastCanvas=0;
-var lastLayer=0;
-var underMouse = false;
-var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
+var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
 	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
-var regHasLetters = /[A-z]+?/;
+
 function findById(i,j,stroke)
 {
-	var limit=canvases[i].layers[j].objs.length;
+	var objs=canvases[i].layers[j].objs;
+	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		if('#'+canvases[i].layers[j].objs[k].optns.id==stroke)return canvases[i].layers[j].objs[k];
-	limit=canvases[i].layers[j].grdntsnptrns.length;
+		if('#'+objs[k].optns.id==stroke)return objs[k];
+	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if('#'+canvases[i].layers[j].grdntsnptrns[k].optns.id==stroke)return canvases[i].layers[j].grdntsnptrns[k];
+		if('#'+grdntsnptrns[k].optns.id==stroke)return grdntsnptrns[k];
 	return false;
 }
 function findByName(i,j,myGroup,stroke)
 {
-	var limit=canvases[i].layers[j].objs.length;
+	var objs=canvases[i].layers[j].objs;
+	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		if(('.'+canvases[i].layers[j].objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
-	limit=canvases[i].layers[j].grdntsnptrns.length;
+		if(('.'+objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=objs[k];
+	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if(('.'+canvases[i].layers[j].grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
 	return myGroup;
 }
 function findByCanvasAndLayer(i,j,myGroup)
 {
-	var limit=canvases[i].layers[j].objs.length;
+	var objs=canvases[i].layers[j].objs;
+	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
-	limit=canvases[i].layers[j].grdntsnptrns.length;
+		myGroup.elements[myGroup.elements.length]=objs[k];
+	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+		myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
 	return myGroup;
 }
 var jCanvaScript=function(stroke,map)
@@ -53,11 +54,7 @@ var jCanvaScript=function(stroke,map)
 		map=stroke;
 		stroke=undefined;
 	}
-	var canvas=-1;
-	var layer=-1;
-	var limitC=canvases.length;
-	var limitL=0;
-	var limit=0;
+	var canvas=-1,layer=-1,limitC=canvases.length,limitL=0,limit=0,myGroup=group();
 	if (map===undefined)
 	{
 		if(stroke.charAt(0)=='#')
@@ -74,7 +71,6 @@ var jCanvaScript=function(stroke,map)
 		}
 		if(stroke.charAt(0)=='.')
 		{
-			var myGroup=group();
 			for(var i=0;i<limitC;i++)
 			{
 				limitL=canvases[i].layers.length;
@@ -120,7 +116,6 @@ var jCanvaScript=function(stroke,map)
 			limitL=canvases[canvas].layers.length;
 			if (stroke===undefined)
 			{
-				myGroup=group();
 				for (j=0;j<limitL;j++)
 				{
 					myGroup=findByCanvasAndLayer(canvas,j,myGroup);
@@ -137,7 +132,6 @@ var jCanvaScript=function(stroke,map)
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				myGroup=group();
 				for (j=0;j<limitL;j++)
 				{
 					myGroup=findByName(canvas,j,myGroup,stroke);
@@ -149,7 +143,6 @@ var jCanvaScript=function(stroke,map)
 		{
 			if(stroke===undefined)
 			{
-				myGroup=group();
 				return findByCanvasAndLayer(canvas,layer,myGroup);
 			}
 			if(stroke.charAt(0)=='#')
@@ -158,7 +151,6 @@ var jCanvaScript=function(stroke,map)
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				myGroup=group();
 				return findByName(canvas,layer,myGroup,stroke)
 			}
 		}

@@ -82,7 +82,7 @@ function keyEvent(e,key,optns)
 	e=e||window.event;
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
-	optns.redraw++;
+	optns.redraw=1;
 	return false;
 }
 function mouseEvent(e,key,optns)
@@ -94,7 +94,7 @@ function mouseEvent(e,key,optns)
 	};
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
-	optns.redraw++;
+	if(optns[key].val)optns.redraw=1;
 	return false;
 }
 function setMouseEvent(fn,eventName)
@@ -444,10 +444,11 @@ function layer(idLayer,object,array)
 		i:newLayer.optns.canvas.number,
 		j:newLayer._level
 	};
-	canvases[oldIndex.i].layers[oldIndex.j][array].splice(object._level,1);
-	normalizeLevels(canvases[oldIndex.i].layers[oldIndex.j][array]);
-	object._level=canvases[newIndex.i].layers[newIndex.j][array].length;
-	canvases[newIndex.i].layers[newIndex.j][array][object._level]=object;
+	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
+	oldArray.splice(object._level,1);
+	normalizeLevels(oldArray);
+	object._level=newArray.length;
+	newArray[object._level]=object;
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
 	redraw(object);
@@ -494,16 +495,18 @@ function canvas(idCanvas,object,array)
 	};
 	jCanvaScript.canvas(idCanvas);
 	for(var i=0;i<canvases.length;i++)
-		if(canvases[i].optns.id==idCanvas)
+		var canvasItem=canvases[i];
+		if(canvasItem.optns.id==idCanvas)
 		{
-			canvases[oldIndex.i].layers[oldIndex.j][array].splice(object._level,1);
-			normalizeLevels(canvases[oldIndex.i].layers[oldIndex.j][array]);
-			object._level=canvases[i].layers[0][array].length;
-			canvases[i].layers[0][array][object._level]=object;
+			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
+			oldArray.splice(object._level,1);
+			normalizeLevels(oldArray);
+			object._level=newArray.length;
+			newArray[object._level]=object;
 			objectLayer.number=0;
 			objectCanvas.number=i;
-			objectCanvas.id=canvases[i].optns.id;
-			objectLayer.id=canvases[i].layers[0].optns.id;
+			objectCanvas.id=canvasItem.optns.id;
+			objectLayer.id=canvasItem.layers[0].optns.id;
 		}
 	redraw(object);
 	return object;

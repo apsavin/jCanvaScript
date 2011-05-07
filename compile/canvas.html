@@ -1,6 +1,6 @@
 <html>
 <head>
-<script src="jCanvaScript.1.2.2.js"></script>
+<script src="jCanvaScript.1.2.3.js"></script>
 <script>/*
 	var myLine;
 	var myCircle;
@@ -43,13 +43,26 @@
 		var img=new Image();
 		img.src='1.png';
 		img.onload=function(){
-			jc.image(img,100,100,20,20).rotate(30,'center');
+			jc.image(img,10,10,20,20)
+				.draggable(function(point){
+					//alert(point.x+' '+point.y);
+				})
+				//.click(function(){alert(1);});
 		};
-		jc.text('myText',100,100).draggable();
-	}/**/
+	}
+	/**/
+	function test(){
+		cnv=document.getElementById('cnv');
+		cnv.style.width=400;
+		cnv.style.height=400;
+		cnv.width=400;
+		cnv.height=400;
+		jc.layer('layer_1').scale(2);
+	}
 </script>
 </head>
 <body onload="start('cnv');">
-	<canvas id="cnv" width="800" height="580" tabIndex="0"></canvas>
+	<canvas id="cnv" width="200" height="200" tabIndex="0"></canvas>
+	<input type="button" onclick="test()"/>
 </body>
 </html>

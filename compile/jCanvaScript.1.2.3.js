@@ -1,48 +1,49 @@
 /*!
- * jCanvaScript JavaScript Library v 1.2.2
+ * jCanvaScript JavaScript Library v 1.2.3
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(){
-var canvases = [];
-var pi=Math.PI*2;
-var lastCanvas=0;
-var lastLayer=0;
-var underMouse = false;
-var FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
+var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
 	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
-var regHasLetters = /[A-z]+?/;
+
 function findById(i,j,stroke)
 {
-	var limit=canvases[i].layers[j].objs.length;
+	var objs=canvases[i].layers[j].objs;
+	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		if('#'+canvases[i].layers[j].objs[k].optns.id==stroke)return canvases[i].layers[j].objs[k];
-	limit=canvases[i].layers[j].grdntsnptrns.length;
+		if('#'+objs[k].optns.id==stroke)return objs[k];
+	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if('#'+canvases[i].layers[j].grdntsnptrns[k].optns.id==stroke)return canvases[i].layers[j].grdntsnptrns[k];
+		if('#'+grdntsnptrns[k].optns.id==stroke)return grdntsnptrns[k];
 	return false;
 }
 function findByName(i,j,myGroup,stroke)
 {
-	var limit=canvases[i].layers[j].objs.length;
+	var objs=canvases[i].layers[j].objs;
+	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		if(('.'+canvases[i].layers[j].objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
-	limit=canvases[i].layers[j].grdntsnptrns.length;
+		if(('.'+objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=objs[k];
+	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if(('.'+canvases[i].layers[j].grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
 	return myGroup;
 }
 function findByCanvasAndLayer(i,j,myGroup)
 {
-	var limit=canvases[i].layers[j].objs.length;
+	var objs=canvases[i].layers[j].objs;
+	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].objs[k];
-	limit=canvases[i].layers[j].grdntsnptrns.length;
+		myGroup.elements[myGroup.elements.length]=objs[k];
+	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=canvases[i].layers[j].grdntsnptrns[k];
+		myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
 	return myGroup;
 }
 var jCanvaScript=function(stroke,map)
@@ -53,11 +54,7 @@ var jCanvaScript=function(stroke,map)
 		map=stroke;
 		stroke=undefined;
 	}
-	var canvas=-1;
-	var layer=-1;
-	var limitC=canvases.length;
-	var limitL=0;
-	var limit=0;
+	var canvas=-1,layer=-1,limitC=canvases.length,limitL=0,limit=0,myGroup=group();
 	if (map===undefined)
 	{
 		if(stroke.charAt(0)=='#')
@@ -74,7 +71,6 @@ var jCanvaScript=function(stroke,map)
 		}
 		if(stroke.charAt(0)=='.')
 		{
-			var myGroup=group();
 			for(var i=0;i<limitC;i++)
 			{
 				limitL=canvases[i].layers.length;
@@ -120,7 +116,6 @@ var jCanvaScript=function(stroke,map)
 			limitL=canvases[canvas].layers.length;
 			if (stroke===undefined)
 			{
-				myGroup=group();
 				for (j=0;j<limitL;j++)
 				{
 					myGroup=findByCanvasAndLayer(canvas,j,myGroup);
@@ -137,7 +132,6 @@ var jCanvaScript=function(stroke,map)
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				myGroup=group();
 				for (j=0;j<limitL;j++)
 				{
 					myGroup=findByName(canvas,j,myGroup,stroke);
@@ -149,7 +143,6 @@ var jCanvaScript=function(stroke,map)
 		{
 			if(stroke===undefined)
 			{
-				myGroup=group();
 				return findByCanvasAndLayer(canvas,layer,myGroup);
 			}
 			if(stroke.charAt(0)=='#')
@@ -158,7 +151,6 @@ var jCanvaScript=function(stroke,map)
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				myGroup=group();
 				return findByName(canvas,layer,myGroup,stroke)
 			}
 		}
@@ -250,7 +242,7 @@ function keyEvent(e,key,optns)
 	e=e||window.event;
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
-	optns.redraw++;
+	optns.redraw=1;
 	return false;
 }
 function mouseEvent(e,key,optns)
@@ -262,7 +254,7 @@ function mouseEvent(e,key,optns)
 	};
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
-	optns.redraw++;
+	if(optns[key].val)optns.redraw=1;
 	return false;
 }
 function setMouseEvent(fn,eventName)
@@ -612,10 +604,11 @@ function layer(idLayer,object,array)
 		i:newLayer.optns.canvas.number,
 		j:newLayer._level
 	};
-	canvases[oldIndex.i].layers[oldIndex.j][array].splice(object._level,1);
-	normalizeLevels(canvases[oldIndex.i].layers[oldIndex.j][array]);
-	object._level=canvases[newIndex.i].layers[newIndex.j][array].length;
-	canvases[newIndex.i].layers[newIndex.j][array][object._level]=object;
+	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
+	oldArray.splice(object._level,1);
+	normalizeLevels(oldArray);
+	object._level=newArray.length;
+	newArray[object._level]=object;
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
 	redraw(object);
@@ -662,16 +655,18 @@ function canvas(idCanvas,object,array)
 	};
 	jCanvaScript.canvas(idCanvas);
 	for(var i=0;i<canvases.length;i++)
-		if(canvases[i].optns.id==idCanvas)
+		var canvasItem=canvases[i];
+		if(canvasItem.optns.id==idCanvas)
 		{
-			canvases[oldIndex.i].layers[oldIndex.j][array].splice(object._level,1);
-			normalizeLevels(canvases[oldIndex.i].layers[oldIndex.j][array]);
-			object._level=canvases[i].layers[0][array].length;
-			canvases[i].layers[0][array][object._level]=object;
+			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
+			oldArray.splice(object._level,1);
+			normalizeLevels(oldArray);
+			object._level=newArray.length;
+			newArray[object._level]=object;
 			objectLayer.number=0;
 			objectCanvas.number=i;
-			objectCanvas.id=canvases[i].optns.id;
-			objectLayer.id=canvases[i].layers[0].optns.id;
+			objectCanvas.id=canvasItem.optns.id;
+			objectLayer.id=canvasItem.layers[0].optns.id;
 		}
 	redraw(object);
 	return object;
@@ -1163,12 +1158,12 @@ proto.object=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasNum=this.optns.canvas.number;
-		var ctx=canvases[canvasNum].optns.ctx;
+		var canvasOptns=canvases[this.optns.canvas.number].optns;
+		var ctx=canvasOptns.ctx;
 		if(global!==undefined)
 		{
-			x-=canvases[canvasNum].optns.x;
-			y-=canvases[canvasNum].optns.y;
+			x-=canvasOptns.x;
+			y-=canvasOptns.y;
 		}
 		ctx.save();
 		ctx.beginPath();
@@ -1274,19 +1269,20 @@ proto.object=function()
 	}
 	this.base=function(x,y,service)
 	{
+		var canvasItem=canvases[lastCanvas];
 		this.optns={
 			animated:false,
 			clipObject:false,
 			drop:{val:false,fn:function(){}},
 			drag:{val:false},
-			layer:{id:canvases[lastCanvas].optns.id+"Layer0",number:0},
+			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
 			focused:false
 		}
 		this.animateQueue = [];
 		this._x=x||0;
 		this._y=y||0;
-		if(service===undefined && canvases[lastCanvas]!==undefined && canvases[lastCanvas].layers[0]!==undefined)
+		if(service===undefined && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;
@@ -1648,8 +1644,9 @@ proto.grdntsnptrn=function()
 		this.optns.layer.id=canvases[lastCanvas].optns.id+'Layer_0';
 		this.optns.layer.number=0
 		this.optns.canvas.number=lastCanvas;
-		this._level=canvases[lastCanvas].layers[0].grdntsnptrns.length;
-		canvases[lastCanvas].layers[0].grdntsnptrns[this._level]=this;
+		var grdntsnptrnsArray=canvases[lastCanvas].layers[0].grdntsnptrns;
+		this._level=grdntsnptrnsArray.length;
+		grdntsnptrnsArray[this._level]=this;
 		redraw(this);
 	}
 	return this;
@@ -1805,19 +1802,20 @@ proto.layer=function()
 	{
 		if (idCanvas===undefined)return this.idCanvas;
 		if(this.optns.canvas.id==idCanvas)return this;
-		var newCanvas=-1;
-		var oldCanvas=0;
-		for(var i=0;i<canvases.length;i++)
+		var newCanvas=-1,oldCanvas=0,limitC=canvases.length;
+		for(var i=0;i<limitC;i++)
 		{
-			if (canvases[i].optns.id==idCanvas)newCanvas=i;
-			if (canvases[i].optns.id==this.optns.canvas.id)oldCanvas=i;
+			var idCanvasItem=canvases[i].optns.id;
+			if (idCanvasItem==idCanvas)newCanvas=i;
+			if (idCanvasItem==this.optns.canvas.id)oldCanvas=i;
 		}
 		if(newCanvas<0){newCanvas=canvases.length;jCanvaScript.canvas(idCanvas);}
 		this.optns.canvas.id=idCanvas;
 		this.optns.canvas.number=newCanvas;
 		canvases[oldCanvas].layers.splice(this._level,1);
-		this._level=canvases[newCanvas].layers.length;
-		canvases[newCanvas].layers[this._level]=this;
+		var layersArray=canvases[newCanvas].layers;
+		this._level=layersArray.length;
+		layersArray[this._level]=this;
 		for(i=0;i<this.objs.length;i++)
 		{
 			var optns=this.objs[i].optns;
@@ -1931,18 +1929,20 @@ proto.layer=function()
 	}
 	this.base=function(idLayer)
 	{
+		var lastCanvasLayers=canvases[lastCanvas].layers,lastCanvasOptns=canvases[lastCanvas].optns;
 		proto.layer.prototype.base.call(this,0,0,true);
-		var limit=canvases[lastCanvas].layers.length;
-		canvases[lastCanvas].layers[limit]=this;
+		var limit=lastCanvasLayers.length;
+		lastCanvasLayers[limit]=this;
 		this.objs = [];
 		this.grdntsnptrns = [];
 		this._level=limit;
 		this.optns.id=idLayer;
-		this.optns.anyObjDeleted= false;
-		this.optns.anyObjLevelChanged= false;
-		this.optns.gCO= canvases[lastCanvas].optns.gCO;
-		this.optns.canvas.id=canvases[lastCanvas].optns.id;
-		this.optns.canvas.number=lastCanvas;
+		var thisOptns=this.optns
+		thisOptns.anyObjDeleted= false;
+		thisOptns.anyObjLevelChanged= false;
+		thisOptns.gCO= lastCanvasOptns.gCO;
+		thisOptns.canvas.id=lastCanvasOptns.id;
+		thisOptns.canvas.number=lastCanvas;
 		return this;
 	}
 	this._proto='layer';
@@ -2074,20 +2074,26 @@ proto.groups=function()
 		{
 			if(typeof tmp[key]=='function' && this[key]===undefined)
 			{
-				this[key]=function(){
+				(function(group,key)
+				{
+				group[key]=function(){
 					var argumentsClone=[];
-					for(var i=0;i<this.elements.length;i++)
+					var args=[];
+					var i=0;
+					while(arguments[i]!==undefined)
+						args[i]=arguments[i++];
+					for(i=0;i<this.elements.length;i++)
 					{
 						var element=this.elements[i];
-						take(argumentsClone,arguments);
-						if(typeof element[arguments.callee.val]=='function')
+						take(argumentsClone,args);
+						if(typeof element[key]=='function')
 						{
-							element[arguments.callee.val].apply(element,argumentsClone);
+							element[key].apply(element,argumentsClone);
 						}
 					}
 					return this;
 				}
-				this[key].val=key;
+				})(this,key);
 			}
 		}
 	}
@@ -2115,11 +2121,12 @@ jCanvaScript.addObject=function(name,parameters,drawfn)
 		this.base=proto[name].base;
 		this._proto=name;
 	};
-	proto[name].prototype=new proto.shape;
-	proto[name].draw=drawfn;
-	proto[name].base=function(name,parameters,args)
+	var protoItem=proto[name];
+	protoItem.prototype=new proto.shape;
+	protoItem.draw=drawfn;
+	protoItem.base=function(name,parameters,args)
 	{
-		proto[name].prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
+		protoItem.prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
 		var i=0;
 		for(var key in parameters)
 		{
@@ -2494,9 +2501,13 @@ jCanvaScript.layer=function(idLayer)
 	var limit=0;
 	for(var i=0;i<canvases.length;i++)
 	{
-		limit=canvases[i].layers.length;
+		var canvas=canvases[i];
+		limit=canvas.layers.length;
 		for (var j=0;j<limit;j++)
-			if(canvases[i].layers[j].optns.id==idLayer)return canvases[i].layers[j];
+		{
+			var layer=canvas.layers[j];
+			if(layer.optns.id==idLayer)return layer;
+		}
 	}
 	return layers(idLayer);
 }

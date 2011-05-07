@@ -4,9 +4,13 @@ jCanvaScript.layer=function(idLayer)
 	var limit=0;
 	for(var i=0;i<canvases.length;i++)
 	{
-		limit=canvases[i].layers.length;
+		var canvas=canvases[i];
+		limit=canvas.layers.length;
 		for (var j=0;j<limit;j++)
-			if(canvases[i].layers[j].optns.id==idLayer)return canvases[i].layers[j];
+		{
+			var layer=canvas.layers[j];
+			if(layer.optns.id==idLayer)return layer;
+		}
 	}
 	return layers(idLayer);
 }

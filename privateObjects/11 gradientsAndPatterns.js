@@ -27,8 +27,9 @@ proto.grdntsnptrn=function()
 		this.optns.layer.id=canvases[lastCanvas].optns.id+'Layer_0';
 		this.optns.layer.number=0
 		this.optns.canvas.number=lastCanvas;
-		this._level=canvases[lastCanvas].layers[0].grdntsnptrns.length;
-		canvases[lastCanvas].layers[0].grdntsnptrns[this._level]=this;
+		var grdntsnptrnsArray=canvases[lastCanvas].layers[0].grdntsnptrns;
+		this._level=grdntsnptrnsArray.length;
+		grdntsnptrnsArray[this._level]=this;
 		redraw(this);
 	}
 	return this;

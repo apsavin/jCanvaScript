@@ -8,20 +8,26 @@ proto.groups=function()
 		{
 			if(typeof tmp[key]=='function' && this[key]===undefined)
 			{
-				this[key]=function(){
+				(function(group,key)
+				{
+				group[key]=function(){
 					var argumentsClone=[];
-					for(var i=0;i<this.elements.length;i++)
+					var args=[];
+					var i=0;
+					while(arguments[i]!==undefined)
+						args[i]=arguments[i++];
+					for(i=0;i<this.elements.length;i++)
 					{
 						var element=this.elements[i];
-						take(argumentsClone,arguments);
-						if(typeof element[arguments.callee.val]=='function')
+						take(argumentsClone,args);
+						if(typeof element[key]=='function')
 						{
-							element[arguments.callee.val].apply(element,argumentsClone);
+							element[key].apply(element,argumentsClone);
 						}
 					}
 					return this;
 				}
-				this[key].val=key;
+				})(this,key);
 			}
 		}
 	}

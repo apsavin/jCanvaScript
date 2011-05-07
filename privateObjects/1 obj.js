@@ -433,12 +433,12 @@ proto.object=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasNum=this.optns.canvas.number;
-		var ctx=canvases[canvasNum].optns.ctx;
+		var canvasOptns=canvases[this.optns.canvas.number].optns;
+		var ctx=canvasOptns.ctx;
 		if(global!==undefined)
 		{
-			x-=canvases[canvasNum].optns.x;
-			y-=canvases[canvasNum].optns.y;
+			x-=canvasOptns.x;
+			y-=canvasOptns.y;
 		}
 		ctx.save();
 		ctx.beginPath();
@@ -544,19 +544,20 @@ proto.object=function()
 	}
 	this.base=function(x,y,service)
 	{
+		var canvasItem=canvases[lastCanvas];
 		this.optns={
 			animated:false,
 			clipObject:false,
 			drop:{val:false,fn:function(){}},
 			drag:{val:false},
-			layer:{id:canvases[lastCanvas].optns.id+"Layer0",number:0},
+			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
 			focused:false
 		}
 		this.animateQueue = [];
 		this._x=x||0;
 		this._y=y||0;
-		if(service===undefined && canvases[lastCanvas]!==undefined && canvases[lastCanvas].layers[0]!==undefined)
+		if(service===undefined && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;

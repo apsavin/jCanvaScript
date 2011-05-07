@@ -4,19 +4,20 @@ proto.layer=function()
 	{
 		if (idCanvas===undefined)return this.idCanvas;
 		if(this.optns.canvas.id==idCanvas)return this;
-		var newCanvas=-1;
-		var oldCanvas=0;
-		for(var i=0;i<canvases.length;i++)
+		var newCanvas=-1,oldCanvas=0,limitC=canvases.length;
+		for(var i=0;i<limitC;i++)
 		{
-			if (canvases[i].optns.id==idCanvas)newCanvas=i;
-			if (canvases[i].optns.id==this.optns.canvas.id)oldCanvas=i;
+			var idCanvasItem=canvases[i].optns.id;
+			if (idCanvasItem==idCanvas)newCanvas=i;
+			if (idCanvasItem==this.optns.canvas.id)oldCanvas=i;
 		}
 		if(newCanvas<0){newCanvas=canvases.length;jCanvaScript.canvas(idCanvas);}
 		this.optns.canvas.id=idCanvas;
 		this.optns.canvas.number=newCanvas;
 		canvases[oldCanvas].layers.splice(this._level,1);
-		this._level=canvases[newCanvas].layers.length;
-		canvases[newCanvas].layers[this._level]=this;
+		var layersArray=canvases[newCanvas].layers;
+		this._level=layersArray.length;
+		layersArray[this._level]=this;
 		for(i=0;i<this.objs.length;i++)
 		{
 			var optns=this.objs[i].optns;
@@ -130,18 +131,20 @@ proto.layer=function()
 	}
 	this.base=function(idLayer)
 	{
+		var lastCanvasLayers=canvases[lastCanvas].layers,lastCanvasOptns=canvases[lastCanvas].optns;
 		proto.layer.prototype.base.call(this,0,0,true);
-		var limit=canvases[lastCanvas].layers.length;
-		canvases[lastCanvas].layers[limit]=this;
+		var limit=lastCanvasLayers.length;
+		lastCanvasLayers[limit]=this;
 		this.objs = [];
 		this.grdntsnptrns = [];
 		this._level=limit;
 		this.optns.id=idLayer;
-		this.optns.anyObjDeleted= false;
-		this.optns.anyObjLevelChanged= false;
-		this.optns.gCO= canvases[lastCanvas].optns.gCO;
-		this.optns.canvas.id=canvases[lastCanvas].optns.id;
-		this.optns.canvas.number=lastCanvas;
+		var thisOptns=this.optns
+		thisOptns.anyObjDeleted= false;
+		thisOptns.anyObjLevelChanged= false;
+		thisOptns.gCO= lastCanvasOptns.gCO;
+		thisOptns.canvas.id=lastCanvasOptns.id;
+		thisOptns.canvas.number=lastCanvas;
 		return this;
 	}
 	this._proto='layer';
