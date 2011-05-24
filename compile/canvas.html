@@ -44,13 +44,10 @@
 		img.src='1.png';
 		img.onload=function(){
 			jc.image(img,10,10,20,20)
-				.draggable(function(point){
-					//alert(point.x+' '+point.y);
-				})
-				//.click(function(){alert(1);});
+				.draggable();
 		};
 	}
-	/**/
+	/*
 	function test(){
 		cnv=document.getElementById('cnv');
 		cnv.style.width=400;
@@ -58,7 +55,7 @@
 		cnv.width=400;
 		cnv.height=400;
 		jc.layer('layer_1').scale(2);
-	}
+	}*/
 </script>
 </head>
 <body onload="start('cnv');">

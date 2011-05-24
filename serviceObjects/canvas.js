@@ -86,9 +86,10 @@ jCanvaScript.canvas = function(idCanvas)
 				if(canvas.optns.drag.object!=false)
 				{
 					var drag=canvas.optns.drag;
-					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,drag.object.matrix());
+					var mousemove=canvas.optns.mousemove;
+					var point=transformPoint(mousemove.x,mousemove.y,drag.object.matrix());
 					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:canvas.optns.mousemove.x,y:canvas.optns.mousemove.y}));
+					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
 				}
 			};
 			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);

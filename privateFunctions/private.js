@@ -382,7 +382,7 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox_lt4)
+	if(FireFox_lt5)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}

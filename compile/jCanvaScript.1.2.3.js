@@ -8,7 +8,7 @@
 (function(){
 var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
-	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
+	var FireFox_lt5=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<5);
 
 function findById(i,j,stroke)
 {
@@ -28,10 +28,10 @@ function findByName(i,j,myGroup,stroke)
 	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
 	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		if(('.'+objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=objs[k];
+		if(('.'+objs[k]._name)==stroke)myGroup.elements.push(objs[k]);
 	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
+		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements.push(grdntsnptrns[k]);
 	return myGroup;
 }
 function findByCanvasAndLayer(i,j,myGroup)
@@ -40,10 +40,10 @@ function findByCanvasAndLayer(i,j,myGroup)
 	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
 	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=objs[k];
+		myGroup.elements.push(objs[k]);
 	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
+		myGroup.elements.push(grdntsnptrns[k]);
 	return myGroup;
 }
 var jCanvaScript=function(stroke,map)
@@ -542,7 +542,7 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox_lt4)
+	if(FireFox_lt5)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
@@ -1822,7 +1822,7 @@ proto.layer=function()
 			optns.layer.number=this._level;
 			optns.canvas.number=newCanvas;
 		}
-		canvases[this.optns.canvas.number].optns.redraw=1;
+		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
 	this.up=function(n)
@@ -2321,9 +2321,10 @@ jCanvaScript.canvas = function(idCanvas)
 				if(canvas.optns.drag.object!=false)
 				{
 					var drag=canvas.optns.drag;
-					var point=transformPoint(canvas.optns.mousemove.x,canvas.optns.mousemove.y,drag.object.matrix());
+					var mousemove=canvas.optns.mousemove;
+					var point=transformPoint(mousemove.x,mousemove.y,drag.object.matrix());
 					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:canvas.optns.mousemove.x,y:canvas.optns.mousemove.y}));
+					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
 				}
 			};
 			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);

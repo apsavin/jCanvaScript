@@ -24,7 +24,7 @@ proto.layer=function()
 			optns.layer.number=this._level;
 			optns.canvas.number=newCanvas;
 		}
-		canvases[this.optns.canvas.number].optns.redraw=1;
+		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
 	this.up=function(n)

@@ -8,7 +8,7 @@
 (function(){
 var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
-	var FireFox_lt4=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<4);
+	var FireFox_lt5=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<5);
 
 function findById(i,j,stroke)
 {
@@ -28,10 +28,10 @@ function findByName(i,j,myGroup,stroke)
 	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
 	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		if(('.'+objs[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=objs[k];
+		if(('.'+objs[k]._name)==stroke)myGroup.elements.push(objs[k]);
 	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
+		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements.push(grdntsnptrns[k]);
 	return myGroup;
 }
 function findByCanvasAndLayer(i,j,myGroup)
@@ -40,10 +40,10 @@ function findByCanvasAndLayer(i,j,myGroup)
 	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
 	var limit=objs.length;
 	for(var k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=objs[k];
+		myGroup.elements.push(objs[k]);
 	limit=grdntsnptrns.length;
 	for(k=0;k<limit;k++)
-		myGroup.elements[myGroup.elements.length]=grdntsnptrns[k];
+		myGroup.elements.push(grdntsnptrns[k]);
 	return myGroup;
 }
 var jCanvaScript=function(stroke,map)
