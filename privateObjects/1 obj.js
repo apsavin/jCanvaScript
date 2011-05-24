@@ -383,6 +383,7 @@ proto.object=function()
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
 	{
+		if(m11===undefined)return this.matrix();
 		if(reset!==undefined)
 		{
 			this.matrix([[m11,m21,dx],[m12,m22,dy]]);
