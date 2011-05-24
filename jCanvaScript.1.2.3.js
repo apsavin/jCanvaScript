@@ -5,7 +5,7 @@
  * Copyright 2011, Alexander Savin
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
-(function(){
+(function(window,undefined){
 var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
 if (FireFox!="" && FireFox!==null)
 	var FireFox_lt5=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<5);
@@ -162,4 +162,4 @@ var jCanvaScript=function(stroke,map)
 <include src="publicFunctions"/>
 <include src="objects"/>
 <include src="serviceObjects"/>
-window.jCanvaScript=window.jc=jCanvaScript;})();
+window.jCanvaScript=window.jc=jCanvaScript;})(window,undefined);
