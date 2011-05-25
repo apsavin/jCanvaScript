@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.2.3
+ * jCanvaScript JavaScript Library v 1.3.0
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -385,14 +385,25 @@ function getObjectRectangle(object)
 	}
 	if(object.objs!==undefined)
 	{
-		for(i=0;i<object.objs.length;i++)
+		var rect=getObjectRectangle(object.objs[0]);
+		points.x=rect.x;
+		points.y=rect.y;
+		points.width=rect.width;
+		points.height=rect.height;
+		points.bottom=rect.y+rect.height;
+		points.right=rect.x+rect.width;
+		for(i=1;i<object.objs.length;i++)
 		{
 			var rect=getObjectRectangle(object.objs[i]);
-			if(points.x>rect.x || !i)points.x=rect.x;
-			if(points.y>rect.y || !i)points.y=rect.y;
-			if(points.width<rect.width || !i)points.width=rect.width;
-			if(points.height<rect.height || !i)points.height=rect.height;
+			rect.bottom=rect.y+rect.height;
+			rect.right=rect.x+rect.width;
+			if(points.x>rect.x)points.x=rect.x;
+			if(points.y>rect.y)points.y=rect.y;
+			if(points.right<rect.right)points.right=rect.right;
+			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
 		}
+		points.width=points.right-points.x;
+		points.height=points.bottom-points.y;
 		return points;
 	}
 	return false;
@@ -633,6 +644,7 @@ function take(f,s) {
 					}
 					break;
 				}
+				if(!s[key] || key==='ctx')continue;
 				f[key]=typeof s[key].pop === 'function' ? []:{};
 				take(f[key],s[key]);
 				break;
@@ -725,6 +737,29 @@ var proto={};
 
 proto.object=function()
 {
+	this.buffer=function(doBuffering){
+		if(doBuffering===undefined)return this.buffer.val;
+		if(doBuffering)
+		{
+			var cnv=this.buffer.cnv=document.createElement('canvas');
+			var ctx=this.buffer.ctx=cnv.getContext('2d');
+			this.setOptns(ctx);
+			var rect=this.buffer.rect=getObjectRectangle(this);
+			cnv.setAttribute('width',rect.right);
+			cnv.setAttribute('height',rect.bottom);
+			var canvasOptns=canvases[this.optns.canvas.number].optns;
+			take(this.buffer.optns={},canvasOptns);
+			this.buffer.optns.ctx=ctx;
+			this.draw(ctx);
+			this.buffer.val=true;
+		}
+		else
+		{
+			this.buffer.val=false;
+		}
+		return this;
+	}
+	this.buffer.val=false;
 	this.clone=function(params)
 	{
 		var clone=new proto[this._proto];
@@ -1278,7 +1313,8 @@ proto.object=function()
 			drag:{val:false},
 			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
-			focused:false
+			focused:false,
+			buffer:{val:false}
 		}
 		this.animateQueue = [];
 		this._x=x||0;
@@ -1826,6 +1862,29 @@ proto.layer=function()
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
+	this.buffer=function(doBuffering){
+		if(doBuffering===undefined)return this.buffer.val;
+		if(doBuffering)
+		{
+			var cnv=this.buffer.cnv=document.createElement('canvas');
+			var ctx=this.buffer.ctx=cnv.getContext('2d');
+			this.setOptns(ctx);
+			var rect=this.buffer.rect=getObjectRectangle(this);
+			cnv.setAttribute('width',rect.right);
+			cnv.setAttribute('height',rect.bottom);
+			var canvasOptns=canvases[this.optns.canvas.number].optns;
+			take(this.buffer.optns={},canvasOptns);
+			this.buffer.optns.ctx=ctx;
+			this.draw(this.buffer.optns);
+			this.buffer.val=true;
+		}
+		else
+		{
+			this.buffer.val=false;
+		}
+		return this;
+	}
+	this.buffer.val=false;
 	this.up=function(n)
 	{
 		if(n === undefined)n=1;
@@ -1894,6 +1953,12 @@ proto.layer=function()
 	}
 	this.draw=function(canvasOptns)
 	{
+		var buffer=this.buffer;
+		if(buffer.val)
+		{
+			canvasOptns.ctx.drawImage(buffer.cnv,0,0);
+			return this;
+		}
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
 		var limit=this.objs.length;
 		for(var i=0;i<limitGrdntsNPtrns;i++)
@@ -1921,12 +1986,17 @@ proto.layer=function()
 				{
 					if(typeof (object.draw)=='function')
 					{
-						object.draw(canvasOptns.ctx);
+						buffer=object.buffer;
+						if(buffer.val)
+							canvasOptns.ctx.drawImage(buffer.cnv,this._x+this._transformdx,this._y+this._transformdy);
+						else
+							object.draw(canvasOptns.ctx);
 						object.afterDraw(canvasOptns);
 					}
 				}
 			}
 		}
+		return this;
 	}
 	this.base=function(idLayer)
 	{

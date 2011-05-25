@@ -225,14 +225,25 @@ function getObjectRectangle(object)
 	}
 	if(object.objs!==undefined)
 	{
-		for(i=0;i<object.objs.length;i++)
+		var rect=getObjectRectangle(object.objs[0]);
+		points.x=rect.x;
+		points.y=rect.y;
+		points.width=rect.width;
+		points.height=rect.height;
+		points.bottom=rect.y+rect.height;
+		points.right=rect.x+rect.width;
+		for(i=1;i<object.objs.length;i++)
 		{
 			var rect=getObjectRectangle(object.objs[i]);
-			if(points.x>rect.x || !i)points.x=rect.x;
-			if(points.y>rect.y || !i)points.y=rect.y;
-			if(points.width<rect.width || !i)points.width=rect.width;
-			if(points.height<rect.height || !i)points.height=rect.height;
+			rect.bottom=rect.y+rect.height;
+			rect.right=rect.x+rect.width;
+			if(points.x>rect.x)points.x=rect.x;
+			if(points.y>rect.y)points.y=rect.y;
+			if(points.right<rect.right)points.right=rect.right;
+			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
 		}
+		points.width=points.right-points.x;
+		points.height=points.bottom-points.y;
 		return points;
 	}
 	return false;
@@ -473,6 +484,7 @@ function take(f,s) {
 					}
 					break;
 				}
+				if(!s[key] || key==='ctx')continue;
 				f[key]=typeof s[key].pop === 'function' ? []:{};
 				take(f[key],s[key]);
 				break;

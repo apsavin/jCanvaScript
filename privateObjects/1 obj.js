@@ -1,5 +1,28 @@
 proto.object=function()
 {
+	this.buffer=function(doBuffering){
+		if(doBuffering===undefined)return this.buffer.val;
+		if(doBuffering)
+		{
+			var cnv=this.buffer.cnv=document.createElement('canvas');
+			var ctx=this.buffer.ctx=cnv.getContext('2d');
+			this.setOptns(ctx);
+			var rect=this.buffer.rect=getObjectRectangle(this);
+			cnv.setAttribute('width',rect.right);
+			cnv.setAttribute('height',rect.bottom);
+			var canvasOptns=canvases[this.optns.canvas.number].optns;
+			take(this.buffer.optns={},canvasOptns);
+			this.buffer.optns.ctx=ctx;
+			this.draw(ctx);
+			this.buffer.val=true;
+		}
+		else
+		{
+			this.buffer.val=false;
+		}
+		return this;
+	}
+	this.buffer.val=false;
 	this.clone=function(params)
 	{
 		var clone=new proto[this._proto];
@@ -553,7 +576,8 @@ proto.object=function()
 			drag:{val:false},
 			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
-			focused:false
+			focused:false,
+			buffer:{val:false}
 		}
 		this.animateQueue = [];
 		this._x=x||0;

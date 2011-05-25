@@ -40,12 +40,13 @@
 	
 	function start(idCanvas){
 		jc.start(idCanvas,25);
-		var img=new Image();
-		img.src='1.png';
-		img.onload=function(){
-			jc.image(img,10,10,20,20)
-				.draggable();
-		};
+		jc.rect(100,100,20,50,1)
+			.layer('buf');
+		jc.circle(100,100,20,'#ff0000',1)
+			.layer('buf');
+		jc.layer('buf')
+			.animate({translate:{x:-100,y:-100}},3000)
+			.buffer(true);
 	}
 	/*
 	function test(){

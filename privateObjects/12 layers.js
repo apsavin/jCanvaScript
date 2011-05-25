@@ -27,6 +27,29 @@ proto.layer=function()
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
+	this.buffer=function(doBuffering){
+		if(doBuffering===undefined)return this.buffer.val;
+		if(doBuffering)
+		{
+			var cnv=this.buffer.cnv=document.createElement('canvas');
+			var ctx=this.buffer.ctx=cnv.getContext('2d');
+			this.setOptns(ctx);
+			var rect=this.buffer.rect=getObjectRectangle(this);
+			cnv.setAttribute('width',rect.right);
+			cnv.setAttribute('height',rect.bottom);
+			var canvasOptns=canvases[this.optns.canvas.number].optns;
+			take(this.buffer.optns={},canvasOptns);
+			this.buffer.optns.ctx=ctx;
+			this.draw(this.buffer.optns);
+			this.buffer.val=true;
+		}
+		else
+		{
+			this.buffer.val=false;
+		}
+		return this;
+	}
+	this.buffer.val=false;
 	this.up=function(n)
 	{
 		if(n === undefined)n=1;
@@ -95,6 +118,12 @@ proto.layer=function()
 	}
 	this.draw=function(canvasOptns)
 	{
+		var buffer=this.buffer;
+		if(buffer.val)
+		{
+			canvasOptns.ctx.drawImage(buffer.cnv,0,0);
+			return this;
+		}
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
 		var limit=this.objs.length;
 		for(var i=0;i<limitGrdntsNPtrns;i++)
@@ -122,12 +151,17 @@ proto.layer=function()
 				{
 					if(typeof (object.draw)=='function')
 					{
-						object.draw(canvasOptns.ctx);
+						buffer=object.buffer;
+						if(buffer.val)
+							canvasOptns.ctx.drawImage(buffer.cnv,this._x+this._transformdx,this._y+this._transformdy);
+						else
+							object.draw(canvasOptns.ctx);
 						object.afterDraw(canvasOptns);
 					}
 				}
 			}
 		}
+		return this;
 	}
 	this.base=function(idLayer)
 	{
