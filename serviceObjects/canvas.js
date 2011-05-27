@@ -138,7 +138,7 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof (object.draw)=='function')
 					{
-						object.draw(optns);
+						object.draw(optns.ctx);
 						object.afterDraw(optns);
 					}
 				}

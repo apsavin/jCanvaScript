@@ -1,28 +1,27 @@
 proto.object=function()
 {
 	this.buffer=function(doBuffering){
-		if(doBuffering===undefined)return this.buffer.val;
+		var bufOptns=this.optns.buffer;
+		if(doBuffering===undefined)return bufOptns.val;
 		if(doBuffering)
 		{
-			var cnv=this.buffer.cnv=document.createElement('canvas');
-			var ctx=this.buffer.ctx=cnv.getContext('2d');
-			this.setOptns(ctx);
-			var rect=this.buffer.rect=getObjectRectangle(this);
+			var cnv=bufOptns.cnv=document.createElement('canvas');
+			var ctx=bufOptns.ctx=cnv.getContext('2d');
+			var rect=bufOptns.rect=getObjectRectangle(this);
 			cnv.setAttribute('width',rect.right);
 			cnv.setAttribute('height',rect.bottom);
-			var canvasOptns=canvases[this.optns.canvas.number].optns;
-			take(this.buffer.optns={},canvasOptns);
-			this.buffer.optns.ctx=ctx;
+			this.setOptns(ctx);
+			take(bufOptns.optns={},objectCanvas(this).optns);
+			bufOptns.optns.ctx=ctx;
 			this.draw(ctx);
-			this.buffer.val=true;
+			bufOptns.val=true;
 		}
 		else
 		{
-			this.buffer.val=false;
+			bufOptns={val:false};
 		}
 		return this;
 	}
-	this.buffer.val=false;
 	this.clone=function(params)
 	{
 		var clone=new proto[this._proto];
@@ -214,7 +213,7 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=duration/1000*canvases[this.optns.canvas.number].fps;
+		if(duration!=1)duration=duration/1000*objectCanvas(this).fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -457,7 +456,7 @@ proto.object=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasOptns=canvases[this.optns.canvas.number].optns;
+		var canvasOptns=objectCanvas(this).optns;
 		var ctx=canvasOptns.ctx;
 		if(global!==undefined)
 		{
@@ -519,7 +518,7 @@ proto.object=function()
 		dragOptns.object=dragObj;
 		dragOptns.params=params;
 		dragOptns.fn=fn||false;
-		var optns=canvases[this.optns.canvas.number].optns;
+		var optns=objectCanvas(this).optns;
 		optns.mousemove.val=true;
 		optns.mousedown.val=true;
 		optns.mouseup.val=true;

@@ -160,7 +160,7 @@ var jCanvaScript=function(stroke,map)
 
 function redraw(object)
 {
-	canvases[object.optns.canvas.number].optns.redraw=1;
+	objectCanvas(object).optns.redraw=1;
 }
 
 function animating()
@@ -262,7 +262,7 @@ function setMouseEvent(fn,eventName)
 	if(fn===undefined)this['on'+eventName]();
 	else this['on'+eventName] = fn;
 	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
-	canvases[this.optns.canvas.number].optns[eventName].val=true;
+	objectCanvas(this).optns[eventName].val=true;
 	return this;
 }
 function setKeyEvent(fn,eventName)
@@ -329,7 +329,7 @@ function getObjectRectangle(object)
 	var points={};
 	if(object._proto=='text')
 	{
-		var ctx=canvases[object.optns.canvas.number].optns.ctx;
+		var ctx=objectCanvas(object).optns.ctx;
 		var height=parseInt(object._font);
 		points.x=object._x;
 		points.y=object._y-height;
@@ -548,7 +548,7 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
-	var canvas=canvases[object.optns.canvas.number];
+	var canvas=objectCanvas(object);
 	var ctx=canvas.optns.ctx;
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
@@ -596,7 +596,11 @@ function checkMouseEvents(object,optns)
 
 function objectLayer(object)
 {
-	return canvases[object.optns.canvas.number].layers[object.optns.layer.number];
+	return objectCanvas(object).layers[object.optns.layer.number];
+}
+function objectCanvas(object)
+{
+	return canvases[object.optns.canvas.number];
 }
 function layer(idLayer,object,array)
 {
@@ -738,28 +742,27 @@ var proto={};
 proto.object=function()
 {
 	this.buffer=function(doBuffering){
-		if(doBuffering===undefined)return this.buffer.val;
+		var bufOptns=this.optns.buffer;
+		if(doBuffering===undefined)return bufOptns.val;
 		if(doBuffering)
 		{
-			var cnv=this.buffer.cnv=document.createElement('canvas');
-			var ctx=this.buffer.ctx=cnv.getContext('2d');
-			this.setOptns(ctx);
-			var rect=this.buffer.rect=getObjectRectangle(this);
+			var cnv=bufOptns.cnv=document.createElement('canvas');
+			var ctx=bufOptns.ctx=cnv.getContext('2d');
+			var rect=bufOptns.rect=getObjectRectangle(this);
 			cnv.setAttribute('width',rect.right);
 			cnv.setAttribute('height',rect.bottom);
-			var canvasOptns=canvases[this.optns.canvas.number].optns;
-			take(this.buffer.optns={},canvasOptns);
-			this.buffer.optns.ctx=ctx;
+			this.setOptns(ctx);
+			take(bufOptns.optns={},objectCanvas(this).optns);
+			bufOptns.optns.ctx=ctx;
 			this.draw(ctx);
-			this.buffer.val=true;
+			bufOptns.val=true;
 		}
 		else
 		{
-			this.buffer.val=false;
+			bufOptns={val:false};
 		}
 		return this;
 	}
-	this.buffer.val=false;
 	this.clone=function(params)
 	{
 		var clone=new proto[this._proto];
@@ -951,7 +954,7 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=duration/1000*canvases[this.optns.canvas.number].fps;
+		if(duration!=1)duration=duration/1000*objectCanvas(this).fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -1194,7 +1197,7 @@ proto.object=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasOptns=canvases[this.optns.canvas.number].optns;
+		var canvasOptns=objectCanvas(this).optns;
 		var ctx=canvasOptns.ctx;
 		if(global!==undefined)
 		{
@@ -1256,7 +1259,7 @@ proto.object=function()
 		dragOptns.object=dragObj;
 		dragOptns.params=params;
 		dragOptns.fn=fn||false;
-		var optns=canvases[this.optns.canvas.number].optns;
+		var optns=objectCanvas(this).optns;
 		optns.mousemove.val=true;
 		optns.mousedown.val=true;
 		optns.mouseup.val=true;
@@ -1862,39 +1865,16 @@ proto.layer=function()
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
-	this.buffer=function(doBuffering){
-		if(doBuffering===undefined)return this.buffer.val;
-		if(doBuffering)
-		{
-			var cnv=this.buffer.cnv=document.createElement('canvas');
-			var ctx=this.buffer.ctx=cnv.getContext('2d');
-			this.setOptns(ctx);
-			var rect=this.buffer.rect=getObjectRectangle(this);
-			cnv.setAttribute('width',rect.right);
-			cnv.setAttribute('height',rect.bottom);
-			var canvasOptns=canvases[this.optns.canvas.number].optns;
-			take(this.buffer.optns={},canvasOptns);
-			this.buffer.optns.ctx=ctx;
-			this.draw(this.buffer.optns);
-			this.buffer.val=true;
-		}
-		else
-		{
-			this.buffer.val=false;
-		}
-		return this;
-	}
-	this.buffer.val=false;
 	this.up=function(n)
 	{
 		if(n === undefined)n=1;
-		if(n == 'top')n=objs[this._layer].length-1;
+		if(n == 'top')n=objectCanvas(this).layers.length-1;
 		this._level+=n;
 		for(var i=0;i<this.objs.length;i++)
 		{
 			this.objs[i].optns.layer.number=this._level;
 		}
-		var optns=canvases[this.optns.canvas.number].optns;
+		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
 		return this;
@@ -1908,14 +1888,14 @@ proto.layer=function()
 		{
 			this.objs[i].options.layer.number=this._level;
 		}
-		var optns=canvases[this.optns.canvas.number].optns;
+		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
 		return this;
 	}
 	this.del=function()
 	{
-		var optns=canvases[this.optns.canvas.number].optns;
+		var optns=objectCanvas(this).optns;
 		optns.anyLayerDeleted = true;
 		this.draw = false;
 		optns.redraw=1;
@@ -1940,7 +1920,7 @@ proto.layer=function()
 	{
 		var clone=jCanvaScript.layer(idLayer);
 		take(clone,this);
-		clone.canvas(canvases[this.optns.canvas.number].optns.id);
+		clone.canvas(objectCanvas(this).optns.id);
 		if(params===undefined) return clone;
 		return clone.animate(params);
 	}
@@ -1951,19 +1931,19 @@ proto.layer=function()
 				return true;
 		return false;
 	}
-	this.draw=function(canvasOptns)
+	this.draw=function(ctx)
 	{
-		var buffer=this.buffer;
-		if(buffer.val)
+		var bufOptns=this.optns.buffer;
+		if(bufOptns.val)
 		{
-			canvasOptns.ctx.drawImage(buffer.cnv,0,0);
+			ctx.drawImage(bufOptns.cnv,0,0);
 			return this;
 		}
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
 		var limit=this.objs.length;
 		for(var i=0;i<limitGrdntsNPtrns;i++)
 		{
-			this.grdntsnptrns[i].create(canvasOptns.ctx);
+			this.grdntsnptrns[i].create(ctx);
 		}
 		if(this.optns.anyObjLevelChanged)
 		{
@@ -1975,23 +1955,26 @@ proto.layer=function()
 			limit=objDeleter(this.objs);
 			this.optns.anyObjDeleted = false;
 		}
-		canvasOptns.ctx.globalCompositeOperation = this.optns.gCO;
+		ctx.globalCompositeOperation = this.optns.gCO;
 		for(i=0;i<limit;i++)
 		{
 			var object=this.objs[i];
 			if(typeof (object.draw)=='function')
 			{
-				this.setOptns(canvasOptns.ctx);
-				if(object.beforeDraw(canvasOptns.ctx))
+				this.setOptns(ctx);
+				if(object.beforeDraw(ctx))
 				{
 					if(typeof (object.draw)=='function')
 					{
-						buffer=object.buffer;
-						if(buffer.val)
-							canvasOptns.ctx.drawImage(buffer.cnv,this._x+this._transformdx,this._y+this._transformdy);
+						var objBufOptns=object.optns.buffer;
+						if(objBufOptns.val)
+							ctx.drawImage(objBufOptns.cnv,0,0);
 						else
-							object.draw(canvasOptns.ctx);
-						object.afterDraw(canvasOptns);
+							object.draw(ctx);
+						if(bufOptns.optns)
+							object.afterDraw(bufOptns.optns);
+						else
+							object.afterDraw(objectCanvas(this).optns);
 					}
 				}
 			}
@@ -2444,7 +2427,7 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof (object.draw)=='function')
 					{
-						object.draw(optns);
+						object.draw(optns.ctx);
 						object.afterDraw(optns);
 					}
 				}

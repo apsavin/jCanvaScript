@@ -1,6 +1,6 @@
 function redraw(object)
 {
-	canvases[object.optns.canvas.number].optns.redraw=1;
+	objectCanvas(object).optns.redraw=1;
 }
 
 function animating()
@@ -102,7 +102,7 @@ function setMouseEvent(fn,eventName)
 	if(fn===undefined)this['on'+eventName]();
 	else this['on'+eventName] = fn;
 	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
-	canvases[this.optns.canvas.number].optns[eventName].val=true;
+	objectCanvas(this).optns[eventName].val=true;
 	return this;
 }
 function setKeyEvent(fn,eventName)
@@ -169,7 +169,7 @@ function getObjectRectangle(object)
 	var points={};
 	if(object._proto=='text')
 	{
-		var ctx=canvases[object.optns.canvas.number].optns.ctx;
+		var ctx=objectCanvas(object).optns.ctx;
 		var height=parseInt(object._font);
 		points.x=object._x;
 		points.y=object._y-height;
@@ -388,7 +388,7 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
-	var canvas=canvases[object.optns.canvas.number];
+	var canvas=objectCanvas(object);
 	var ctx=canvas.optns.ctx;
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
@@ -436,7 +436,11 @@ function checkMouseEvents(object,optns)
 
 function objectLayer(object)
 {
-	return canvases[object.optns.canvas.number].layers[object.optns.layer.number];
+	return objectCanvas(object).layers[object.optns.layer.number];
+}
+function objectCanvas(object)
+{
+	return canvases[object.optns.canvas.number];
 }
 function layer(idLayer,object,array)
 {
