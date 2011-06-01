@@ -1306,6 +1306,14 @@ proto.object=function()
 	{
 		return this.attr('opacity',n);
 	}
+	this.fadeIn=function(duration,easing,onstep,fn)
+	{
+		return this.animate({opacity:1},duration,easing,onstep,fn);
+	}
+	this.fadeOut=function(duration,easing,onstep,fn)
+	{
+		return this.animate({opacity:0},duration,easing,onstep,fn);
+	}
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;
