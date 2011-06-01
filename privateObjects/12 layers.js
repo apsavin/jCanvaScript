@@ -98,7 +98,7 @@ proto.layer=function()
 		var bufOptns=this.optns.buffer;
 		if(bufOptns.val)
 		{
-			ctx.drawImage(bufOptns.cnv,0,0);
+			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
 			return this;
 		}
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
@@ -130,7 +130,7 @@ proto.layer=function()
 					{
 						var objBufOptns=object.optns.buffer;
 						if(objBufOptns.val)
-							ctx.drawImage(objBufOptns.cnv,0,0);
+							ctx.drawImage(objBufOptns.cnv,objBufOptns.x,objBufOptns.y);
 						else
 							object.draw(ctx);
 						if(bufOptns.optns)

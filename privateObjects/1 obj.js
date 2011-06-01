@@ -2,18 +2,30 @@ proto.object=function()
 {
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
-		if(doBuffering===undefined)return bufOptns.val;
+		if(doBuffering===undefined)
+			if(bufOptns.val)return bufOptns.cnv;
+			else return false;
 		if(doBuffering)
 		{
 			var cnv=bufOptns.cnv=document.createElement('canvas');
 			var ctx=bufOptns.ctx=cnv.getContext('2d');
 			var rect=bufOptns.rect=getObjectRectangle(this);
-			cnv.setAttribute('width',rect.right);
-			cnv.setAttribute('height',rect.bottom);
+			cnv.setAttribute('width',rect.width);
+			cnv.setAttribute('height',rect.height);
+			var oldM=this.transform();
+			bufOptns.x=this._x;
+			bufOptns.y=this._y;
+			this._x=this._y=0;
+			this.transform(1, 0, 0, 1, -rect.x, -rect.y);
 			this.setOptns(ctx);
 			take(bufOptns.optns={},objectCanvas(this).optns);
 			bufOptns.optns.ctx=ctx;
 			this.draw(ctx);
+			this._x=bufOptns.x;
+			this._y=bufOptns.y;
+			oldM[0][2]+=rect.x;
+			oldM[1][2]+=rect.y;
+			this.matrix(oldM);
 			bufOptns.val=true;
 		}
 		else
