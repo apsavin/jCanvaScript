@@ -352,14 +352,25 @@ proto.object=function()
 		this._transformdy=m[1][2];
 		return this;
 	}
-	this.translate=function(x,y)
+	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
+		var oldX=this._x+this._transformdx,
+			oldY=this._y+this._transformdy,
+			x=newX-oldX,y=newY-oldY;
+		return this.translate(x,y,duration,easing,onstep,fn);
+	}
+	this.translate=function(x,y,duration,easing,onstep,fn)
+	{
+		if(duration!==undefined)
+			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
 		this.matrix(multiplyM(this.matrix(),[[1,0,x],[0,1,y]]));
 		redraw(this);
 		return this;
 	}
-	this.scale=function(x,y)
+	this.scale=function(x,y,duration,easing,onstep,fn)
 	{
+		if(duration===undefined)
+			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
 		if(this.scaleMatrix)
 			this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
@@ -368,8 +379,10 @@ proto.object=function()
 		redraw(this);
 		return this;
 	}
-	this.rotate=function(x,x1,y1)
+	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
+		if(duration!==undefined)
+			return this.animate({rotate:{rotateAngle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
 		x=Math.PI*x/180;
 		var cos=Math.cos(x);
