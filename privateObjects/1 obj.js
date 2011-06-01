@@ -573,6 +573,10 @@ proto.object=function()
 	{
 		return this.animate({opacity:0},duration,easing,onstep,fn);
 	}
+	this.fadeTo=function(val,duration,easing,onstep,fn)
+	{
+		return this.animate({opacity:val},duration,easing,onstep,fn);
+	}
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;
