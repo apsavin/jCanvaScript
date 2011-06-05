@@ -67,10 +67,12 @@ function animateTransforms(key,object,queue)
 			object.translate(0,val-prev);
 			break;
 		case '_scaleX':
-			object.scale(val-prev,0);
+			if(!prev)prev=1;
+			object.scale(val/prev,1);
 			break;
 		case '_scaleY':
-			object.scale(0,val-prev);
+			if(!prev)prev=1;
+			object.scale(1,val/prev);
 			break;
 		default:
 			return;
@@ -176,6 +178,8 @@ function getObjectRectangle(object)
 		object.setOptns(ctx);
 		points.width=ctx.measureText(object._string).width;
 		points.height=height;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object._img!==undefined)
@@ -184,6 +188,8 @@ function getObjectRectangle(object)
 		points.y=object._sy;
 		points.width=object._img.width;
 		points.height=object._img.height;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object._width!==undefined && object._height!==undefined)
@@ -192,6 +198,8 @@ function getObjectRectangle(object)
 		points.y=object._y;
 		points.width=object._width;
 		points.height=object._height;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object._radius!==undefined)
@@ -201,6 +209,8 @@ function getObjectRectangle(object)
 			points.x=object._x-object._radius;
 			points.y=object._y-object._radius;
 			points.width=points.height=object._radius*2;
+			points.x+=object._transformdx;
+			points.y+=object._transformdy;
 			return points;
 		}
 	}
@@ -221,6 +231,8 @@ function getObjectRectangle(object)
 		points.y=minX;
 		points.width=maxX-minX;
 		points.height=maxY-minY;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object.objs!==undefined)
@@ -244,6 +256,8 @@ function getObjectRectangle(object)
 		}
 		points.width=points.right-points.x;
 		points.height=points.bottom-points.y;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	return false;

@@ -227,10 +227,12 @@ function animateTransforms(key,object,queue)
 			object.translate(0,val-prev);
 			break;
 		case '_scaleX':
-			object.scale(val-prev,0);
+			if(!prev)prev=1;
+			object.scale(val/prev,1);
 			break;
 		case '_scaleY':
-			object.scale(0,val-prev);
+			if(!prev)prev=1;
+			object.scale(1,val/prev);
 			break;
 		default:
 			return;
@@ -336,6 +338,8 @@ function getObjectRectangle(object)
 		object.setOptns(ctx);
 		points.width=ctx.measureText(object._string).width;
 		points.height=height;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object._img!==undefined)
@@ -344,6 +348,8 @@ function getObjectRectangle(object)
 		points.y=object._sy;
 		points.width=object._img.width;
 		points.height=object._img.height;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object._width!==undefined && object._height!==undefined)
@@ -352,6 +358,8 @@ function getObjectRectangle(object)
 		points.y=object._y;
 		points.width=object._width;
 		points.height=object._height;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object._radius!==undefined)
@@ -361,6 +369,8 @@ function getObjectRectangle(object)
 			points.x=object._x-object._radius;
 			points.y=object._y-object._radius;
 			points.width=points.height=object._radius*2;
+			points.x+=object._transformdx;
+			points.y+=object._transformdy;
 			return points;
 		}
 	}
@@ -381,6 +391,8 @@ function getObjectRectangle(object)
 		points.y=minX;
 		points.width=maxX-minX;
 		points.height=maxY-minY;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	if(object.objs!==undefined)
@@ -404,6 +416,8 @@ function getObjectRectangle(object)
 		}
 		points.width=points.right-points.x;
 		points.height=points.bottom-points.y;
+		points.x+=object._transformdx;
+		points.y+=object._transformdy;
 		return points;
 	}
 	return false;
@@ -746,6 +760,7 @@ proto.object=function()
 		if(doBuffering===undefined)
 			if(bufOptns.val)return bufOptns.cnv;
 			else return false;
+		if(bufOptns.val===doBuffering)return this;
 		if(doBuffering)
 		{
 			var cnv=bufOptns.cnv=document.createElement('canvas');
@@ -754,24 +769,28 @@ proto.object=function()
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
 			var oldM=this.transform();
+			document.body.appendChild(cnv);
 			bufOptns.x=this._x;
 			bufOptns.y=this._y;
+			bufOptns.dx=this._transformdx;
+			bufOptns.dy=this._transformdy;
 			this._x=this._y=0;
-			this.transform(1, 0, 0, 1, -rect.x, -rect.y);
+			this.transform(1, 0, 0, 1, -rect.x+bufOptns.dx, -rect.y+bufOptns.dy,true);
 			this.setOptns(ctx);
 			take(bufOptns.optns={},objectCanvas(this).optns);
 			bufOptns.optns.ctx=ctx;
 			this.draw(ctx);
 			this._x=bufOptns.x;
 			this._y=bufOptns.y;
-			oldM[0][2]+=rect.x;
-			oldM[1][2]+=rect.y;
+			oldM[0][2]=rect.x;
+			oldM[1][2]=rect.y;
 			this.matrix(oldM);
 			bufOptns.val=true;
 		}
 		else
 		{
-			bufOptns={val:false};
+			this.translate(-bufOptns.rect.x+bufOptns.dx,-bufOptns.rect.y+bufOptns.dy);
+			this.optns.buffer={val:false};
 		}
 		return this;
 	}
@@ -988,15 +1007,15 @@ proto.object=function()
 		}
 		if(options.scale!==undefined)
 		{
-			this._scaleX=this._scaleY=0;
+			this._scaleX=this._scaleY=1;
 			if(typeof options.scale!='object')
 			{
 				options.scaleX=options.scaleY=options.scale;
 			}
 			else
 			{
-				options.scaleX=options.scale.x||0;
-				options.scaleY=options.scale.y||0;
+				options.scaleX=options.scale.x||1;
+				options.scaleY=options.scale.y||1;
 			}
 		}
 		if(options.translate!==undefined)
@@ -1122,7 +1141,7 @@ proto.object=function()
 	}
 	this.scale=function(x,y,duration,easing,onstep,fn)
 	{
-		if(duration===undefined)
+		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
 		if(this.scaleMatrix)
@@ -1135,7 +1154,7 @@ proto.object=function()
 	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
-			return this.animate({rotate:{rotateAngle:x,x:x1,y:y1}},duration,easing,onstep,fn);
+			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
 		x=Math.PI*x/180;
 		var cos=Math.cos(x);
@@ -1385,8 +1404,8 @@ proto.object=function()
 	this._shadowColorA= 0;
 	this._translateX=0;
 	this._translateY=0;
-	this._scaleX=0;
-	this._scaleY=0;
+	this._scaleX=1;
+	this._scaleY=1;
 	this._rotateAngle=0;
 	this._rotateX=0;
 	this._rotateY=0;

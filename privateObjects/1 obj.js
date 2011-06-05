@@ -5,6 +5,7 @@ proto.object=function()
 		if(doBuffering===undefined)
 			if(bufOptns.val)return bufOptns.cnv;
 			else return false;
+		if(bufOptns.val===doBuffering)return this;
 		if(doBuffering)
 		{
 			var cnv=bufOptns.cnv=document.createElement('canvas');
@@ -13,24 +14,28 @@ proto.object=function()
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
 			var oldM=this.transform();
+			document.body.appendChild(cnv);
 			bufOptns.x=this._x;
 			bufOptns.y=this._y;
+			bufOptns.dx=this._transformdx;
+			bufOptns.dy=this._transformdy;
 			this._x=this._y=0;
-			this.transform(1, 0, 0, 1, -rect.x, -rect.y);
+			this.transform(1, 0, 0, 1, -rect.x+bufOptns.dx, -rect.y+bufOptns.dy,true);
 			this.setOptns(ctx);
 			take(bufOptns.optns={},objectCanvas(this).optns);
 			bufOptns.optns.ctx=ctx;
 			this.draw(ctx);
 			this._x=bufOptns.x;
 			this._y=bufOptns.y;
-			oldM[0][2]+=rect.x;
-			oldM[1][2]+=rect.y;
+			oldM[0][2]=rect.x;
+			oldM[1][2]=rect.y;
 			this.matrix(oldM);
 			bufOptns.val=true;
 		}
 		else
 		{
-			bufOptns={val:false};
+			this.translate(-bufOptns.rect.x+bufOptns.dx,-bufOptns.rect.y+bufOptns.dy);
+			this.optns.buffer={val:false};
 		}
 		return this;
 	}
@@ -247,15 +252,15 @@ proto.object=function()
 		}
 		if(options.scale!==undefined)
 		{
-			this._scaleX=this._scaleY=0;
+			this._scaleX=this._scaleY=1;
 			if(typeof options.scale!='object')
 			{
 				options.scaleX=options.scaleY=options.scale;
 			}
 			else
 			{
-				options.scaleX=options.scale.x||0;
-				options.scaleY=options.scale.y||0;
+				options.scaleX=options.scale.x||1;
+				options.scaleY=options.scale.y||1;
 			}
 		}
 		if(options.translate!==undefined)
@@ -381,7 +386,7 @@ proto.object=function()
 	}
 	this.scale=function(x,y,duration,easing,onstep,fn)
 	{
-		if(duration===undefined)
+		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
 		if(this.scaleMatrix)
@@ -394,7 +399,7 @@ proto.object=function()
 	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
-			return this.animate({rotate:{rotateAngle:x,x:x1,y:y1}},duration,easing,onstep,fn);
+			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
 		x=Math.PI*x/180;
 		var cos=Math.cos(x);
@@ -644,8 +649,8 @@ proto.object=function()
 	this._shadowColorA= 0;
 	this._translateX=0;
 	this._translateY=0;
-	this._scaleX=0;
-	this._scaleY=0;
+	this._scaleX=1;
+	this._scaleY=1;
 	this._rotateAngle=0;
 	this._rotateX=0;
 	this._rotateY=0;

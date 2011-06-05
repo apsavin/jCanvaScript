@@ -41,15 +41,14 @@
 	function start(idCanvas){
 		jc.start(idCanvas,25);
 		//jc.rect(0,0,200,200,jc.lGradient(100,100,120,150,[[0,"#FF0000"],[1,"#0000FF"]]).layer('buf'),1).layer('buf');
-		jc.rect(100,100,20,50,jc.lGradient(100,100,120,150,[[0,"#FF0000"],[1,"#0000FF"]]).layer('buf'),1)
+		jc.rect(100,100,50,20,jc.lGradient(100,100,120,150,[[0,"#FF0000"],[1,"#0000FF"]]).layer('buf'),1)
 			.layer('buf');
-		for(var i=0;i<100;i++)
-			jc.circle(100,100,20,'#ff0000',1)
-				.layer('buf');
-			var start=new Date();
+		jc.circle(100,100,20,'#ff0000',1)
+			.layer('buf');
 		jc.layer('buf')
-			.animate({translate:{x:-100,y:-100}},3000,function(){var end=new Date();console.log(end-start);})
+			.translate(-100,-100,3000)
 			.buffer(true);
+		
 	}
 	/*
 	function test(){
