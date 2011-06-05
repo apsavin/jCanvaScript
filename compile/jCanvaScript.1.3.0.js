@@ -1320,14 +1320,15 @@ proto.object=function()
 	}
 	this.fadeIn=function(duration,easing,onstep,fn)
 	{
-		return this.animate({opacity:1},duration,easing,onstep,fn);
+		return this.fadeTo(1,duration,easing,onstep,fn);
 	}
 	this.fadeOut=function(duration,easing,onstep,fn)
 	{
-		return this.animate({opacity:0},duration,easing,onstep,fn);
+		return this.fadeTo(0,duration,easing,onstep,fn);
 	}
 	this.fadeTo=function(val,duration,easing,onstep,fn)
 	{
+		if(duration===undefined)duration="slow";
 		return this.animate({opacity:val},duration,easing,onstep,fn);
 	}
 	this.level=function(n)
