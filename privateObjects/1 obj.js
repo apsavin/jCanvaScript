@@ -587,7 +587,7 @@ proto.object=function()
 	}
 	this.fadeTo=function(val,duration,easing,onstep,fn)
 	{
-		if(duration===undefined)duration="slow";
+		if(duration===undefined)duration=600;
 		return this.animate({opacity:val},duration,easing,onstep,fn);
 	}
 	this.level=function(n)

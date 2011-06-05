@@ -12,7 +12,7 @@ function animating()
 		var queue=this.animateQueue[q];
 		for(var key in queue)
 		{
-			if(this.hasOwnProperty(key) && this[key]!==undefined)
+			if(this[key]!==undefined)
 			{
 				if(queue[key])
 				{

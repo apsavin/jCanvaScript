@@ -172,7 +172,7 @@ function animating()
 		var queue=this.animateQueue[q];
 		for(var key in queue)
 		{
-			if(this.hasOwnProperty(key) && this[key]!==undefined)
+			if(this[key]!==undefined)
 			{
 				if(queue[key])
 				{
@@ -1328,7 +1328,7 @@ proto.object=function()
 	}
 	this.fadeTo=function(val,duration,easing,onstep,fn)
 	{
-		if(duration===undefined)duration="slow";
+		if(duration===undefined)duration=600;
 		return this.animate({opacity:val},duration,easing,onstep,fn);
 	}
 	this.level=function(n)
