@@ -769,7 +769,6 @@ proto.object=function()
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
 			var oldM=this.transform();
-			document.body.appendChild(cnv);
 			bufOptns.x=this._x;
 			bufOptns.y=this._y;
 			bufOptns.dx=this._transformdx;
@@ -1349,6 +1348,14 @@ proto.object=function()
 	{
 		if(duration===undefined)duration=600;
 		return this.animate({opacity:val},duration,easing,onstep,fn);
+	}
+	this.fadeToggle=function(duration,easing,onstep,fn)
+	{
+		if(this._opacity)
+			this.fadeOut(duration,easing,onstep,fn);
+		else
+			this.fadeIn(duration,easing,onstep,fn);
+		return this;
 	}
 	this.level=function(n)
 	{
