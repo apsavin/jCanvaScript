@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.3.0
+ * jCanvaScript JavaScript Library v 1.3.1
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -1679,6 +1679,10 @@ proto.text=function(){
 		return this.attr('baseline',baseline);
 	}
 	this._baseline="alphabetic";
+	this.string=function(string)
+	{
+		return this.attr('string',string);
+	}
 	this.setOptns = function(ctx)
 	{
 		proto.text.prototype.setOptns.call(this,ctx);

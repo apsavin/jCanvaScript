@@ -62,6 +62,10 @@ proto.text=function(){
 		return this.attr('baseline',baseline);
 	}
 	this._baseline="alphabetic";
+	this.string=function(string)
+	{
+		return this.attr('string',string);
+	}
 	this.setOptns = function(ctx)
 	{
 		proto.text.prototype.setOptns.call(this,ctx);
