@@ -88,10 +88,26 @@ proto.layer=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		for(var i=0;i<this.objs.length;i++)
-			if(this.objs[i].isPointIn(x,y,global))
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			if(objs[i].isPointIn(x,y,global))
 				return true;
 		return false;
+	}
+	this.opacity=function(n)
+	{
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].attr('opacity',n);
+		return this;
+	}
+	this.fadeTo=function(val,duration,easing,onstep,fn)
+	{
+		if(duration===undefined)duration=600;
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].animate({opacity:val},duration,easing,onstep,fn);
+		return this;
 	}
 	this.draw=function(ctx)
 	{

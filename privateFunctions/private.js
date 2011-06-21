@@ -186,8 +186,8 @@ function getObjectRectangle(object)
 	{
 		points.x=object._sx;
 		points.y=object._sy;
-		points.width=object._img.width;
-		points.height=object._img.height;
+		points.width=(object._img.width>object._swidth)?object._img.width:object._swidth;
+		points.height=(object._img.height>object._sheight)?object._img.height:object._sheight;
 		points.x+=object._transformdx;
 		points.y+=object._transformdy;
 		return points;

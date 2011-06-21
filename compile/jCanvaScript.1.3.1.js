@@ -346,8 +346,8 @@ function getObjectRectangle(object)
 	{
 		points.x=object._sx;
 		points.y=object._sy;
-		points.width=object._img.width;
-		points.height=object._img.height;
+		points.width=(object._img.width>object._swidth)?object._img.width:object._swidth;
+		points.height=(object._img.height>object._sheight)?object._img.height:object._sheight;
 		points.x+=object._transformdx;
 		points.y+=object._transformdy;
 		return points;
@@ -1618,7 +1618,7 @@ proto.bCurve.prototype=new proto.lines;
 proto.circle=function(){
 	this.draw=function(ctx)
 	{
-		ctx.arc (this._x, this._y, this._radius, 0,pi,true);
+		ctx.arc(this._x, this._y, this._radius, 0,pi,true);
 	}
 	this.base=function(x,y,radius,color,fill)
 	{
@@ -1994,10 +1994,26 @@ proto.layer=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		for(var i=0;i<this.objs.length;i++)
-			if(this.objs[i].isPointIn(x,y,global))
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			if(objs[i].isPointIn(x,y,global))
 				return true;
 		return false;
+	}
+	this.opacity=function(n)
+	{
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].attr('opacity',n);
+		return this;
+	}
+	this.fadeTo=function(val,duration,easing,onstep,fn)
+	{
+		if(duration===undefined)duration=600;
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].animate({opacity:val},duration,easing,onstep,fn);
+		return this;
 	}
 	this.draw=function(ctx)
 	{

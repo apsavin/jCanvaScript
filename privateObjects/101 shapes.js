@@ -1,7 +1,7 @@
 proto.circle=function(){
 	this.draw=function(ctx)
 	{
-		ctx.arc (this._x, this._y, this._radius, 0,pi,true);
+		ctx.arc(this._x, this._y, this._radius, 0,pi,true);
 	}
 	this.base=function(x,y,radius,color,fill)
 	{

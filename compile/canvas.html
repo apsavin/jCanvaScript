@@ -40,13 +40,15 @@
 	
 	function start(idCanvas){
 		jc.start(idCanvas,25);
-		time=0;
-		myText=jc.text('0',100,100);
-		function timer(){
-			myText.attr("string",time++);
-			setTimeout(timer,1000);
+		var img=new Image();
+		img.src='1.png';
+		img.onload=function(){
+			jc.image(img,0,0,100,100).layer('1');
+			jc.layer('1')
+				.click(function(){
+					this.fadeOut();
+				});
 		}
-		timer();
 	}
 	/*
 	function test(){
