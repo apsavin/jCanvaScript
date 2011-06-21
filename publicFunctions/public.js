@@ -1,4 +1,4 @@
-jCanvaScript.addObject=function(name,parameters,drawfn)
+jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 {
 	proto[name]=function(name){
 		this.draw=proto[name].draw;
@@ -6,7 +6,8 @@ jCanvaScript.addObject=function(name,parameters,drawfn)
 		this._proto=name;
 	};
 	var protoItem=proto[name];
-	protoItem.prototype=new proto.shape;
+	if(parent===undefined)parent='shape';
+	protoItem.prototype=new proto[parent];
 	protoItem.draw=drawfn;
 	protoItem.base=function(name,parameters,args)
 	{
@@ -19,15 +20,15 @@ jCanvaScript.addObject=function(name,parameters,drawfn)
 			i++;
 		}
 		return this;
-	}
-	jCanvaScript[name]=function()
+	};
+	(function(name,parameters)
 	{
-		var name=arguments.callee.val;
-		var object=new proto[name](name);
-		return object.base(name,arguments.callee.parameters,arguments);
-	}
-	jCanvaScript[name].val=name;
-	jCanvaScript[name].parameters=parameters;
+		jCanvaScript[name]=function()
+		{
+			var object=new proto[name](name);
+			return object.base(name,parameters,arguments);
+		}
+	})(name,parameters);
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
 {

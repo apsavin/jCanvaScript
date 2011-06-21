@@ -45,7 +45,7 @@
 		img.onload=function(){
 			jc.image(img,0,0,100,100).layer('1');
 			jc.layer('1')
-				.click(function(){
+				.click(function(d){
 					this.fadeOut();
 				});
 		}
