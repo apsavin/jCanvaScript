@@ -6,9 +6,14 @@
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(window,undefined){
-var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
-if (FireFox!="" && FireFox!==null)
-	var FireFox_lt5=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<5);
+var canvases = [],pi=Math.PI*2,
+lastCanvas=0,lastLayer=0,
+underMouse = false,
+regHasLetters = /[A-z]+?/,
+FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
+radian=180/Math.PI;
+if (FireFox!="" && FireFox!==null)FireFox=true;
+else FireFox=false;
 
 function findById(i,j,stroke)
 {
@@ -326,108 +331,13 @@ function transformPoint(x,y,m)
 		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
 	}
 }
-function getObjectRectangle(object)
-{
-	var points={};
-	if(object._proto=='text')
-	{
-		var ctx=objectCanvas(object).optns.ctx;
-		var height=parseInt(object._font);
-		points.x=object._x;
-		points.y=object._y-height;
-		object.setOptns(ctx);
-		points.width=ctx.measureText(object._string).width;
-		points.height=height;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object._img!==undefined)
-	{
-		points.x=object._sx;
-		points.y=object._sy;
-		points.width=(object._img.width>object._swidth)?object._img.width:object._swidth;
-		points.height=(object._img.height>object._sheight)?object._img.height:object._sheight;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		points.x=object._x;
-		points.y=object._y;
-		points.width=object._width;
-		points.height=object._height;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object._radius!==undefined)
-	{
-		if(object._startAngle===undefined)
-		{
-			points.x=object._x-object._radius;
-			points.y=object._y-object._radius;
-			points.width=points.height=object._radius*2;
-			points.x+=object._transformdx;
-			points.y+=object._transformdy;
-			return points;
-		}
-	}
-	if(object.shapesCount!==undefined)
-	{
-		var minX;
-		var minY;
-		var maxX=minX=object._x0;
-		var maxY=minY=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			if(maxX<object['_x'+i])maxX=object['_x'+i];
-			if(maxY<object['_y'+i])maxY=object['_y'+i];
-			if(minX>object['_x'+i])minX=object['_x'+i];
-			if(minY>object['_y'+i])minY=object['_y'+i];
-		}
-		points.x=minX;
-		points.y=minX;
-		points.width=maxX-minX;
-		points.height=maxY-minY;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object.objs!==undefined)
-	{
-		var rect=getObjectRectangle(object.objs[0]);
-		points.x=rect.x;
-		points.y=rect.y;
-		points.width=rect.width;
-		points.height=rect.height;
-		points.bottom=rect.y+rect.height;
-		points.right=rect.x+rect.width;
-		for(i=1;i<object.objs.length;i++)
-		{
-			var rect=getObjectRectangle(object.objs[i]);
-			rect.bottom=rect.y+rect.height;
-			rect.right=rect.x+rect.width;
-			if(points.x>rect.x)points.x=rect.x;
-			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
-		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	return false;
-}
+
 function getObjectCenter(object)
 {
 	var point={};
 	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
-		var rect=getObjectRectangle(object);
+		var rect=object.getRect();
 		point.x=(rect.x*2+rect.width)/2;
 		point.y=(rect.y*2+rect.height)/2;
 		return point;
@@ -567,13 +477,13 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox_lt5)
+	if(FireFox)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
-		var rectangle=getObjectRectangle(object);
+		var rectangle=object.getRect();
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
@@ -765,7 +675,7 @@ proto.object=function()
 		{
 			var cnv=bufOptns.cnv=document.createElement('canvas');
 			var ctx=bufOptns.ctx=cnv.getContext('2d');
-			var rect=bufOptns.rect=getObjectRectangle(this);
+			var rect=bufOptns.rect=this.getRect();
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
 			var oldM=this.transform();
@@ -1155,7 +1065,7 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
-		x=Math.PI*x/180;
+		x=x/radian;
 		var cos=Math.cos(x);
 		var sin=Math.sin(x);
 		var matrix=[];
@@ -1494,6 +1404,24 @@ proto.shape.prototype=new proto.object;
 
 proto.lines=function()
 {
+	this.getRect=function(){
+		var minX, minY,
+		maxX=minX=this._x0,
+		maxY=minY=this._y0,
+		points={};
+		for(var i=1;i<this.shapesCount;i++)
+		{
+			if(maxX<this['_x'+i])maxX=this['_x'+i];
+			if(maxY<this['_y'+i])maxY=this['_y'+i];
+			if(minX>this['_x'+i])minX=this['_x'+i];
+			if(minY>this['_y'+i])minY=this['_y'+i];
+		}
+		points.x=minX+this._transformdx;
+		points.y=minX+this._transformdy;
+		points.width=maxX-minX;
+		points.height=maxY-minY;
+		return points;
+	}
 	this.addPoint=function(){
 		redraw(this);
 		var names=this.pointNames;
@@ -1616,6 +1544,14 @@ proto.bCurve=function(){
 proto.bCurve.prototype=new proto.lines;
 
 proto.circle=function(){
+	this.getRect=function()
+	{
+		var points={};
+		points.x=this._x-this._radius+this._transformdx;
+		points.y=this._y-this._radius+this._transformdy;
+		points.width=points.height=this._radius*2;
+		return points;
+	}
 	this.draw=function(ctx)
 	{
 		ctx.arc(this._x, this._y, this._radius, 0,pi,true);
@@ -1630,6 +1566,15 @@ proto.circle=function(){
 }
 proto.circle.prototype=new proto.shape;
 proto.rect=function(){
+	this.getRect=function()
+	{
+		var points={};
+		points.x=this._x+this._transformdx;
+		points.y=this._y+this._transformdy;
+		points.width=this._width;
+		points.height=this._height;
+		return points;
+	}
 	this.draw=function(ctx)
 	{
 		ctx.rect(this._x, this._y, this._width, this._height);
@@ -1645,19 +1590,139 @@ proto.rect=function(){
 }
 proto.rect.prototype=new proto.shape;
 proto.arc=function(){
+	this.getRect=function()
+	{
+		var points={},
+		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
+		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
+		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
+		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
+		points.x=this._x+this._transformdx;
+		points.y=this._y+this._transformdy;
+		points.width=points.height=radius;
+		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
+		{
+			if(((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX==0 && endX==0))
+			{
+				points.y-=radius;
+				points.height+=radius;
+			}
+			else
+			{
+				if(positiveXs && endY<0 && startY>0)
+				{
+					points.y+=endY;
+					points.height+=endY;
+				}
+				else
+				if(endX>0 && endY<0 && startX<0)
+				{
+					points.y+=Math.min(endY,startY);
+					points.height-=Math.min(endY,startY);
+				}
+				else
+				{
+					if(negtiveYs)points.y-=Math.max(endY,startY);
+					else points.y-=radius;
+					points.height+=Math.max(endY,startY);
+				}
+			}
+			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY==0 && endY==0))
+			{
+				points.x-=radius;
+				points.width+=radius;
+			}
+			else
+			{
+				if(endY<0 && startY>0)
+				{
+					points.x+=Math.min(endX,startX);
+					points.width-=Math.min(endX,startX);
+				}
+				else
+				{
+					if(negtiveXs)points.x-=Math.max(endX,startX);
+					else points.x-=radius;
+					points.width+=Math.max(endX,startX);
+				}
+			}
+		}
+		else
+		{
+			positiveXs=startX>=0 && endX>=0;
+			positiveYs=startY>=0 && endY>=0;
+			negtiveXs=startX<=0 && endX<=0;
+			negtiveYs=startY<=0 && endY<=0;
+			if(negtiveYs && positiveXs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width-=Math.min(endX,startX);
+				points.y+=Math.min(endY,startY);
+				points.height+=Math.max(endY,startY);
+			}
+			else if (negtiveYs && negtiveXs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width+=Math.max(endX,startX);
+				points.y+=Math.min(endY,startY);
+				points.height+=Math.max(endY,startY);
+			}
+			else if (negtiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=Math.max(endY,startY);
+			}
+			else if (positiveXs && positiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width=Math.abs(endX-startX);
+				points.y+=Math.min(endY,startY);
+				points.height-=Math.min(endY,startY);
+			}
+			else if (positiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width=Math.abs(endX)+Math.abs(startX);
+				points.y+=Math.min(endY,startY);
+				points.height-=Math.min(endY,startY);
+			}
+			else if (negtiveXs)
+			{
+				points.x-=radius;
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=Math.max(endY,startY);
+			}
+			else if (positiveXs)
+			{
+				points.x-=radius;
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=radius;
+			}
+		}
+		return points;
+	}
 	this.draw=function(ctx)
 	{
-		ctx.arc (this._x, this._y, this._radius, this._startAngle,this._endAngle,this._anticlockwise);
+		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
 	}
 	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,color,fill)
 	{
 		if(anticlockwise!==undefined)
-		if(anticlockwise.charAt)color=anticlockwise;
+		{
+			if(anticlockwise.charAt)color=anticlockwise;
+			if(anticlockwise)anticlockwise=true;
+			else anticlockwise=false;
+		}
+		else anticlockwise=true;
 		proto.arc.prototype.base.call(this,x,y,color,fill);
 		this._radius=radius;
 		this._startAngle=startAngle;
 		this._endAngle=endAngle;
-		this._anticlockwise=anticlockwise||true;
+		this._anticlockwise=anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -1682,6 +1747,18 @@ proto.text=function(){
 	this.string=function(string)
 	{
 		return this.attr('string',string);
+	}
+	this.getRect=function()
+	{
+		var points={}, ctx=objectCanvas(this).optns.ctx;
+		points.height=parseInt(this._font);
+		points.x=this._x+this._transformdx;
+		points.y=this._y-points.height+this._transformdy;
+		ctx.save();
+		this.setOptns(ctx);
+		points.width=ctx.measureText(this._string).width;
+		ctx.restore();
+		return points;
 	}
 	this.setOptns = function(ctx)
 	{
@@ -1898,6 +1975,27 @@ proto.rGradient.prototype=new proto.gradients;
 
 proto.layer=function()
 {
+	this.getRect=function(){
+		var objs=this.objs,
+		points=objs[0].getRect();
+		points.bottom=points.y+points.height;
+		points.right=points.x+points.width;
+		for(var i=1;i<objs.length;i++)
+		{
+			var rect=objs[i].getRect();
+			rect.bottom=rect.y+rect.height;
+			rect.right=rect.x+rect.width;
+			if(points.x>rect.x)points.x=rect.x;
+			if(points.y>rect.y)points.y=rect.y;
+			if(points.right<rect.right)points.right=rect.right;
+			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
+		}
+		points.width=points.right-points.x;
+		points.height=points.bottom-points.y;
+		points.x+=this._transformdx;
+		points.y+=this._transformdy;
+		return points;
+	}
 	this.canvas=function(idCanvas)
 	{
 		if (idCanvas===undefined)return this.idCanvas;
@@ -2170,6 +2268,15 @@ proto.imageData=function()
 proto.imageData.prototype=new proto.object;
 proto.image=function()
 {
+	this.getRect=function()
+	{
+		var points={};
+		points.x=this._sx+this._transformdx;
+		points.y=this._sy+this._transformdy;
+		points.width=(this._img.width>this._swidth)?this._img.width:this._swidth;
+		points.height=(this._img.height>this._sheight)?this._img.height:this._sheight;
+		return points;
+	}
 	this.draw=function(ctx)
 	{
 		if(this._swidth==false && this._dx==false){ctx.drawImage(this._img,this._sx,this._sy);}

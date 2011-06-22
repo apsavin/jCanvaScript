@@ -1,5 +1,26 @@
 proto.layer=function()
 {
+	this.getRect=function(){
+		var objs=this.objs,
+		points=objs[0].getRect();
+		points.bottom=points.y+points.height;
+		points.right=points.x+points.width;
+		for(var i=1;i<objs.length;i++)
+		{
+			var rect=objs[i].getRect();
+			rect.bottom=rect.y+rect.height;
+			rect.right=rect.x+rect.width;
+			if(points.x>rect.x)points.x=rect.x;
+			if(points.y>rect.y)points.y=rect.y;
+			if(points.right<rect.right)points.right=rect.right;
+			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
+		}
+		points.width=points.right-points.x;
+		points.height=points.bottom-points.y;
+		points.x+=this._transformdx;
+		points.y+=this._transformdy;
+		return points;
+	}
 	this.canvas=function(idCanvas)
 	{
 		if (idCanvas===undefined)return this.idCanvas;

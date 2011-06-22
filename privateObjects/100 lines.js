@@ -1,5 +1,23 @@
 proto.lines=function()
 {
+	this.getRect=function(){
+		var minX, minY,
+		maxX=minX=this._x0,
+		maxY=minY=this._y0,
+		points={};
+		for(var i=1;i<this.shapesCount;i++)
+		{
+			if(maxX<this['_x'+i])maxX=this['_x'+i];
+			if(maxY<this['_y'+i])maxY=this['_y'+i];
+			if(minX>this['_x'+i])minX=this['_x'+i];
+			if(minY>this['_y'+i])minY=this['_y'+i];
+		}
+		points.x=minX+this._transformdx;
+		points.y=minX+this._transformdy;
+		points.width=maxX-minX;
+		points.height=maxY-minY;
+		return points;
+	}
 	this.addPoint=function(){
 		redraw(this);
 		var names=this.pointNames;

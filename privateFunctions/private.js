@@ -166,108 +166,13 @@ function transformPoint(x,y,m)
 		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
 	}
 }
-function getObjectRectangle(object)
-{
-	var points={};
-	if(object._proto=='text')
-	{
-		var ctx=objectCanvas(object).optns.ctx;
-		var height=parseInt(object._font);
-		points.x=object._x;
-		points.y=object._y-height;
-		object.setOptns(ctx);
-		points.width=ctx.measureText(object._string).width;
-		points.height=height;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object._img!==undefined)
-	{
-		points.x=object._sx;
-		points.y=object._sy;
-		points.width=(object._img.width>object._swidth)?object._img.width:object._swidth;
-		points.height=(object._img.height>object._sheight)?object._img.height:object._sheight;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		points.x=object._x;
-		points.y=object._y;
-		points.width=object._width;
-		points.height=object._height;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object._radius!==undefined)
-	{
-		if(object._startAngle===undefined)
-		{
-			points.x=object._x-object._radius;
-			points.y=object._y-object._radius;
-			points.width=points.height=object._radius*2;
-			points.x+=object._transformdx;
-			points.y+=object._transformdy;
-			return points;
-		}
-	}
-	if(object.shapesCount!==undefined)
-	{
-		var minX;
-		var minY;
-		var maxX=minX=object._x0;
-		var maxY=minY=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			if(maxX<object['_x'+i])maxX=object['_x'+i];
-			if(maxY<object['_y'+i])maxY=object['_y'+i];
-			if(minX>object['_x'+i])minX=object['_x'+i];
-			if(minY>object['_y'+i])minY=object['_y'+i];
-		}
-		points.x=minX;
-		points.y=minX;
-		points.width=maxX-minX;
-		points.height=maxY-minY;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	if(object.objs!==undefined)
-	{
-		var rect=getObjectRectangle(object.objs[0]);
-		points.x=rect.x;
-		points.y=rect.y;
-		points.width=rect.width;
-		points.height=rect.height;
-		points.bottom=rect.y+rect.height;
-		points.right=rect.x+rect.width;
-		for(i=1;i<object.objs.length;i++)
-		{
-			var rect=getObjectRectangle(object.objs[i]);
-			rect.bottom=rect.y+rect.height;
-			rect.right=rect.x+rect.width;
-			if(points.x>rect.x)points.x=rect.x;
-			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
-		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		points.x+=object._transformdx;
-		points.y+=object._transformdy;
-		return points;
-	}
-	return false;
-}
+
 function getObjectCenter(object)
 {
 	var point={};
 	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
-		var rect=getObjectRectangle(object);
+		var rect=object.getRect();
 		point.x=(rect.x*2+rect.width)/2;
 		point.y=(rect.y*2+rect.height)/2;
 		return point;
@@ -407,13 +312,13 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox_lt5)
+	if(FireFox)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
-		var rectangle=getObjectRectangle(object);
+		var rectangle=object.getRect();
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}

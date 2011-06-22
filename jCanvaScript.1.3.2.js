@@ -6,9 +6,14 @@
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(window,undefined){
-var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
-if (FireFox!="" && FireFox!==null)
-	var FireFox_lt5=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<5);
+var canvases = [],pi=Math.PI*2,
+lastCanvas=0,lastLayer=0,
+underMouse = false,
+regHasLetters = /[A-z]+?/,
+FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
+radian=180/Math.PI;
+if (FireFox!="" && FireFox!==null)FireFox=true;
+else FireFox=false;
 
 function findById(i,j,stroke)
 {

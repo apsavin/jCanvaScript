@@ -1,4 +1,12 @@
 proto.circle=function(){
+	this.getRect=function()
+	{
+		var points={};
+		points.x=this._x-this._radius+this._transformdx;
+		points.y=this._y-this._radius+this._transformdy;
+		points.width=points.height=this._radius*2;
+		return points;
+	}
 	this.draw=function(ctx)
 	{
 		ctx.arc(this._x, this._y, this._radius, 0,pi,true);
@@ -13,6 +21,15 @@ proto.circle=function(){
 }
 proto.circle.prototype=new proto.shape;
 proto.rect=function(){
+	this.getRect=function()
+	{
+		var points={};
+		points.x=this._x+this._transformdx;
+		points.y=this._y+this._transformdy;
+		points.width=this._width;
+		points.height=this._height;
+		return points;
+	}
 	this.draw=function(ctx)
 	{
 		ctx.rect(this._x, this._y, this._width, this._height);
@@ -28,19 +45,139 @@ proto.rect=function(){
 }
 proto.rect.prototype=new proto.shape;
 proto.arc=function(){
+	this.getRect=function()
+	{
+		var points={},
+		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
+		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
+		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
+		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
+		points.x=this._x+this._transformdx;
+		points.y=this._y+this._transformdy;
+		points.width=points.height=radius;
+		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
+		{
+			if(((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX==0 && endX==0))
+			{
+				points.y-=radius;
+				points.height+=radius;
+			}
+			else
+			{
+				if(positiveXs && endY<0 && startY>0)
+				{
+					points.y+=endY;
+					points.height+=endY;
+				}
+				else
+				if(endX>0 && endY<0 && startX<0)
+				{
+					points.y+=Math.min(endY,startY);
+					points.height-=Math.min(endY,startY);
+				}
+				else
+				{
+					if(negtiveYs)points.y-=Math.max(endY,startY);
+					else points.y-=radius;
+					points.height+=Math.max(endY,startY);
+				}
+			}
+			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY==0 && endY==0))
+			{
+				points.x-=radius;
+				points.width+=radius;
+			}
+			else
+			{
+				if(endY<0 && startY>0)
+				{
+					points.x+=Math.min(endX,startX);
+					points.width-=Math.min(endX,startX);
+				}
+				else
+				{
+					if(negtiveXs)points.x-=Math.max(endX,startX);
+					else points.x-=radius;
+					points.width+=Math.max(endX,startX);
+				}
+			}
+		}
+		else
+		{
+			positiveXs=startX>=0 && endX>=0;
+			positiveYs=startY>=0 && endY>=0;
+			negtiveXs=startX<=0 && endX<=0;
+			negtiveYs=startY<=0 && endY<=0;
+			if(negtiveYs && positiveXs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width-=Math.min(endX,startX);
+				points.y+=Math.min(endY,startY);
+				points.height+=Math.max(endY,startY);
+			}
+			else if (negtiveYs && negtiveXs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width+=Math.max(endX,startX);
+				points.y+=Math.min(endY,startY);
+				points.height+=Math.max(endY,startY);
+			}
+			else if (negtiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=Math.max(endY,startY);
+			}
+			else if (positiveXs && positiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width=Math.abs(endX-startX);
+				points.y+=Math.min(endY,startY);
+				points.height-=Math.min(endY,startY);
+			}
+			else if (positiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width=Math.abs(endX)+Math.abs(startX);
+				points.y+=Math.min(endY,startY);
+				points.height-=Math.min(endY,startY);
+			}
+			else if (negtiveXs)
+			{
+				points.x-=radius;
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=Math.max(endY,startY);
+			}
+			else if (positiveXs)
+			{
+				points.x-=radius;
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=radius;
+			}
+		}
+		return points;
+	}
 	this.draw=function(ctx)
 	{
-		ctx.arc (this._x, this._y, this._radius, this._startAngle,this._endAngle,this._anticlockwise);
+		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
 	}
 	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,color,fill)
 	{
 		if(anticlockwise!==undefined)
-		if(anticlockwise.charAt)color=anticlockwise;
+		{
+			if(anticlockwise.charAt)color=anticlockwise;
+			if(anticlockwise)anticlockwise=true;
+			else anticlockwise=false;
+		}
+		else anticlockwise=true;
 		proto.arc.prototype.base.call(this,x,y,color,fill);
 		this._radius=radius;
 		this._startAngle=startAngle;
 		this._endAngle=endAngle;
-		this._anticlockwise=anticlockwise||true;
+		this._anticlockwise=anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -65,6 +202,18 @@ proto.text=function(){
 	this.string=function(string)
 	{
 		return this.attr('string',string);
+	}
+	this.getRect=function()
+	{
+		var points={}, ctx=objectCanvas(this).optns.ctx;
+		points.height=parseInt(this._font);
+		points.x=this._x+this._transformdx;
+		points.y=this._y-points.height+this._transformdy;
+		ctx.save();
+		this.setOptns(ctx);
+		points.width=ctx.measureText(this._string).width;
+		ctx.restore();
+		return points;
 	}
 	this.setOptns = function(ctx)
 	{

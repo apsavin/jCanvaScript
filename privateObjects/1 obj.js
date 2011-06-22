@@ -10,7 +10,7 @@ proto.object=function()
 		{
 			var cnv=bufOptns.cnv=document.createElement('canvas');
 			var ctx=bufOptns.ctx=cnv.getContext('2d');
-			var rect=bufOptns.rect=getObjectRectangle(this);
+			var rect=bufOptns.rect=this.getRect();
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
 			var oldM=this.transform();
@@ -400,7 +400,7 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
-		x=Math.PI*x/180;
+		x=x/radian;
 		var cos=Math.cos(x);
 		var sin=Math.sin(x);
 		var matrix=[];

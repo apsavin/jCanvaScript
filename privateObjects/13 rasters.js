@@ -84,6 +84,15 @@ proto.imageData=function()
 proto.imageData.prototype=new proto.object;
 proto.image=function()
 {
+	this.getRect=function()
+	{
+		var points={};
+		points.x=this._sx+this._transformdx;
+		points.y=this._sy+this._transformdy;
+		points.width=(this._img.width>this._swidth)?this._img.width:this._swidth;
+		points.height=(this._img.height>this._sheight)?this._img.height:this._sheight;
+		return points;
+	}
 	this.draw=function(ctx)
 	{
 		if(this._swidth==false && this._dx==false){ctx.drawImage(this._img,this._sx,this._sy);}
