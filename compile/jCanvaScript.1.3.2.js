@@ -989,7 +989,8 @@ proto.object=function()
 				{
 					if(options[key].charAt)
 					{
-						if(options[key].charAt(1)=='=')
+						if(key=='string')this._string=options[key];
+						else if(options[key].charAt(1)=='=')
 						{
 							options[key]=this['_'+key]+parseInt(options[key].charAt(0)+options[key].substr(2));
 						}
@@ -1337,6 +1338,7 @@ proto.object=function()
 	this._transformdy=0;
 	this.rotateMatrix=this.scaleMatrix=false;
 }
+proto.object.prototype=new proto.object();
 
 proto.shape=function()
 {
@@ -1745,9 +1747,7 @@ proto.text=function(){
 	this._baseline="alphabetic";
 	this.string=function(string)
 	{
-		if(string===undefined)return this._string;
-		this._string=string;
-		return this;
+		return this.attr('string',string);
 	}
 	this.getRect=function()
 	{
@@ -2347,6 +2347,10 @@ function group()
 }
 
 
+jCanvaScript.addFunction=function(name,fn,prototype)
+{
+	proto[prototype||'object'].prototype[name]=fn;
+}
 jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 {
 	proto[name]=function(name){

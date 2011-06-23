@@ -24,7 +24,7 @@ proto.imageData=function()
 		this._getY=y;
 		this._width=width;
 		this._height=height;
-		var ctx=canvases[this.optns.canvas.number].optns.ctx;
+		var ctx=objectCanvas(this).optns.ctx;
 		try{
 				this.imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
 			}catch(e){

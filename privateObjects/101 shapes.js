@@ -197,9 +197,7 @@ proto.text=function(){
 	this._baseline="alphabetic";
 	this.string=function(string)
 	{
-		if(string===undefined)return this._string;
-		this._string=string;
-		return this;
+		return this.attr('string',string);
 	}
 	this.getRect=function()
 	{

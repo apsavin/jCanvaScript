@@ -324,7 +324,8 @@ proto.object=function()
 				{
 					if(options[key].charAt)
 					{
-						if(options[key].charAt(1)=='=')
+						if(key=='string')this._string=options[key];
+						else if(options[key].charAt(1)=='=')
 						{
 							options[key]=this['_'+key]+parseInt(options[key].charAt(0)+options[key].substr(2));
 						}
@@ -672,3 +673,4 @@ proto.object=function()
 	this._transformdy=0;
 	this.rotateMatrix=this.scaleMatrix=false;
 }
+proto.object.prototype=new proto.object();

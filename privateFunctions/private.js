@@ -153,6 +153,11 @@ var animateFunctions={
 		}
 		return 1;
 	}
+},
+imageDatafilters={
+	blackAndWhite:function(x,y,color,width,height){
+		
+	}
 }
 
 function multiplyM(m1,m2)

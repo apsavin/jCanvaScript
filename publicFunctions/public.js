@@ -1,3 +1,7 @@
+jCanvaScript.addFunction=function(name,fn,prototype)
+{
+	proto[prototype||'object'].prototype[name]=fn;
+}
 jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 {
 	proto[name]=function(name){
