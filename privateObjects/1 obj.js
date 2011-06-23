@@ -1,7 +1,7 @@
 proto.object=function()
 {
 	this.position=function(){
-		return {x:this._x+this._transformdx,y:this._y+this.transformdy};
+		return {x:this._x+this._transformdx,y:this._y+this._transformdy};
 	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;

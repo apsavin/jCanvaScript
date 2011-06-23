@@ -48,7 +48,7 @@ proto.shape=function()
 			}
 		}
 		proto.shape.prototype.base.call(this,x,y);
-		this._fill=fill;
+		this._fill=fill||0;
 		this.optns.color={val:color,notColor:undefined};
 		
 		if(color===undefined)return this;

@@ -666,7 +666,7 @@ var proto={};
 proto.object=function()
 {
 	this.position=function(){
-		return {x:this._x+this._transformdx,y:this._y+this.transformdy};
+		return {x:this._x+this._transformdx,y:this._y+this._transformdy};
 	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
@@ -1388,7 +1388,7 @@ proto.shape=function()
 			}
 		}
 		proto.shape.prototype.base.call(this,x,y);
-		this._fill=fill;
+		this._fill=fill||0;
 		this.optns.color={val:color,notColor:undefined};
 		
 		if(color===undefined)return this;
@@ -1562,7 +1562,7 @@ proto.circle=function(){
 	this.base=function(x,y,radius,color,fill)
 	{
 		proto.circle.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius;
+		this._radius=radius||0;
 		return this;
 	}
 	this._proto='circle';
@@ -1583,8 +1583,8 @@ proto.rect=function(){
 	this.base=function(x,y,width,height,color,fill)
 	{
 		proto.rect.prototype.base.call(this,x,y,color,fill);
-		this._width=width;
-		this._height=height;
+		this._width=width||0;
+		this._height=height||0;
 		return this;
 	}
 	this._proto='rect';
@@ -1745,7 +1745,9 @@ proto.text=function(){
 	this._baseline="alphabetic";
 	this.string=function(string)
 	{
-		return this.attr('string',string);
+		if(string===undefined)return this._string;
+		this._string=string;
+		return this;
 	}
 	this.getRect=function()
 	{
@@ -2612,6 +2614,7 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
+			var point = this.optns.point;
 			if(optns.mousemove.object!=false)
 			{
 				var mousemoveObject=optns.mousemove.object;
@@ -2619,19 +2622,19 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
 					{
-						mousemoveObject.onmousemove(this.optns.point);
+						mousemoveObject.onmousemove(point);
 					}
 				}
 				else
 				{
 					if(underMouse==false)
 					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					else
 					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout();}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					underMouse=mousemoveObject;
 				}
@@ -2642,7 +2645,7 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof underMouse.onmouseout=='function')
 					{
-						underMouse.onmouseout();
+						underMouse.onmouseout(point);
 					}
 					underMouse=false;
 				}

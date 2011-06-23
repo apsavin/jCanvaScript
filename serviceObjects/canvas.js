@@ -145,6 +145,7 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
+			var point = this.optns.point;
 			if(optns.mousemove.object!=false)
 			{
 				var mousemoveObject=optns.mousemove.object;
@@ -152,19 +153,19 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
 					{
-						mousemoveObject.onmousemove(this.optns.point);
+						mousemoveObject.onmousemove(point);
 					}
 				}
 				else
 				{
 					if(underMouse==false)
 					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					else
 					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout();}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					underMouse=mousemoveObject;
 				}
@@ -175,7 +176,7 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof underMouse.onmouseout=='function')
 					{
-						underMouse.onmouseout();
+						underMouse.onmouseout(point);
 					}
 					underMouse=false;
 				}

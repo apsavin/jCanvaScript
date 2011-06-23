@@ -14,7 +14,7 @@ proto.circle=function(){
 	this.base=function(x,y,radius,color,fill)
 	{
 		proto.circle.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius;
+		this._radius=radius||0;
 		return this;
 	}
 	this._proto='circle';
@@ -35,8 +35,8 @@ proto.rect=function(){
 	this.base=function(x,y,width,height,color,fill)
 	{
 		proto.rect.prototype.base.call(this,x,y,color,fill);
-		this._width=width;
-		this._height=height;
+		this._width=width||0;
+		this._height=height||0;
 		return this;
 	}
 	this._proto='rect';
@@ -197,7 +197,9 @@ proto.text=function(){
 	this._baseline="alphabetic";
 	this.string=function(string)
 	{
-		return this.attr('string',string);
+		if(string===undefined)return this._string;
+		this._string=string;
+		return this;
 	}
 	this.getRect=function()
 	{
