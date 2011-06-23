@@ -15,7 +15,7 @@ jCanvaScript.canvas = function(idCanvas)
 	canvases[limit]=canvas;
 	lastCanvas=limit;
 	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v')G_vmlCanvasManager.initElement(canvas.cnv);
+	if ('\v'=='v' && G_vmlCanvasManager!==undefined)G_vmlCanvasManager.initElement(canvas.cnv);
 	canvas.optns =
 	{
 		id:idCanvas,

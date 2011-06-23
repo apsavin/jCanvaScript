@@ -86,27 +86,23 @@ proto.image=function()
 {
 	this.getRect=function()
 	{
-		var points={};
-		points.x=this._sx+this._transformdx;
-		points.y=this._sy+this._transformdy;
-		points.width=(this._img.width>this._swidth)?this._img.width:this._swidth;
-		points.height=(this._img.height>this._sheight)?this._img.height:this._sheight;
+		var points=this.position();
+		points.width=(this._img.width>this._width)?this._img.width:this._width;
+		points.height=(this._img.height>this._height)?this._img.height:this._height;
 		return points;
 	}
 	this.draw=function(ctx)
 	{
-		if(this._swidth==false && this._dx==false){ctx.drawImage(this._img,this._sx,this._sy);}
-		else{if(this._dx==false)ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight);
-			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._dx,this._dy,this._dwidth,this._dheight);}
+		if(this._width==false && this._dx==false){ctx.drawImage(this._img,this._x,this._y);}
+		else{if(this._dx==false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+			else ctx.drawImage(this._img,this._x,this._y,this._width,this._height,this._dx,this._dy,this._dwidth,this._dheight);}
 	}
-	this.base=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
+	this.base=function(img,x,y,width,height,dx,dy,dwidth,dheight)
 	{
-		proto.image.prototype.base.call(this);
+		proto.image.prototype.base.call(this,x,y);
 		this._img=img;
-		this._swidth=swidth||false;
-		this._sheight=sheight||false;
-		this._sx=sx;
-		this._sy=sy;
+		this._width=width||false;
+		this._height=height||false;
 		this._dx=dx||false;
 		this._dy=dy||false;
 		this._dwidth=dwidth||false;

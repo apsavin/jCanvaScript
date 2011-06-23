@@ -665,6 +665,9 @@ var proto={};
 
 proto.object=function()
 {
+	this.position=function(){
+		return {x:this._x+this._transformdx,y:this._y+this.transformdy};
+	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
 		if(doBuffering===undefined)
@@ -1546,9 +1549,9 @@ proto.bCurve.prototype=new proto.lines;
 proto.circle=function(){
 	this.getRect=function()
 	{
-		var points={};
-		points.x=this._x-this._radius+this._transformdx;
-		points.y=this._y-this._radius+this._transformdy;
+		var points=this.position();
+		points.x-=this._radius;
+		points.y-=this._radius;
 		points.width=points.height=this._radius*2;
 		return points;
 	}
@@ -1568,9 +1571,7 @@ proto.circle.prototype=new proto.shape;
 proto.rect=function(){
 	this.getRect=function()
 	{
-		var points={};
-		points.x=this._x+this._transformdx;
-		points.y=this._y+this._transformdy;
+		var points=this.position();
 		points.width=this._width;
 		points.height=this._height;
 		return points;
@@ -1592,13 +1593,11 @@ proto.rect.prototype=new proto.shape;
 proto.arc=function(){
 	this.getRect=function()
 	{
-		var points={},
+		var points=this.position(),
 		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
 		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
 		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
 		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
-		points.x=this._x+this._transformdx;
-		points.y=this._y+this._transformdy;
 		points.width=points.height=radius;
 		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
 		{
@@ -1750,10 +1749,9 @@ proto.text=function(){
 	}
 	this.getRect=function()
 	{
-		var points={}, ctx=objectCanvas(this).optns.ctx;
+		var points=this.position(), ctx=objectCanvas(this).optns.ctx;
 		points.height=parseInt(this._font);
-		points.x=this._x+this._transformdx;
-		points.y=this._y-points.height+this._transformdy;
+		points.y-=points.height;
 		ctx.save();
 		this.setOptns(ctx);
 		points.width=ctx.measureText(this._string).width;
@@ -2270,27 +2268,23 @@ proto.image=function()
 {
 	this.getRect=function()
 	{
-		var points={};
-		points.x=this._sx+this._transformdx;
-		points.y=this._sy+this._transformdy;
-		points.width=(this._img.width>this._swidth)?this._img.width:this._swidth;
-		points.height=(this._img.height>this._sheight)?this._img.height:this._sheight;
+		var points=this.position();
+		points.width=(this._img.width>this._width)?this._img.width:this._width;
+		points.height=(this._img.height>this._height)?this._img.height:this._height;
 		return points;
 	}
 	this.draw=function(ctx)
 	{
-		if(this._swidth==false && this._dx==false){ctx.drawImage(this._img,this._sx,this._sy);}
-		else{if(this._dx==false)ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight);
-			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._dx,this._dy,this._dwidth,this._dheight);}
+		if(this._width==false && this._dx==false){ctx.drawImage(this._img,this._x,this._y);}
+		else{if(this._dx==false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+			else ctx.drawImage(this._img,this._x,this._y,this._width,this._height,this._dx,this._dy,this._dwidth,this._dheight);}
 	}
-	this.base=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
+	this.base=function(img,x,y,width,height,dx,dy,dwidth,dheight)
 	{
-		proto.image.prototype.base.call(this);
+		proto.image.prototype.base.call(this,x,y);
 		this._img=img;
-		this._swidth=swidth||false;
-		this._sheight=sheight||false;
-		this._sx=sx;
-		this._sy=sy;
+		this._width=width||false;
+		this._height=height||false;
 		this._dx=dx||false;
 		this._dy=dy||false;
 		this._dwidth=dwidth||false;
@@ -2488,7 +2482,7 @@ jCanvaScript.canvas = function(idCanvas)
 	canvases[limit]=canvas;
 	lastCanvas=limit;
 	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v')G_vmlCanvasManager.initElement(canvas.cnv);
+	if ('\v'=='v' && G_vmlCanvasManager!==undefined)G_vmlCanvasManager.initElement(canvas.cnv);
 	canvas.optns =
 	{
 		id:idCanvas,

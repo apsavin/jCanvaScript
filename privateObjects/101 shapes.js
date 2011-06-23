@@ -1,9 +1,9 @@
 proto.circle=function(){
 	this.getRect=function()
 	{
-		var points={};
-		points.x=this._x-this._radius+this._transformdx;
-		points.y=this._y-this._radius+this._transformdy;
+		var points=this.position();
+		points.x-=this._radius;
+		points.y-=this._radius;
 		points.width=points.height=this._radius*2;
 		return points;
 	}
@@ -23,9 +23,7 @@ proto.circle.prototype=new proto.shape;
 proto.rect=function(){
 	this.getRect=function()
 	{
-		var points={};
-		points.x=this._x+this._transformdx;
-		points.y=this._y+this._transformdy;
+		var points=this.position();
 		points.width=this._width;
 		points.height=this._height;
 		return points;
@@ -47,13 +45,11 @@ proto.rect.prototype=new proto.shape;
 proto.arc=function(){
 	this.getRect=function()
 	{
-		var points={},
+		var points=this.position(),
 		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
 		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
 		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
 		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
-		points.x=this._x+this._transformdx;
-		points.y=this._y+this._transformdy;
 		points.width=points.height=radius;
 		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
 		{
@@ -205,10 +201,9 @@ proto.text=function(){
 	}
 	this.getRect=function()
 	{
-		var points={}, ctx=objectCanvas(this).optns.ctx;
+		var points=this.position(), ctx=objectCanvas(this).optns.ctx;
 		points.height=parseInt(this._font);
-		points.x=this._x+this._transformdx;
-		points.y=this._y-points.height+this._transformdy;
+		points.y-=points.height;
 		ctx.save();
 		this.setOptns(ctx);
 		points.width=ctx.measureText(this._string).width;
