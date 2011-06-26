@@ -1,11 +1,9 @@
 proto.circle=function(){
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position();
-		points.x-=this._radius;
-		points.y-=this._radius;
+		var points={x:this._x-this._radius,y:this._y-this._radius};
 		points.width=points.height=this._radius*2;
-		return points;
+		return getRect(this,points,type);
 	}
 	this.draw=function(ctx)
 	{
@@ -21,12 +19,9 @@ proto.circle=function(){
 }
 proto.circle.prototype=new proto.shape;
 proto.rect=function(){
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position();
-		points.width=this._width;
-		points.height=this._height;
-		return points;
+		return getRect(this,{x:this._x,y:this._y,width:this._width,height:this._height},type);
 	}
 	this.draw=function(ctx)
 	{
@@ -43,9 +38,9 @@ proto.rect=function(){
 }
 proto.rect.prototype=new proto.shape;
 proto.arc=function(){
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position(),
+		var points={x:this._x,y:this._y},
 		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
 		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
 		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
@@ -154,7 +149,7 @@ proto.arc=function(){
 				points.height+=radius;
 			}
 		}
-		return points;
+		return getRect(this,points,type);
 	}
 	this.draw=function(ctx)
 	{
@@ -199,16 +194,16 @@ proto.text=function(){
 	{
 		return this.attr('string',string);
 	}
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position(), ctx=objectCanvas(this).optns.ctx;
+		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
 		points.height=parseInt(this._font);
 		points.y-=points.height;
 		ctx.save();
 		this.setOptns(ctx);
 		points.width=ctx.measureText(this._string).width;
 		ctx.restore();
-		return points;
+		return getRect(this,points,type);
 	}
 	this.setOptns = function(ctx)
 	{

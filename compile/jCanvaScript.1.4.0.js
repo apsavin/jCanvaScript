@@ -318,11 +318,72 @@ var animateFunctions={
 		}
 		return 1;
 	}
+},
+imageDataFilters={
+	color:{fn:function(width,height,matrix,type){
+		var old,i,j;
+		matrix=matrix[type];
+		for(i=0;i<width;i++)
+		for(j=0;j<height;j++)
+		{
+			old=this.getPixel(i,j);
+			old[matrix[0]]=old[matrix[0]]*2-old[matrix[1]]-old[matrix[2]];
+			old[matrix[1]]=0;
+			old[matrix[2]]=0;
+			old[matrix[0]]=old[matrix[0]]>255?255:old[matrix[0]];
+			this.setPixel(i,j,old);
+		}
+	},matrix:
+		{
+			red:[0,1,2],
+			green:[1,0,2],
+			blue:[2,0,1]
+		}},
+	linear:{fn:function(width,height,matrix,type){
+		var newMatrix=[],old,i,j,k,m,n;
+		matrix=matrix[type];
+		m=matrix.length;
+		n=matrix[0].length;
+			for(i=0;i<width;i++)
+			{
+				newMatrix[i]=[];
+				for(j=0;j<height;j++)
+				{
+					newMatrix[i][j]=[0,0,0,1];
+					for(m=0;m<3;m++)
+					for(n=0;n<3;n++)
+					{
+						old=this.getPixel(i-parseInt(m/2),j-parseInt(n/2));
+						for(k=0;k<3;k++)
+						{
+							newMatrix[i][j][k]+=old[k]*matrix[m][n];
+						}
+					}
+				}
+			}
+			for(i=0;i<width;i++)
+			{
+				for(j=0;j<height;j++)
+					this.setPixel(i,j,newMatrix[i][j]);
+			}
+	},
+		matrix:{
+			sharp:[[-0.375,-0.375,-0.375],[-0.375,4,-0.375],[-0.375,-0.375,-0.375]],
+			blur:[[0.111,0.111,0.111],[0.111,0.111,0.111],[0.111,0.111,0.111]]
+		}
+	}
 }
 
 function multiplyM(m1,m2)
 {
 	return [[(m1[0][0]*m2[0][0]+m1[0][1]*m2[1][0]),(m1[0][0]*m2[0][1]+m1[0][1]*m2[1][1]),(m1[0][0]*m2[0][2]+m1[0][1]*m2[1][2]+m1[0][2])],[(m1[1][0]*m2[0][0]+m1[1][1]*m2[1][0]),(m1[1][0]*m2[0][1]+m1[1][1]*m2[1][1]),(m1[1][0]*m2[0][2]+m1[1][1]*m2[1][2]+m1[1][2])]];
+}
+function multiplyPointM(x,y,m)
+{
+	return {
+		x:(x*m[0][0]+y*m[0][1]+m[0][2]),
+		y:(x*m[1][0]+y*m[1][1]+m[1][2])
+	}
 }
 function transformPoint(x,y,m)
 {
@@ -331,7 +392,29 @@ function transformPoint(x,y,m)
 		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
 	}
 }
-
+function getRect(object,rect,type)
+{
+	if(type=='poor')return rect;
+	var min={x:rect.x,y:rect.y},max={x:rect.x+rect.width,y:rect.y+rect.height},
+	m=multiplyM(object.matrix(),objectLayer(object).matrix()),
+	lt=multiplyPointM(min.x,min.y,m),
+	rt=multiplyPointM(max.x,min.y,m),
+	lb=multiplyPointM(min.x,max.y,m),
+	rb=multiplyPointM(max.x,max.y,m),
+	coords=[[lt.x,lt.y],[rt.x,rt.y],[lb.x,lb.y],[rb.x,rb.y]];
+	if(type=='coords')return coords;
+	var minX, minY,
+	maxX=minX=lt.x,
+	maxY=minY=lt.y;
+	for(var i=0;i<4;i++)
+	{
+		if(maxX<coords[i][0])maxX=coords[i][0];
+		if(maxY<coords[i][1])maxY=coords[i][1];
+		if(minX>coords[i][0])minX=coords[i][0];
+		if(minY>coords[i][1])minY=coords[i][1];
+	}
+	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
+}
 function getObjectCenter(object)
 {
 	var point={};
@@ -376,10 +459,10 @@ function parseColor(color)
 			val:color,
 			notColor:undefined
 		},
-		colorR:0,
-		colorB:0,
-		colorG:0,
-		alpha:0};
+		r:0,
+		g:0,
+		b:0,
+		a:0};
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={
@@ -391,10 +474,10 @@ function parseColor(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.colorR=parseInt(color.substr(1,2),16);
-		colorKeeper.colorG=parseInt(color.substr(3,2),16);
-		colorKeeper.colorB=parseInt(color.substr(5,2),16);
-		colorKeeper.alpha=1;
+		colorKeeper.r=parseInt(color.substr(1,2),16);
+		colorKeeper.g=parseInt(color.substr(3,2),16);
+		colorKeeper.b=parseInt(color.substr(5,2),16);
+		colorKeeper.a=1;
 	}
 	else
 	{
@@ -403,19 +486,19 @@ function parseColor(color)
 		{
 			var colorR = arr[0].split('(');
 			var alpha = arr[3].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(arr[2]);
-			colorKeeper.alpha=parseFloat(alpha[0]);
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(arr[2]);
+			colorKeeper.a=parseFloat(alpha[0]);
 		}
 		if(arr.length==3)
 		{
 			colorR = arr[0].split('(');
 			var colorB = arr[2].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(colorB[0]);
-			colorKeeper.alpha=1;
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(colorB[0]);
+			colorKeeper.a=1;
 		}
 	}
 	colorKeeper.color.notColor = undefined;
@@ -483,7 +566,7 @@ function isPointInPath(object,x,y)
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
-		var rectangle=object.getRect();
+		var rectangle=object.getRect('poor');
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
@@ -498,8 +581,8 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x||optns.dblclick.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y||optns.dblclick.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.dblclick.x||optns.click.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.dblclick.y||optns.click.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
@@ -512,6 +595,8 @@ function checkMouseEvents(object,optns)
 			optns.mousedown.object=object;
 		if(optns.click.x!=false || optns.dblclick.x!=false)
 			optns.click.object=object;
+		if(optns.dblclick.x!=false)
+            optns.dblclick.object=object;
 		if(optns.mouseup.x!=false)
 			optns.mouseup.object=object;
 		optns.point=point;
@@ -666,7 +751,7 @@ var proto={};
 proto.object=function()
 {
 	this.position=function(){
-		return {x:this._x+this._transformdx,y:this._y+this._transformdy};
+		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));;
 	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
@@ -732,10 +817,10 @@ proto.object=function()
 			case 'color':
 				var colorKeeper = parseColor(options.color);
 				this._shadowColor = options.color.val;
-				this._shadowColorR = colorKeeper.colorR;
-				this._shadowColorG = colorKeeper.colorG;
-				this._shadowColorB = colorKeeper.colorB;
-				this._shadowColorA = colorKeeper.alpha;
+				this._shadowColorR = colorKeeper.r;
+				this._shadowColorG = colorKeeper.g;
+				this._shadowColorB = colorKeeper.b;
+				this._shadowColorA = colorKeeper.a;
 				break;
 		}
 		redraw(this);
@@ -959,20 +1044,20 @@ proto.object=function()
 				this.optns.color.notColor=colorKeeper.color.notColor;
 			else
 			{
-				options.colorR=colorKeeper.colorR;
-				options.colorG=colorKeeper.colorG;
-				options.colorB=colorKeeper.colorB;
-				options.alpha=colorKeeper.alpha;
+				options.colorR=colorKeeper.r;
+				options.colorG=colorKeeper.g;
+				options.colorB=colorKeeper.b;
+				options.alpha=colorKeeper.a;
 			}
 			options.color = undefined;
 		}
 		if(options.shadowColor !== undefined)
 		{
 			colorKeeper=parseColor(options.shadowColor);
-			options.shadowColorR=colorKeeper.colorR;
-			options.shadowColorG=colorKeeper.colorG;
-			options.shadowColorB=colorKeeper.colorB;
-			options.shadowColorA=colorKeeper.alpha;
+			options.shadowColorR=colorKeeper.r;
+			options.shadowColorG=colorKeeper.g;
+			options.shadowColorB=colorKeeper.b;
+			options.shadowColorA=colorKeeper.a;
 			options.shadowColor = undefined;
 		}
 		if(duration>1)
@@ -1409,11 +1494,13 @@ proto.shape.prototype=new proto.object;
 
 proto.lines=function()
 {
-	this.getRect=function(){
+	this.position=function(){
+		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
+	}
+	this.getRect=function(type){
 		var minX, minY,
 		maxX=minX=this._x0,
-		maxY=minY=this._y0,
-		points={};
+		maxY=minY=this._y0;
 		for(var i=1;i<this.shapesCount;i++)
 		{
 			if(maxX<this['_x'+i])maxX=this['_x'+i];
@@ -1421,11 +1508,8 @@ proto.lines=function()
 			if(minX>this['_x'+i])minX=this['_x'+i];
 			if(minY>this['_y'+i])minY=this['_y'+i];
 		}
-		points.x=minX+this._transformdx;
-		points.y=minX+this._transformdy;
-		points.width=maxX-minX;
-		points.height=maxY-minY;
-		return points;
+		var points={x:minX,y:minY,width:maxX-minX,height:maxY-minY};
+		return getRect(this,points,type);
 	}
 	this.addPoint=function(){
 		redraw(this);
@@ -1549,13 +1633,11 @@ proto.bCurve=function(){
 proto.bCurve.prototype=new proto.lines;
 
 proto.circle=function(){
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position();
-		points.x-=this._radius;
-		points.y-=this._radius;
+		var points={x:this._x-this._radius,y:this._y-this._radius};
 		points.width=points.height=this._radius*2;
-		return points;
+		return getRect(this,points,type);
 	}
 	this.draw=function(ctx)
 	{
@@ -1571,12 +1653,9 @@ proto.circle=function(){
 }
 proto.circle.prototype=new proto.shape;
 proto.rect=function(){
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position();
-		points.width=this._width;
-		points.height=this._height;
-		return points;
+		return getRect(this,{x:this._x,y:this._y,width:this._width,height:this._height},type);
 	}
 	this.draw=function(ctx)
 	{
@@ -1593,9 +1672,9 @@ proto.rect=function(){
 }
 proto.rect.prototype=new proto.shape;
 proto.arc=function(){
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position(),
+		var points={x:this._x,y:this._y},
 		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
 		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
 		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
@@ -1704,7 +1783,7 @@ proto.arc=function(){
 				points.height+=radius;
 			}
 		}
-		return points;
+		return getRect(this,points,type);
 	}
 	this.draw=function(ctx)
 	{
@@ -1749,16 +1828,16 @@ proto.text=function(){
 	{
 		return this.attr('string',string);
 	}
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position(), ctx=objectCanvas(this).optns.ctx;
+		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
 		points.height=parseInt(this._font);
 		points.y-=points.height;
 		ctx.save();
 		this.setOptns(ctx);
 		points.width=ctx.measureText(this._string).width;
 		ctx.restore();
-		return points;
+		return getRect(this,points,type);
 	}
 	this.setOptns = function(ctx)
 	{
@@ -1837,10 +1916,10 @@ proto.gradients=function()
 		var colorKeeper = parseColor(color);
 		var i=this.colorStopsCount;
 		this['_pos'+i] = pos;
-		this['_colorR'+i] = colorKeeper.colorR;
-		this['_colorG'+i] = colorKeeper.colorG;
-		this['_colorB'+i] = colorKeeper.colorB;
-		this['_alpha'+i] = colorKeeper.alpha;
+		this['_colorR'+i] = colorKeeper.r;
+		this['_colorG'+i] = colorKeeper.g;
+		this['_colorB'+i] = colorKeeper.b;
+		this['_alpha'+i] = colorKeeper.a;
 		this.colorStopsCount++;
 		return this;
 	}
@@ -1851,10 +1930,10 @@ proto.gradients=function()
 			{
 				var i=key.substring(5);
 				var colorKeeper=parseColor(parameters[key]);
-				parameters['colorR'+i] = colorKeeper.colorR.val;
-				parameters['colorG'+i] = colorKeeper.colorG.val;
-				parameters['colorB'+i] = colorKeeper.colorB.val;
-				parameters['alpha'+i] = colorKeeper.alpha.val;
+				parameters['colorR'+i] = colorKeeper.r;
+				parameters['colorG'+i] = colorKeeper.g;
+				parameters['colorB'+i] = colorKeeper.b;
+				parameters['alpha'+i] = colorKeeper.a;
 			}
 		}
 		proto.gradients.prototype.animate.call(this,parameters,duration,easing,onstep,fn);
@@ -1975,7 +2054,7 @@ proto.rGradient.prototype=new proto.gradients;
 
 proto.layer=function()
 {
-	this.getRect=function(){
+	this.getRect=function(type){
 		var objs=this.objs,
 		points=objs[0].getRect();
 		points.bottom=points.y+points.height;
@@ -1992,9 +2071,7 @@ proto.layer=function()
 		}
 		points.width=points.right-points.x;
 		points.height=points.bottom-points.y;
-		points.x+=this._transformdx;
-		points.y+=this._transformdy;
-		return points;
+		return getRect(this,points,type);
 	}
 	this.canvas=function(idCanvas)
 	{
@@ -2184,21 +2261,29 @@ function layers(idLayer)
 
 proto.imageData=function()
 {
+	this.filter=function(filterName,filterType)
+	{
+		var filter=imageDataFilters[filterName];
+		filter.fn.call(this,this._width,this._height,filter.matrix,filterType);
+		return this;
+	};
 	this.setPixel=function(x,y,color)
 	{
-		var colorKeeper = parseColor(color);
-		var index=(x + y * this._width) * 4;
-		this.data[index+0] = colorKeeper.colorR;
-		this.data[index+1] = colorKeeper.colorG;
-		this.data[index+2] = colorKeeper.colorB;
-		this.data[index+3] = colorKeeper.alpha*255;
+		var colorKeeper,index=(x + y * this._width) * 4;
+		if (color.r !== undefined) colorKeeper=color;
+		else if (color[0] !== undefined) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
+		else colorKeeper = parseColor(color);
+		this._data[index+0] = colorKeeper.r;
+		this._data[index+1] = colorKeeper.g;
+		this._data[index+2] = colorKeeper.b;
+		this._data[index+3] = colorKeeper.a*255;
 		redraw(this);
 		return this;
 	}
 	this.getPixel=function(x,y)
 	{
 		var index=(x + y * this._width) * 4;
-		return [this.data[index+0],this.data[index+1],this.data[index+2],this.data[index+3]/255];
+		return [this._data[index+0],this._data[index+1],this._data[index+2],this._data[index+3]/255];
 	}
 	this._getX=0;
 	this._getY=0;
@@ -2208,14 +2293,14 @@ proto.imageData=function()
 		this._getY=y;
 		this._width=width;
 		this._height=height;
-		var ctx=canvases[this.optns.canvas.number].optns.ctx;
+		var ctx=objectCanvas(this).optns.ctx;
 		try{
-				this.imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
+				this._imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
 			}catch(e){
 				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-				this.imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
+				this._imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
 		}
-		this.data=this.imgData.data;
+		this._data=this._imgData.data;
 		redraw(this);
 		return this;
 	}
@@ -2227,17 +2312,22 @@ proto.imageData=function()
 		redraw(this);
 		return this;
 	}
+	this.clone=function(){
+		var clone=proto.imageData.prototype.clone.call(this);
+		clone._imgData=undefined;
+		return clone;
+	}
 	this.draw=function(ctx)
 	{
-		if(this.imgData===undefined)
+		if(this._imgData===undefined)
 		{
-			this.imgData=ctx.createImageData(this._width,this._height);
+			this._imgData=ctx.createImageData(this._width,this._height);
 			for(var i=0;i<this._width*this._height*4;i++)
-				this.imgData.data[i]=this.data[i];
-			this.data=this.imgData.data;
+				this._imgData.data[i]=this._data[i];
+			this._data=this._imgData.data;
 		}
 		if(this._putData)
-			ctx.putImageData(this.imgData,this._x,this._y);
+			ctx.putImageData(this._imgData,this._x,this._y);
 	}
 	this.base=function(width,height)
 	{
@@ -2250,15 +2340,15 @@ proto.imageData=function()
 		}
 		this._width=width;
 		this._height=height;
-		this.data=[];
+		this._data=[];
 		for(var i=0;i<this._width;i++)
 			for(var j=0;j<this._height;j++)
 			{
 				var index=(i+j*this._width)*4;
-				this.data[index+0]=0;
-				this.data[index+1]=0;
-				this.data[index+2]=0;
-				this.data[index+3]=0;
+				this._data[index+0]=0;
+				this._data[index+1]=0;
+				this._data[index+2]=0;
+				this._data[index+3]=0;
 			}
 		return this;
 	}
@@ -2268,29 +2358,29 @@ proto.imageData=function()
 proto.imageData.prototype=new proto.object;
 proto.image=function()
 {
-	this.getRect=function()
+	this.getRect=function(type)
 	{
-		var points=this.position();
+		var points={x:this._x,y:this._y};
 		points.width=(this._img.width>this._width)?this._img.width:this._width;
 		points.height=(this._img.height>this._height)?this._img.height:this._height;
-		return points;
+		return getRect(this,points,type);
 	}
 	this.draw=function(ctx)
 	{
-		if(this._width==false && this._dx==false){ctx.drawImage(this._img,this._x,this._y);}
-		else{if(this._dx==false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
-			else ctx.drawImage(this._img,this._x,this._y,this._width,this._height,this._dx,this._dy,this._dwidth,this._dheight);}
+		if(!this._width){ctx.drawImage(this._img,this._x,this._y);}
+		else{if(!this._swidth)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);}
 	}
-	this.base=function(img,x,y,width,height,dx,dy,dwidth,dheight)
+	this.base=function(img,x,y,width,height,sx,sy,swidth,sheight)
 	{
 		proto.image.prototype.base.call(this,x,y);
 		this._img=img;
-		this._width=width||false;
-		this._height=height||false;
-		this._dx=dx||false;
-		this._dy=dy||false;
-		this._dwidth=dwidth||false;
-		this._dheight=dheight||false;
+		this._width=width||0;
+		this._height=height||0;
+		this._sx=sx||0;
+		this._sy=sy||0;
+		this._swidth=swidth||0;
+		this._sheight=sheight||0;
 		return this;
 	}
 	this._proto='image';
@@ -2350,6 +2440,7 @@ function group()
 jCanvaScript.addFunction=function(name,fn,prototype)
 {
 	proto[prototype||'object'].prototype[name]=fn;
+	return jCanvaScript;
 }
 jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 {
@@ -2382,25 +2473,38 @@ jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 			return object.base(name,parameters,arguments);
 		}
 	})(name,parameters);
+	return jCanvaScript;
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
 {
 	animateFunctions[name]=fn;
+	return jCanvaScript;
+}
+jCanvaScript.addImageDataFilter=function(name,properties)
+{
+	if(imageDataFilters[name]===undefined)imageDataFilters[name]={};
+	if(properties.fn!==undefined)imageDataFilters[name].fn=properties.fn;
+	if(properties.matrix!==undefined && properties.type===undefined)imageDataFilters[name].matrix=properties.matrix;
+	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
+	return jCanvaScript;
 }
 jCanvaScript.clear=function(idCanvas)
 {
 	if(canvases[0]===undefined)return;
 	if(idCanvas===undefined){canvases[0].clear();return;}
 	jCanvaScript.canvas(idCanvas).clear();
+	return jCanvaScript;
 }
 jCanvaScript.pause=function(idCanvas)
 {
 	if(idCanvas===undefined){canvases[0].pause();return;}
 	jCanvaScript.canvas(idCanvas).pause();
+	return jCanvaScript;
 }
 jCanvaScript.start=function(idCanvas,fps)
 {
 	jCanvaScript.canvas(idCanvas).start(fps);
+	return jCanvaScript;
 }
 
 
@@ -2443,10 +2547,10 @@ jCanvaScript.imageData=function(width,height)
 	var imageData=new proto.imageData;
 	return imageData.base(width,height);
 }
-jCanvaScript.image=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
+jCanvaScript.image=function(img,x,y,width,height,sx,sy,swidth,sheight)
 {
 	var image=new proto.image;
-	return image.base(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight);
+	return image.base(img,x,y,width,height,sx,sy,swidth,sheight);
 }
 
 jCanvaScript.circle=function(x,y,radius,color,fill)
@@ -2719,17 +2823,25 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
-			var mouseDblClick=this.optns.dblclick;
 			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
 			for(i=0;i<2;i++)
 			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
 					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
-				if(typeof mouseClickObjects[i].ondblclick == 'function')
-					mouseClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
 			}
 			mouseClick.object=false;
 		}
+		if(this.optns.dblclick.object!=false)
+        {
+            var mouseDblClick=this.optns.dblclick;
+            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
+            for(i=0;i<2;i++)
+            {
+                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
+                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+            }
+            mouseDblClick.object=false;
+        }
 		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;

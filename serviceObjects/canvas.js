@@ -246,17 +246,25 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
-			var mouseDblClick=this.optns.dblclick;
 			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
 			for(i=0;i<2;i++)
 			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
 					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
-				if(typeof mouseClickObjects[i].ondblclick == 'function')
-					mouseClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
 			}
 			mouseClick.object=false;
 		}
+		if(this.optns.dblclick.object!=false)
+        {
+            var mouseDblClick=this.optns.dblclick;
+            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
+            for(i=0;i<2;i++)
+            {
+                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
+                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+            }
+            mouseDblClick.object=false;
+        }
 		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;

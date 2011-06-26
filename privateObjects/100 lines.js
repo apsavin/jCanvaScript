@@ -1,10 +1,12 @@
 proto.lines=function()
 {
-	this.getRect=function(){
+	this.position=function(){
+		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
+	}
+	this.getRect=function(type){
 		var minX, minY,
 		maxX=minX=this._x0,
-		maxY=minY=this._y0,
-		points={};
+		maxY=minY=this._y0;
 		for(var i=1;i<this.shapesCount;i++)
 		{
 			if(maxX<this['_x'+i])maxX=this['_x'+i];
@@ -12,11 +14,8 @@ proto.lines=function()
 			if(minX>this['_x'+i])minX=this['_x'+i];
 			if(minY>this['_y'+i])minY=this['_y'+i];
 		}
-		points.x=minX+this._transformdx;
-		points.y=minX+this._transformdy;
-		points.width=maxX-minX;
-		points.height=maxY-minY;
-		return points;
+		var points={x:minX,y:minY,width:maxX-minX,height:maxY-minY};
+		return getRect(this,points,type);
 	}
 	this.addPoint=function(){
 		redraw(this);

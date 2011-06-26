@@ -43,10 +43,10 @@ proto.gradients=function()
 		var colorKeeper = parseColor(color);
 		var i=this.colorStopsCount;
 		this['_pos'+i] = pos;
-		this['_colorR'+i] = colorKeeper.colorR;
-		this['_colorG'+i] = colorKeeper.colorG;
-		this['_colorB'+i] = colorKeeper.colorB;
-		this['_alpha'+i] = colorKeeper.alpha;
+		this['_colorR'+i] = colorKeeper.r;
+		this['_colorG'+i] = colorKeeper.g;
+		this['_colorB'+i] = colorKeeper.b;
+		this['_alpha'+i] = colorKeeper.a;
 		this.colorStopsCount++;
 		return this;
 	}
@@ -57,10 +57,10 @@ proto.gradients=function()
 			{
 				var i=key.substring(5);
 				var colorKeeper=parseColor(parameters[key]);
-				parameters['colorR'+i] = colorKeeper.colorR.val;
-				parameters['colorG'+i] = colorKeeper.colorG.val;
-				parameters['colorB'+i] = colorKeeper.colorB.val;
-				parameters['alpha'+i] = colorKeeper.alpha.val;
+				parameters['colorR'+i] = colorKeeper.r;
+				parameters['colorG'+i] = colorKeeper.g;
+				parameters['colorB'+i] = colorKeeper.b;
+				parameters['alpha'+i] = colorKeeper.a;
 			}
 		}
 		proto.gradients.prototype.animate.call(this,parameters,duration,easing,onstep,fn);

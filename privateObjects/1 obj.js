@@ -1,7 +1,7 @@
 proto.object=function()
 {
 	this.position=function(){
-		return {x:this._x+this._transformdx,y:this._y+this._transformdy};
+		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));;
 	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
@@ -67,10 +67,10 @@ proto.object=function()
 			case 'color':
 				var colorKeeper = parseColor(options.color);
 				this._shadowColor = options.color.val;
-				this._shadowColorR = colorKeeper.colorR;
-				this._shadowColorG = colorKeeper.colorG;
-				this._shadowColorB = colorKeeper.colorB;
-				this._shadowColorA = colorKeeper.alpha;
+				this._shadowColorR = colorKeeper.r;
+				this._shadowColorG = colorKeeper.g;
+				this._shadowColorB = colorKeeper.b;
+				this._shadowColorA = colorKeeper.a;
 				break;
 		}
 		redraw(this);
@@ -294,20 +294,20 @@ proto.object=function()
 				this.optns.color.notColor=colorKeeper.color.notColor;
 			else
 			{
-				options.colorR=colorKeeper.colorR;
-				options.colorG=colorKeeper.colorG;
-				options.colorB=colorKeeper.colorB;
-				options.alpha=colorKeeper.alpha;
+				options.colorR=colorKeeper.r;
+				options.colorG=colorKeeper.g;
+				options.colorB=colorKeeper.b;
+				options.alpha=colorKeeper.a;
 			}
 			options.color = undefined;
 		}
 		if(options.shadowColor !== undefined)
 		{
 			colorKeeper=parseColor(options.shadowColor);
-			options.shadowColorR=colorKeeper.colorR;
-			options.shadowColorG=colorKeeper.colorG;
-			options.shadowColorB=colorKeeper.colorB;
-			options.shadowColorA=colorKeeper.alpha;
+			options.shadowColorR=colorKeeper.r;
+			options.shadowColorG=colorKeeper.g;
+			options.shadowColorB=colorKeeper.b;
+			options.shadowColorA=colorKeeper.a;
 			options.shadowColor = undefined;
 		}
 		if(duration>1)

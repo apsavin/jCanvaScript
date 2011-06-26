@@ -154,15 +154,71 @@ var animateFunctions={
 		return 1;
 	}
 },
-imageDatafilters={
-	blackAndWhite:function(x,y,color,width,height){
-		
+imageDataFilters={
+	color:{fn:function(width,height,matrix,type){
+		var old,i,j;
+		matrix=matrix[type];
+		for(i=0;i<width;i++)
+		for(j=0;j<height;j++)
+		{
+			old=this.getPixel(i,j);
+			old[matrix[0]]=old[matrix[0]]*2-old[matrix[1]]-old[matrix[2]];
+			old[matrix[1]]=0;
+			old[matrix[2]]=0;
+			old[matrix[0]]=old[matrix[0]]>255?255:old[matrix[0]];
+			this.setPixel(i,j,old);
+		}
+	},matrix:
+		{
+			red:[0,1,2],
+			green:[1,0,2],
+			blue:[2,0,1]
+		}},
+	linear:{fn:function(width,height,matrix,type){
+		var newMatrix=[],old,i,j,k,m,n;
+		matrix=matrix[type];
+		m=matrix.length;
+		n=matrix[0].length;
+			for(i=0;i<width;i++)
+			{
+				newMatrix[i]=[];
+				for(j=0;j<height;j++)
+				{
+					newMatrix[i][j]=[0,0,0,1];
+					for(m=0;m<3;m++)
+					for(n=0;n<3;n++)
+					{
+						old=this.getPixel(i-parseInt(m/2),j-parseInt(n/2));
+						for(k=0;k<3;k++)
+						{
+							newMatrix[i][j][k]+=old[k]*matrix[m][n];
+						}
+					}
+				}
+			}
+			for(i=0;i<width;i++)
+			{
+				for(j=0;j<height;j++)
+					this.setPixel(i,j,newMatrix[i][j]);
+			}
+	},
+		matrix:{
+			sharp:[[-0.375,-0.375,-0.375],[-0.375,4,-0.375],[-0.375,-0.375,-0.375]],
+			blur:[[0.111,0.111,0.111],[0.111,0.111,0.111],[0.111,0.111,0.111]]
+		}
 	}
 }
 
 function multiplyM(m1,m2)
 {
 	return [[(m1[0][0]*m2[0][0]+m1[0][1]*m2[1][0]),(m1[0][0]*m2[0][1]+m1[0][1]*m2[1][1]),(m1[0][0]*m2[0][2]+m1[0][1]*m2[1][2]+m1[0][2])],[(m1[1][0]*m2[0][0]+m1[1][1]*m2[1][0]),(m1[1][0]*m2[0][1]+m1[1][1]*m2[1][1]),(m1[1][0]*m2[0][2]+m1[1][1]*m2[1][2]+m1[1][2])]];
+}
+function multiplyPointM(x,y,m)
+{
+	return {
+		x:(x*m[0][0]+y*m[0][1]+m[0][2]),
+		y:(x*m[1][0]+y*m[1][1]+m[1][2])
+	}
 }
 function transformPoint(x,y,m)
 {
@@ -171,7 +227,29 @@ function transformPoint(x,y,m)
 		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
 	}
 }
-
+function getRect(object,rect,type)
+{
+	if(type=='poor')return rect;
+	var min={x:rect.x,y:rect.y},max={x:rect.x+rect.width,y:rect.y+rect.height},
+	m=multiplyM(object.matrix(),objectLayer(object).matrix()),
+	lt=multiplyPointM(min.x,min.y,m),
+	rt=multiplyPointM(max.x,min.y,m),
+	lb=multiplyPointM(min.x,max.y,m),
+	rb=multiplyPointM(max.x,max.y,m),
+	coords=[[lt.x,lt.y],[rt.x,rt.y],[lb.x,lb.y],[rb.x,rb.y]];
+	if(type=='coords')return coords;
+	var minX, minY,
+	maxX=minX=lt.x,
+	maxY=minY=lt.y;
+	for(var i=0;i<4;i++)
+	{
+		if(maxX<coords[i][0])maxX=coords[i][0];
+		if(maxY<coords[i][1])maxY=coords[i][1];
+		if(minX>coords[i][0])minX=coords[i][0];
+		if(minY>coords[i][1])minY=coords[i][1];
+	}
+	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
+}
 function getObjectCenter(object)
 {
 	var point={};
@@ -216,10 +294,10 @@ function parseColor(color)
 			val:color,
 			notColor:undefined
 		},
-		colorR:0,
-		colorB:0,
-		colorG:0,
-		alpha:0};
+		r:0,
+		g:0,
+		b:0,
+		a:0};
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={
@@ -231,10 +309,10 @@ function parseColor(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.colorR=parseInt(color.substr(1,2),16);
-		colorKeeper.colorG=parseInt(color.substr(3,2),16);
-		colorKeeper.colorB=parseInt(color.substr(5,2),16);
-		colorKeeper.alpha=1;
+		colorKeeper.r=parseInt(color.substr(1,2),16);
+		colorKeeper.g=parseInt(color.substr(3,2),16);
+		colorKeeper.b=parseInt(color.substr(5,2),16);
+		colorKeeper.a=1;
 	}
 	else
 	{
@@ -243,19 +321,19 @@ function parseColor(color)
 		{
 			var colorR = arr[0].split('(');
 			var alpha = arr[3].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(arr[2]);
-			colorKeeper.alpha=parseFloat(alpha[0]);
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(arr[2]);
+			colorKeeper.a=parseFloat(alpha[0]);
 		}
 		if(arr.length==3)
 		{
 			colorR = arr[0].split('(');
 			var colorB = arr[2].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(colorB[0]);
-			colorKeeper.alpha=1;
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(colorB[0]);
+			colorKeeper.a=1;
 		}
 	}
 	colorKeeper.color.notColor = undefined;
@@ -323,7 +401,7 @@ function isPointInPath(object,x,y)
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
-		var rectangle=object.getRect();
+		var rectangle=object.getRect('poor');
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
@@ -338,8 +416,8 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x||optns.dblclick.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y||optns.dblclick.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.dblclick.x||optns.click.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.dblclick.y||optns.click.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
@@ -352,6 +430,8 @@ function checkMouseEvents(object,optns)
 			optns.mousedown.object=object;
 		if(optns.click.x!=false || optns.dblclick.x!=false)
 			optns.click.object=object;
+		if(optns.dblclick.x!=false)
+            optns.dblclick.object=object;
 		if(optns.mouseup.x!=false)
 			optns.mouseup.object=object;
 		optns.point=point;

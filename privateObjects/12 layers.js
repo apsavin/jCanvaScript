@@ -1,6 +1,6 @@
 proto.layer=function()
 {
-	this.getRect=function(){
+	this.getRect=function(type){
 		var objs=this.objs,
 		points=objs[0].getRect();
 		points.bottom=points.y+points.height;
@@ -17,9 +17,7 @@ proto.layer=function()
 		}
 		points.width=points.right-points.x;
 		points.height=points.bottom-points.y;
-		points.x+=this._transformdx;
-		points.y+=this._transformdy;
-		return points;
+		return getRect(this,points,type);
 	}
 	this.canvas=function(idCanvas)
 	{
