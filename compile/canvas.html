@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-<script src="jCanvaScript.1.4.0.js"></script>
+<script src="jCanvaScript.1.4.1.js"></script>
 <script>/*
 	var myLine;
 	var myCircle;
@@ -41,16 +41,23 @@
 	
 	function start(idCanvas){
 		jc.start(idCanvas,25);
-		var img=new Image();
-		img.src='1.png';
-		img.onload=function(){
-			
-			var p, rect=jc.rect();
-			jc.image(img,10,10,100,100,0,0,5,5).rotate(30,'center').draggable(function(point){
-				p=this.getRect();
-				rect.animate({x:p.x,y:p.y,width:p.width,height:p.height})
-			});
-		}
+		jc.circle(50,50,1,1).queue(
+			function(){
+				this.animate({radius:40},5000);
+			},
+			function(){
+				this.animate({x:150},5000,function(){
+					this.color('#ff0000');
+				});
+				this.animate({y:150},10000,function(){
+					this.color('#000000');
+				});
+				this.fadeTo(0.5,6500);
+			},
+			function(){
+				this.fadeIn(2000);
+			}
+		);
 	}
 	/*
 	function test(){

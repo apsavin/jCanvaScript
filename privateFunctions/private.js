@@ -39,7 +39,7 @@ function animating()
 				else
 				{
 					if(!queue.animateKeyCount){
-						if(queue.animateFn!==undefined)queue.animateFn.apply(this);
+						if(queue.animateFn)queue.animateFn.apply(this);
 						this.animateQueue.splice(q,1);
 						q--;
 					}
