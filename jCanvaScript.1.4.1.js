@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.3.2
+ * jCanvaScript JavaScript Library v 1.4.1
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin

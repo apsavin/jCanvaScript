@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.3.2
+ * jCanvaScript JavaScript Library v 1.4.1
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -1848,8 +1848,12 @@ proto.text=function(){
 	}
 	this.draw=function(ctx)
 	{
-			if(this._fill){ctx.fillText(this._string,this._x,this._y,this._maxWidth);}
-			else{ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
+		if(this._maxWidth===false)	{
+			if(this._fill)ctx.fillText(this._string,this._x,this._y);
+			else ctx.strokeText(this._string,this._x,this._y);}
+		else {
+			if(this._fill) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
+			else ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
 	}
 	this.base=function(string,x,y,maxWidth,color,fill)
 	{
