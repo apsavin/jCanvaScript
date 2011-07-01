@@ -41,23 +41,13 @@
 	
 	function start(idCanvas){
 		jc.start(idCanvas,25);
-		jc.circle(50,50,1,1).queue(
-			function(){
-				this.animate({radius:40},5000);
-			},
-			function(){
-				this.animate({x:150},5000,function(){
-					this.color('#ff0000');
-				});
-				this.animate({y:150},10000,function(){
-					this.color('#000000');
-				});
-				this.fadeTo(0.5,6500);
-			},
-			function(){
-				this.fadeIn(2000);
-			}
-		);
+		var testImg = new Image(); 
+		testImg.src = 'http://jcscript.com/data/images/logo.png'; 
+		testImg.onload=function(){
+		jc.image(testImg, 0, 0).id('test-img'); 
+		var imgRect = jc('#test-img').getRect(); 
+		var imgCenter = {x: imgRect.x + imgRect.width / 2, y: imgRect.y + imgRect.height / 2}; 
+		jc.circle(imgCenter.x, imgCenter.y, 3, '#ff0000');}
 	}
 	/*
 	function test(){

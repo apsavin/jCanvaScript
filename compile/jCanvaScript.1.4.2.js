@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.4.1
+ * jCanvaScript JavaScript Library v 1.4.2
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -2405,23 +2405,20 @@ proto.image=function()
 {
 	this.getRect=function(type)
 	{
-		var points={x:this._x,y:this._y};
-		points.width=(this._img.width>this._width)?this._img.width:this._width;
-		points.height=(this._img.height>this._height)?this._img.height:this._height;
+		var points={x:this._x,y:this._y,width:this._width,height:this._height};
 		return getRect(this,points,type);
 	}
 	this.draw=function(ctx)
 	{
-		if(!this._width){ctx.drawImage(this._img,this._x,this._y);}
-		else{if(!this._swidth)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
-			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);}
+		if(!this._swidth)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
 	}
 	this.base=function(img,x,y,width,height,sx,sy,swidth,sheight)
 	{
 		proto.image.prototype.base.call(this,x,y);
 		this._img=img;
-		this._width=width||0;
-		this._height=height||0;
+		this._width=width||img.width;
+		this._height=height||img.height;
 		this._sx=sx||0;
 		this._sy=sy||0;
 		this._swidth=swidth||0;
