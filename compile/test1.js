@@ -46,13 +46,13 @@ function init(idCanvas) {
 			.click( function() {abreDetalle()});
 			
 		// crear nombre
-		jc.text(tNomb, pX+pW/2, pY+pH*.33, tNombColor).align('center').font(tNombEstilo)
+		jc.text(tNomb, pX+pW/2, pY+pH*.33, tNombColor).align('left').font(tNombEstilo)
 			.name('puesto'+counter)
 			.layer('layer'+counter);
 
 		// crear posiC (nomb d puesto)
 		// HERE MULTI-LINE TEXT WOULD BE HANDY :)
-		jc.text(tPos, pX+pW/2, pY+pH*.66, tPosColor).align('center').font(tPosEstilo)
+		jc.text(tPos, pX+pW/2, pY+pH*.66, tPosColor).align('right').font(tPosEstilo)
 			.name('puesto'+counter)
 			.layer('layer'+counter);
 

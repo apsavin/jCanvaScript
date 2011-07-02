@@ -209,6 +209,7 @@ proto.text=function(){
 		ctx.textAlign=this._align;
 		points.width=ctx.measureText(this._string).width;
 		if(this._align=='center')points.x-=points.width/2;
+		if(this._align=='right')points.x-=points.width;
 		ctx.restore();
 		return getRect(this,points,type);
 	}
