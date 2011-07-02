@@ -1871,7 +1871,16 @@ proto.text=function(){
 	}
 	this.position=function()
 	{
-		return this.getRect();
+		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
+		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
+		points.y-=points.height;
+		ctx.save();
+		ctx.textBaseline=this._baseline;
+		ctx.font=this._font;
+		ctx.textAlign=this._align;
+		points.width=ctx.measureText(this._string).width;
+		ctx.restore();
+		return getRect(this,points);
 	}
 	this.getRect=function(type)
 	{
