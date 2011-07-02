@@ -10,6 +10,7 @@ var canvases = [],pi=Math.PI*2,
 lastCanvas=0,lastLayer=0,
 underMouse = false,
 regHasLetters = /[A-z]+?/,
+regNumsWithMeasure = / \d.\w\w /
 FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
 radian=180/Math.PI;
 if (FireFox!="" && FireFox!==null)FireFox=true;
@@ -420,7 +421,7 @@ function getObjectCenter(object)
 	var point={};
 	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
-		var rect=object.getRect();
+		var rect=object.getRect('poor');
 		point.x=(rect.x*2+rect.width)/2;
 		point.y=(rect.y*2+rect.height)/2;
 		return point;
@@ -1868,14 +1869,21 @@ proto.text=function(){
 	{
 		return this.attr('string',string);
 	}
+	this.position=function()
+	{
+		return this.getRect();
+	}
 	this.getRect=function(type)
 	{
 		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
-		points.height=parseInt(this._font);
+		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
 		points.y-=points.height;
 		ctx.save();
-		this.setOptns(ctx);
+		ctx.textBaseline=this._baseline;
+		ctx.font=this._font;
+		ctx.textAlign=this._align;
 		points.width=ctx.measureText(this._string).width;
+		if(this._align=='center')points.x-=points.width/2;
 		ctx.restore();
 		return getRect(this,points,type);
 	}
@@ -2111,22 +2119,34 @@ proto.layer=function()
 	}
 	this.getRect=function(type){
 		var objs=this.objs,
-		points=objs[0].getRect();
-		points.bottom=points.y+points.height;
-		points.right=points.x+points.width;
+		points=objs[0].getRect(type);
+		if(type=='coords')
+		{
+			for(var i=1;i<objs.length;i++)
+			{
+				var rect=objs[i].getRect(type);
+				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
+				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
+				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
+				if(points[1][1]>rect[1][1])points[1][1]=rect[1][1];
+				if(points[2][0]>rect[2][0])points[2][0]=rect[2][0];
+				if(points[2][1]<rect[2][1])points[2][1]=rect[2][1];
+				if(points[3][0]<rect[3][0])points[3][0]=rect[3][0];
+				if(points[3][1]<rect[3][1])points[3][1]=rect[3][1];
+			}
+			return points;
+		}
 		for(var i=1;i<objs.length;i++)
 		{
-			var rect=objs[i].getRect();
-			rect.bottom=rect.y+rect.height;
-			rect.right=rect.x+rect.width;
+			var rect=objs[i].getRect(type);
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
+			if(points.width<rect.width)points.width=rect.width;
+			if(points.height<rect.height)points.height=rect.height;
 		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		return getRect(this,points,type);
+		points.right=points.width+points.x;
+		points.bottom=points.height+points.y;
+		return points;
 	}
 	this.canvas=function(idCanvas)
 	{

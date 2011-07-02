@@ -13,22 +13,34 @@ proto.layer=function()
 	}
 	this.getRect=function(type){
 		var objs=this.objs,
-		points=objs[0].getRect();
-		points.bottom=points.y+points.height;
-		points.right=points.x+points.width;
+		points=objs[0].getRect(type);
+		if(type=='coords')
+		{
+			for(var i=1;i<objs.length;i++)
+			{
+				var rect=objs[i].getRect(type);
+				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
+				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
+				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
+				if(points[1][1]>rect[1][1])points[1][1]=rect[1][1];
+				if(points[2][0]>rect[2][0])points[2][0]=rect[2][0];
+				if(points[2][1]<rect[2][1])points[2][1]=rect[2][1];
+				if(points[3][0]<rect[3][0])points[3][0]=rect[3][0];
+				if(points[3][1]<rect[3][1])points[3][1]=rect[3][1];
+			}
+			return points;
+		}
 		for(var i=1;i<objs.length;i++)
 		{
-			var rect=objs[i].getRect();
-			rect.bottom=rect.y+rect.height;
-			rect.right=rect.x+rect.width;
+			var rect=objs[i].getRect(type);
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
+			if(points.width<rect.width)points.width=rect.width;
+			if(points.height<rect.height)points.height=rect.height;
 		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		return getRect(this,points,type);
+		points.right=points.width+points.x;
+		points.bottom=points.height+points.y;
+		return points;
 	}
 	this.canvas=function(idCanvas)
 	{

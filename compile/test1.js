@@ -67,21 +67,21 @@ function init(idCanvas) {
 				jc('.puesto'+counter)
 					.translateTo(50,50,2000);
 				break
-		/*	case 1:
+			case 1:
 				jc('.puesto'+counter)
 					.scale(1.5,1.5,2000);
-				break*/
+				break
 				
 			// WITH LAYERS
 			case 2:
 				jc.layer('layer'+counter)
 					.translateTo(50,350,2000);
 				break
-		/*	case 3:
+			case 3:
 				jc.layer('layer'+counter)
 					.scale(1.5,1.5,2000)
 					.translate(100,150); //to be visible
-				break*/
+				break
 			}
 		// FOR ROTATE, USE stop BUTTON !!!
 	};

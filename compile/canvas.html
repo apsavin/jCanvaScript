@@ -41,7 +41,11 @@
 	
 	function start(idCanvas){
 		jc.start(idCanvas,25);
-		var testImg = new Image(); 
+		var testImg = new Image(),regNums = / \d.\w\w /,string='bold 11px Eiel',
+		result=string.match(regNums);
+		string='df sfd sdf 12pt dfsd ';
+		result=string.match(regNums);
+		result=parseInt(result);
 		testImg.src = 'http://jcscript.com/data/images/logo.png'; 
 		testImg.onload=function(){
 		jc.image(testImg, 0, 0).id('test-img'); 

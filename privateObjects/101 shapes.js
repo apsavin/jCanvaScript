@@ -194,14 +194,21 @@ proto.text=function(){
 	{
 		return this.attr('string',string);
 	}
+	this.position=function()
+	{
+		return this.getRect();
+	}
 	this.getRect=function(type)
 	{
 		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
-		points.height=parseInt(this._font);
+		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
 		points.y-=points.height;
 		ctx.save();
-		this.setOptns(ctx);
+		ctx.textBaseline=this._baseline;
+		ctx.font=this._font;
+		ctx.textAlign=this._align;
 		points.width=ctx.measureText(this._string).width;
+		if(this._align=='center')points.x-=points.width/2;
 		ctx.restore();
 		return getRect(this,points,type);
 	}

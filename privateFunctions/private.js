@@ -255,7 +255,7 @@ function getObjectCenter(object)
 	var point={};
 	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
-		var rect=object.getRect();
+		var rect=object.getRect('poor');
 		point.x=(rect.x*2+rect.width)/2;
 		point.y=(rect.y*2+rect.height)/2;
 		return point;
