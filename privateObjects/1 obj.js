@@ -415,9 +415,8 @@ proto.object=function()
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
-		var oldX=this._x+this._transformdx,
-			oldY=this._y+this._transformdy,
-			x=newX-oldX,y=newY-oldY;
+		var point=this.position(),
+			x=newX-point.x,y=newY-point.y;
 		return this.translate(x,y,duration,easing,onstep,fn);
 	}
 	this.translate=function(x,y,duration,easing,onstep,fn)

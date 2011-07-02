@@ -1165,9 +1165,8 @@ proto.object=function()
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
-		var oldX=this._x+this._transformdx,
-			oldY=this._y+this._transformdy,
-			x=newX-oldX,y=newY-oldY;
+		var point=this.position(),
+			x=newX-point.x,y=newY-point.y;
 		return this.translate(x,y,duration,easing,onstep,fn);
 	}
 	this.translate=function(x,y,duration,easing,onstep,fn)
@@ -2099,6 +2098,17 @@ proto.rGradient.prototype=new proto.gradients;
 
 proto.layer=function()
 {
+	this.position=function(){
+		var objs=this.objs,
+		points=objs[0].position();
+		for(var i=1;i<objs.length;i++)
+		{
+			var point=objs[i].position();
+			if(points.x>point.x)points.x=point.x;
+			if(points.y>point.y)points.y=point.y;
+		}
+		return points;
+	}
 	this.getRect=function(type){
 		var objs=this.objs,
 		points=objs[0].getRect();

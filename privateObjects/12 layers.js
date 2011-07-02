@@ -1,5 +1,16 @@
 proto.layer=function()
 {
+	this.position=function(){
+		var objs=this.objs,
+		points=objs[0].position();
+		for(var i=1;i<objs.length;i++)
+		{
+			var point=objs[i].position();
+			if(points.x>point.x)points.x=point.x;
+			if(points.y>point.y)points.y=point.y;
+		}
+		return points;
+	}
 	this.getRect=function(type){
 		var objs=this.objs,
 		points=objs[0].getRect();
