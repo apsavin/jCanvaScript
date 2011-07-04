@@ -68,10 +68,18 @@ proto.lines=function()
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	this.base=function(color,fill)
+	this.base=function(points,color,fill)
 	{
-		proto.lines.prototype.base.call(this,0,0,color,fill);
+		if(points!==undefined)
+		{
+			if(typeof points.pop == 'function')
+				points={points:points,color:color,fill:fill};
+		}
+		proto.lines.prototype.base.call(this,points);
 		this.shapesCount=0;
+		if(points!==undefined)
+			if(points.points!==undefined)
+				this.points(points.points);
 		return this;
 	}
 }

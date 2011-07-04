@@ -16,7 +16,7 @@ jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 	protoItem.draw=drawfn;
 	protoItem.base=function(name,parameters,args)
 	{
-		protoItem.prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
+		protoItem.prototype.base.call(this,parameters);
 		var i=0;
 		for(var key in parameters)
 		{

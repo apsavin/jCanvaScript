@@ -661,6 +661,13 @@ proto.object=function()
 	}
 	this.base=function(x,y,service)
 	{
+		if(typeof x == 'object'){
+			x=checkDefaults(x,{x:0,y:0,service:false});
+			service=x.service;
+			y=x.y;
+			x=x.x;
+		}
+		else{if(service===undefined)service=false;}
 		var canvasItem=canvases[lastCanvas];
 		this.optns={
 			animated:false,
@@ -673,9 +680,9 @@ proto.object=function()
 			buffer:{val:false}
 		}
 		this.animateQueue = [];
-		this._x=x||0;
-		this._y=y||0;
-		if(service===undefined && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
+		this._x=x;
+		this._y=y;
+		if(service==false && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;

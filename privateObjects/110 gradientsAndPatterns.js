@@ -5,11 +5,14 @@ proto.pattern = function()
 		if(this.optns.animated)animating.call(this);
 		this.val = ctx.createPattern(this._img,this._type);
 	}
-	this.base=function(img,type)
+	this.base=function(image,type)
 	{
+		if(image.hasOwnProperty('onload'))
+			image={image:image,type:type};
+		image=checkDefaults(image,{type:'repeat'});
 		proto.pattern.prototype.base.call(this);
-		this._img=img;
-		this._type=type||'repeat';
+		this._img=image.image;
+		this._type=image.type;
 		return this;
 	}
 	this._proto='pattern';
@@ -28,11 +31,14 @@ proto.lGradient=function()
 	}
 	this.base=function(x1,y1,x2,y2,colors)
 	{
-		proto.lGradient.prototype.base.call(this,colors);
-		this._x1 = x1;
-		this._y1 = y1;
-		this._x2 = x2;
-		this._y2 = y2;
+		if(typeof x1!=='object')
+			x1={x1:x1,y1:y1,x2:x2,y2:y2,colors:colors};
+		x1=checkDefaults(x1,{x1:0,y1:0,x2:0,y2:0})
+		proto.lGradient.prototype.base.call(this,x1.colors);
+		this._x1 = x1.x1;
+		this._y1 = x1.y1;
+		this._x2 = x1.x2;
+		this._y2 = x1.y2;
 		return this;
 	}
 	this._proto='lGradient';
@@ -51,13 +57,16 @@ proto.rGradient=function()
 	}
 	this.base=function(x1,y1,r1,x2,y2,r2,colors)
 	{
-		proto.rGradient.prototype.base.call(this,colors);
-		this._x1 = x1;
-		this._y1 = y1;
-		this._r1 = r1;
-		this._x2 = x2;
-		this._y2 = y2;
-		this._r2 = r2;
+		if(typeof x1!=='object')
+			x1={x1:x1,y1:y1,r1:r1,x2:x2,y2:y2,r2:r2,colors:colors};
+		x1=checkDefaults(x1,{x1:0,y1:0,r1:0,x2:0,y2:0,r2:0})
+		proto.rGradient.prototype.base.call(this,x1.colors);
+		this._x1 = x1.x1;
+		this._y1 = x1.y1;
+		this._r1 = x1.r1;
+		this._x2 = x1.x2;
+		this._y2 = x1.y2;
+		this._r2 = x1.r2;
 		return this;
 	}
 	this._proto='rGradient';

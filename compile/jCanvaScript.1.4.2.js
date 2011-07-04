@@ -10,7 +10,7 @@ var canvases = [],pi=Math.PI*2,
 lastCanvas=0,lastLayer=0,
 underMouse = false,
 regHasLetters = /[A-z]+?/,
-regNumsWithMeasure = / \d.\w\w /
+regNumsWithMeasure = /\d.\w\w/
 FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
 radian=180/Math.PI;
 if (FireFox!="" && FireFox!==null)FireFox=true;
@@ -163,6 +163,15 @@ var jCanvaScript=function(stroke,map)
 	}
 }
 
+
+function checkDefaults(check,def)
+{
+	for(var key in def)
+	{
+		if(check[key]===undefined)check[key]=def[key];
+	}
+	return check;
+}
 
 function redraw(object)
 {
@@ -1412,6 +1421,13 @@ proto.object=function()
 	}
 	this.base=function(x,y,service)
 	{
+		if(typeof x == 'object'){
+			x=checkDefaults(x,{x:0,y:0,service:false});
+			service=x.service;
+			y=x.y;
+			x=x.x;
+		}
+		else{if(service===undefined)service=false;}
 		var canvasItem=canvases[lastCanvas];
 		this.optns={
 			animated:false,
@@ -1424,9 +1440,9 @@ proto.object=function()
 			buffer:{val:false}
 		}
 		this.animateQueue = [];
-		this._x=x||0;
-		this._y=y||0;
-		if(service===undefined && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
+		this._x=x;
+		this._y=y;
+		if(service==false && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;
@@ -1504,23 +1520,23 @@ proto.shape=function()
 			optns.ctx.stroke();
 		proto.shape.prototype.afterDraw.call(this,optns);
 	}
-	this.base=function(x,y,color,fill)
+	this.base=function(x)
 	{
-		if(color===undefined)color='rgba(0,0,0,1)';
+		if(x===undefined)x={};
+		if(x.color===undefined)x.color='rgba(0,0,0,1)';
 		else
 		{
-			if(!color.charAt && color.id===undefined)
+			if(!x.color.charAt && x.color.id===undefined)
 			{
-				fill=color;
-				color='rgba(0,0,0,1)';
+				x.fill=x.color;
+				x.color='rgba(0,0,0,1)';
 			}
 		}
-		proto.shape.prototype.base.call(this,x,y);
-		this._fill=fill||0;
-		this.optns.color={val:color,notColor:undefined};
-		
-		if(color===undefined)return this;
-		return this.color(color);
+		x=checkDefaults(x,{color:'rgba(0,0,0,1)',fill:0});
+		proto.shape.prototype.base.call(this,x);
+		this._fill=x.fill;
+		this.optns.color={val:x.color,notColor:undefined};
+		return this.color(x.color);
 	}
 	this._colorR=0;
 	this._colorG=0;
@@ -1603,10 +1619,18 @@ proto.lines=function()
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	this.base=function(color,fill)
+	this.base=function(points,color,fill)
 	{
-		proto.lines.prototype.base.call(this,0,0,color,fill);
+		if(points!==undefined)
+		{
+			if(typeof points.pop == 'function')
+				points={points:points,color:color,fill:fill};
+		}
+		proto.lines.prototype.base.call(this,points);
 		this.shapesCount=0;
+		if(points!==undefined)
+			if(points.points!==undefined)
+				this.points(points.points);
 		return this;
 	}
 }
@@ -1624,8 +1648,7 @@ proto.line=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.line.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.line.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='line';
@@ -1644,8 +1667,7 @@ proto.qCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.qCurve.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.qCurve.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='qCurve';
@@ -1664,8 +1686,7 @@ proto.bCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.bCurve.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.bCurve.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='bCurve';
@@ -1686,8 +1707,11 @@ proto.circle=function(){
 	}
 	this.base=function(x,y,radius,color,fill)
 	{
-		proto.circle.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius||0;
+		if(typeof x != 'object')
+			x={x:x,y:y,radius:radius,color:color,fill:fill};
+		x=checkDefaults(x,{radius:0});
+		proto.circle.prototype.base.call(this,x);
+		this._radius=x.radius;
 		return this;
 	}
 	this._proto='circle';
@@ -1704,9 +1728,12 @@ proto.rect=function(){
 	}
 	this.base=function(x,y,width,height,color,fill)
 	{
-		proto.rect.prototype.base.call(this,x,y,color,fill);
-		this._width=width||0;
-		this._height=height||0;
+		if(typeof x != 'object')
+			x={x:x,y:y,width:width,height:height,color:color,fill:fill};
+		x=checkDefaults(x,{width:0,height:0});
+		proto.rect.prototype.base.call(this,x);
+		this._width=x.width;
+		this._height=x.height;
 		return this;
 	}
 	this._proto='rect';
@@ -1838,12 +1865,14 @@ proto.arc=function(){
 			if(anticlockwise)anticlockwise=true;
 			else anticlockwise=false;
 		}
-		else anticlockwise=true;
-		proto.arc.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius;
-		this._startAngle=startAngle;
-		this._endAngle=endAngle;
-		this._anticlockwise=anticlockwise;
+		if(typeof x != 'object')
+			x={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,color:color,fill:fill};
+		x=checkDefaults(x,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
+		proto.arc.prototype.base.call(this,x);
+		this._radius=x.radius;
+		this._startAngle=x.startAngle;
+		this._endAngle=x.endAngle;
+		this._anticlockwise=x.anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -1924,9 +1953,12 @@ proto.text=function(){
 				maxWidth=false;
 			}
 		}
-		proto.text.prototype.base.call(this,x,y,color,fill||1);
-		this._string=string;
-		this._maxWidth=maxWidth||false;
+		if(typeof string != 'object')
+			string={string:string,x:x,y:y,maxWidth:maxWidth,color:color,fill:fill};
+		string=checkDefaults(string,{string:'',maxWidth:false,fill:1});
+		proto.text.prototype.base.call(this,string);
+		this._string=string.string;
+		this._maxWidth=string.maxWidth;
 		return this;
 	}
 	this._proto='text';
@@ -2055,11 +2087,14 @@ proto.pattern = function()
 		if(this.optns.animated)animating.call(this);
 		this.val = ctx.createPattern(this._img,this._type);
 	}
-	this.base=function(img,type)
+	this.base=function(image,type)
 	{
+		if(image.hasOwnProperty('onload'))
+			image={image:image,type:type};
+		image=checkDefaults(image,{type:'repeat'});
 		proto.pattern.prototype.base.call(this);
-		this._img=img;
-		this._type=type||'repeat';
+		this._img=image.image;
+		this._type=image.type;
 		return this;
 	}
 	this._proto='pattern';
@@ -2078,11 +2113,14 @@ proto.lGradient=function()
 	}
 	this.base=function(x1,y1,x2,y2,colors)
 	{
-		proto.lGradient.prototype.base.call(this,colors);
-		this._x1 = x1;
-		this._y1 = y1;
-		this._x2 = x2;
-		this._y2 = y2;
+		if(typeof x1!=='object')
+			x1={x1:x1,y1:y1,x2:x2,y2:y2,colors:colors};
+		x1=checkDefaults(x1,{x1:0,y1:0,x2:0,y2:0})
+		proto.lGradient.prototype.base.call(this,x1.colors);
+		this._x1 = x1.x1;
+		this._y1 = x1.y1;
+		this._x2 = x1.x2;
+		this._y2 = x1.y2;
 		return this;
 	}
 	this._proto='lGradient';
@@ -2101,13 +2139,16 @@ proto.rGradient=function()
 	}
 	this.base=function(x1,y1,r1,x2,y2,r2,colors)
 	{
-		proto.rGradient.prototype.base.call(this,colors);
-		this._x1 = x1;
-		this._y1 = y1;
-		this._r1 = r1;
-		this._x2 = x2;
-		this._y2 = y2;
-		this._r2 = r2;
+		if(typeof x1!=='object')
+			x1={x1:x1,y1:y1,r1:r1,x2:x2,y2:y2,r2:r2,colors:colors};
+		x1=checkDefaults(x1,{x1:0,y1:0,r1:0,x2:0,y2:0,r2:0})
+		proto.rGradient.prototype.base.call(this,x1.colors);
+		this._x1 = x1.x1;
+		this._y1 = x1.y1;
+		this._r1 = x1.r1;
+		this._x2 = x1.x2;
+		this._y2 = x1.y2;
+		this._r2 = x1.r2;
 		return this;
 	}
 	this._proto='rGradient';
@@ -2356,8 +2397,9 @@ proto.imageData=function()
 	{
 		var colorKeeper,index=(x + y * this._width) * 4;
 		if (color.r !== undefined) colorKeeper=color;
-		else if (color[0] !== undefined) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
-		else colorKeeper = parseColor(color);
+		else if (color[0] !== undefined)
+			if (!color.charAt) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
+			else colorKeeper = parseColor(color);
 		this._data[index+0] = colorKeeper.r;
 		this._data[index+1] = colorKeeper.g;
 		this._data[index+2] = colorKeeper.b;
@@ -2420,8 +2462,17 @@ proto.imageData=function()
 		if(height===undefined)
 		{
 			var oldImageData=width;
-			width=oldImageData._width;
-			height=oldImageData._height;
+			if(oldImageData._width!==undefined)
+			{
+				width=oldImageData._width;
+				height=oldImageData._height;
+			}
+			else
+			{
+				width=checkDefaults(width,{width:0,height:0});
+				height=width.height;
+				width=width.width;
+			}
 		}
 		this._width=width;
 		this._height=height;
@@ -2450,19 +2501,27 @@ proto.image=function()
 	}
 	this.draw=function(ctx)
 	{
-		if(!this._swidth)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+		if(this._swidth===false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
 			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
 	}
-	this.base=function(img,x,y,width,height,sx,sy,swidth,sheight)
+	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		proto.image.prototype.base.call(this,x,y);
-		this._img=img;
-		this._width=width||img.width;
-		this._height=height||img.height;
-		this._sx=sx||0;
-		this._sy=sy||0;
-		this._swidth=swidth||0;
-		this._sheight=sheight||0;
+		if(typeof image!='object' || image.hasOwnProperty('onload'))
+			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
+		image=checkDefaults(image,{width:false,height:false,sx:false,sy:false,swidth:false,sheight:false});
+		if(image.width===false)
+		{
+			image.width=image.image.width;
+			image.height=image.image.height;
+		}
+		proto.image.prototype.base.call(this,image);
+		this._img=image.image;
+		this._width=image.width;
+		this._height=image.height;
+		this._sx=image.sx;
+		this._sy=image.sy;
+		this._swidth=image.swidth;
+		this._sheight=image.sheight;
 		return this;
 	}
 	this._proto='image';
@@ -2537,7 +2596,7 @@ jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 	protoItem.draw=drawfn;
 	protoItem.base=function(name,parameters,args)
 	{
-		protoItem.prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
+		protoItem.prototype.base.call(this,parameters);
 		var i=0;
 		for(var key in parameters)
 		{

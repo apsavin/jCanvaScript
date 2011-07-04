@@ -10,8 +10,7 @@ proto.line=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.line.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.line.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='line';
@@ -30,8 +29,7 @@ proto.qCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.qCurve.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.qCurve.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='qCurve';
@@ -50,8 +48,7 @@ proto.bCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.bCurve.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.bCurve.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='bCurve';

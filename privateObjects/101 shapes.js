@@ -11,8 +11,11 @@ proto.circle=function(){
 	}
 	this.base=function(x,y,radius,color,fill)
 	{
-		proto.circle.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius||0;
+		if(typeof x != 'object')
+			x={x:x,y:y,radius:radius,color:color,fill:fill};
+		x=checkDefaults(x,{radius:0});
+		proto.circle.prototype.base.call(this,x);
+		this._radius=x.radius;
 		return this;
 	}
 	this._proto='circle';
@@ -29,9 +32,12 @@ proto.rect=function(){
 	}
 	this.base=function(x,y,width,height,color,fill)
 	{
-		proto.rect.prototype.base.call(this,x,y,color,fill);
-		this._width=width||0;
-		this._height=height||0;
+		if(typeof x != 'object')
+			x={x:x,y:y,width:width,height:height,color:color,fill:fill};
+		x=checkDefaults(x,{width:0,height:0});
+		proto.rect.prototype.base.call(this,x);
+		this._width=x.width;
+		this._height=x.height;
 		return this;
 	}
 	this._proto='rect';
@@ -163,12 +169,14 @@ proto.arc=function(){
 			if(anticlockwise)anticlockwise=true;
 			else anticlockwise=false;
 		}
-		else anticlockwise=true;
-		proto.arc.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius;
-		this._startAngle=startAngle;
-		this._endAngle=endAngle;
-		this._anticlockwise=anticlockwise;
+		if(typeof x != 'object')
+			x={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,color:color,fill:fill};
+		x=checkDefaults(x,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
+		proto.arc.prototype.base.call(this,x);
+		this._radius=x.radius;
+		this._startAngle=x.startAngle;
+		this._endAngle=x.endAngle;
+		this._anticlockwise=x.anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -249,9 +257,12 @@ proto.text=function(){
 				maxWidth=false;
 			}
 		}
-		proto.text.prototype.base.call(this,x,y,color,fill||1);
-		this._string=string;
-		this._maxWidth=maxWidth||false;
+		if(typeof string != 'object')
+			string={string:string,x:x,y:y,maxWidth:maxWidth,color:color,fill:fill};
+		string=checkDefaults(string,{string:'',maxWidth:false,fill:1});
+		proto.text.prototype.base.call(this,string);
+		this._string=string.string;
+		this._maxWidth=string.maxWidth;
 		return this;
 	}
 	this._proto='text';

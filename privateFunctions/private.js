@@ -1,3 +1,12 @@
+function checkDefaults(check,def)
+{
+	for(var key in def)
+	{
+		if(check[key]===undefined)check[key]=def[key];
+	}
+	return check;
+}
+
 function redraw(object)
 {
 	objectCanvas(object).optns.redraw=1;

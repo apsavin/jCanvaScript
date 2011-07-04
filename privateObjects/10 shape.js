@@ -36,23 +36,23 @@ proto.shape=function()
 			optns.ctx.stroke();
 		proto.shape.prototype.afterDraw.call(this,optns);
 	}
-	this.base=function(x,y,color,fill)
+	this.base=function(x)
 	{
-		if(color===undefined)color='rgba(0,0,0,1)';
+		if(x===undefined)x={};
+		if(x.color===undefined)x.color='rgba(0,0,0,1)';
 		else
 		{
-			if(!color.charAt && color.id===undefined)
+			if(!x.color.charAt && x.color.id===undefined)
 			{
-				fill=color;
-				color='rgba(0,0,0,1)';
+				x.fill=x.color;
+				x.color='rgba(0,0,0,1)';
 			}
 		}
-		proto.shape.prototype.base.call(this,x,y);
-		this._fill=fill||0;
-		this.optns.color={val:color,notColor:undefined};
-		
-		if(color===undefined)return this;
-		return this.color(color);
+		x=checkDefaults(x,{color:'rgba(0,0,0,1)',fill:0});
+		proto.shape.prototype.base.call(this,x);
+		this._fill=x.fill;
+		this.optns.color={val:x.color,notColor:undefined};
+		return this.color(x.color);
 	}
 	this._colorR=0;
 	this._colorG=0;

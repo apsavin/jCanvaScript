@@ -10,8 +10,9 @@ proto.imageData=function()
 	{
 		var colorKeeper,index=(x + y * this._width) * 4;
 		if (color.r !== undefined) colorKeeper=color;
-		else if (color[0] !== undefined) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
-		else colorKeeper = parseColor(color);
+		else if (color[0] !== undefined)
+			if (!color.charAt) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
+			else colorKeeper = parseColor(color);
 		this._data[index+0] = colorKeeper.r;
 		this._data[index+1] = colorKeeper.g;
 		this._data[index+2] = colorKeeper.b;
@@ -74,8 +75,17 @@ proto.imageData=function()
 		if(height===undefined)
 		{
 			var oldImageData=width;
-			width=oldImageData._width;
-			height=oldImageData._height;
+			if(oldImageData._width!==undefined)
+			{
+				width=oldImageData._width;
+				height=oldImageData._height;
+			}
+			else
+			{
+				width=checkDefaults(width,{width:0,height:0});
+				height=width.height;
+				width=width.width;
+			}
 		}
 		this._width=width;
 		this._height=height;
@@ -104,19 +114,27 @@ proto.image=function()
 	}
 	this.draw=function(ctx)
 	{
-		if(!this._swidth)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+		if(this._swidth===false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
 			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
 	}
-	this.base=function(img,x,y,width,height,sx,sy,swidth,sheight)
+	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		proto.image.prototype.base.call(this,x,y);
-		this._img=img;
-		this._width=width||img.width;
-		this._height=height||img.height;
-		this._sx=sx||0;
-		this._sy=sy||0;
-		this._swidth=swidth||0;
-		this._sheight=sheight||0;
+		if(typeof image!='object' || image.hasOwnProperty('onload'))
+			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
+		image=checkDefaults(image,{width:false,height:false,sx:false,sy:false,swidth:false,sheight:false});
+		if(image.width===false)
+		{
+			image.width=image.image.width;
+			image.height=image.image.height;
+		}
+		proto.image.prototype.base.call(this,image);
+		this._img=image.image;
+		this._width=image.width;
+		this._height=image.height;
+		this._sx=image.sx;
+		this._sy=image.sy;
+		this._swidth=image.swidth;
+		this._sheight=image.sheight;
 		return this;
 	}
 	this._proto='image';
