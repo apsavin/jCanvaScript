@@ -1,5 +1,22 @@
 proto.lines=function()
 {
+	this.position=function(){
+		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
+	}
+	this.getRect=function(type){
+		var minX, minY,
+		maxX=minX=this._x0,
+		maxY=minY=this._y0;
+		for(var i=1;i<this.shapesCount;i++)
+		{
+			if(maxX<this['_x'+i])maxX=this['_x'+i];
+			if(maxY<this['_y'+i])maxY=this['_y'+i];
+			if(minX>this['_x'+i])minX=this['_x'+i];
+			if(minY>this['_y'+i])minY=this['_y'+i];
+		}
+		var points={x:minX,y:minY,width:maxX-minX,height:maxY-minY};
+		return getRect(this,points,type);
+	}
 	this.addPoint=function(){
 		redraw(this);
 		var names=this.pointNames;
@@ -51,10 +68,18 @@ proto.lines=function()
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	this.base=function(color,fill)
+	this.base=function(points,color,fill)
 	{
-		proto.lines.prototype.base.call(this,0,0,color,fill);
+		if(points!==undefined)
+		{
+			if(typeof points.pop == 'function')
+				points={points:points,color:color,fill:fill};
+		}
+		proto.lines.prototype.base.call(this,points);
 		this.shapesCount=0;
+		if(points!==undefined)
+			if(points.points!==undefined)
+				this.points(points.points);
 		return this;
 	}
 }

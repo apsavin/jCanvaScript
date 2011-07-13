@@ -1,5 +1,47 @@
 proto.layer=function()
 {
+	this.position=function(){
+		var objs=this.objs,
+		points=objs[0].position();
+		for(var i=1;i<objs.length;i++)
+		{
+			var point=objs[i].position();
+			if(points.x>point.x)points.x=point.x;
+			if(points.y>point.y)points.y=point.y;
+		}
+		return points;
+	}
+	this.getRect=function(type){
+		var objs=this.objs,
+		points=objs[0].getRect(type);
+		if(type=='coords')
+		{
+			for(var i=1;i<objs.length;i++)
+			{
+				var rect=objs[i].getRect(type);
+				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
+				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
+				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
+				if(points[1][1]>rect[1][1])points[1][1]=rect[1][1];
+				if(points[2][0]>rect[2][0])points[2][0]=rect[2][0];
+				if(points[2][1]<rect[2][1])points[2][1]=rect[2][1];
+				if(points[3][0]<rect[3][0])points[3][0]=rect[3][0];
+				if(points[3][1]<rect[3][1])points[3][1]=rect[3][1];
+			}
+			return points;
+		}
+		for(var i=1;i<objs.length;i++)
+		{
+			var rect=objs[i].getRect(type);
+			if(points.x>rect.x)points.x=rect.x;
+			if(points.y>rect.y)points.y=rect.y;
+			if(points.width<rect.width)points.width=rect.width;
+			if(points.height<rect.height)points.height=rect.height;
+		}
+		points.right=points.width+points.x;
+		points.bottom=points.height+points.y;
+		return points;
+	}
 	this.canvas=function(idCanvas)
 	{
 		if (idCanvas===undefined)return this.idCanvas;
@@ -88,17 +130,33 @@ proto.layer=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		for(var i=0;i<this.objs.length;i++)
-			if(this.objs[i].isPointIn(x,y,global))
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			if(objs[i].isPointIn(x,y,global))
 				return true;
 		return false;
+	}
+	this.opacity=function(n)
+	{
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].attr('opacity',n);
+		return this;
+	}
+	this.fadeTo=function(val,duration,easing,onstep,fn)
+	{
+		if(duration===undefined)duration=600;
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].animate({opacity:val},duration,easing,onstep,fn);
+		return this;
 	}
 	this.draw=function(ctx)
 	{
 		var bufOptns=this.optns.buffer;
 		if(bufOptns.val)
 		{
-			ctx.drawImage(bufOptns.cnv,0,0);
+			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
 			return this;
 		}
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
@@ -130,7 +188,7 @@ proto.layer=function()
 					{
 						var objBufOptns=object.optns.buffer;
 						if(objBufOptns.val)
-							ctx.drawImage(objBufOptns.cnv,0,0);
+							ctx.drawImage(objBufOptns.cnv,objBufOptns.x,objBufOptns.y);
 						else
 							object.draw(ctx);
 						if(bufOptns.optns)

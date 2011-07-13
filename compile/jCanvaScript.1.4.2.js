@@ -1,14 +1,20 @@
 /*!
- * jCanvaScript JavaScript Library v 1.3.0
+ * jCanvaScript JavaScript Library v 1.4.2
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(window,undefined){
-var canvases = [],pi=Math.PI*2,lastCanvas=0,lastLayer=0,underMouse = false,regHasLetters = /[A-z]+?/,FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i);
-if (FireFox!="" && FireFox!==null)
-	var FireFox_lt5=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<5);
+var canvases = [],pi=Math.PI*2,
+lastCanvas=0,lastLayer=0,
+underMouse = false,
+regHasLetters = /[A-z]+?/,
+regNumsWithMeasure = /\d.\w\w/
+FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
+radian=180/Math.PI;
+if (FireFox!="" && FireFox!==null)FireFox=true;
+else FireFox=false;
 
 function findById(i,j,stroke)
 {
@@ -158,6 +164,15 @@ var jCanvaScript=function(stroke,map)
 }
 
 
+function checkDefaults(check,def)
+{
+	for(var key in def)
+	{
+		if(check[key]===undefined)check[key]=def[key];
+	}
+	return check;
+}
+
 function redraw(object)
 {
 	objectCanvas(object).optns.redraw=1;
@@ -172,7 +187,7 @@ function animating()
 		var queue=this.animateQueue[q];
 		for(var key in queue)
 		{
-			if(this.hasOwnProperty(key) && this[key]!==undefined)
+			if(this[key]!==undefined)
 			{
 				if(queue[key])
 				{
@@ -199,7 +214,7 @@ function animating()
 				else
 				{
 					if(!queue.animateKeyCount){
-						if(queue.animateFn!==undefined)queue.animateFn.apply(this);
+						if(queue.animateFn)queue.animateFn.apply(this);
 						this.animateQueue.splice(q,1);
 						q--;
 					}
@@ -227,10 +242,12 @@ function animateTransforms(key,object,queue)
 			object.translate(0,val-prev);
 			break;
 		case '_scaleX':
-			object.scale(val-prev,0);
+			if(!prev)prev=1;
+			object.scale(val/prev,1);
 			break;
 		case '_scaleY':
-			object.scale(0,val-prev);
+			if(!prev)prev=1;
+			object.scale(1,val/prev);
 			break;
 		default:
 			return;
@@ -311,11 +328,72 @@ var animateFunctions={
 		}
 		return 1;
 	}
+},
+imageDataFilters={
+	color:{fn:function(width,height,matrix,type){
+		var old,i,j;
+		matrix=matrix[type];
+		for(i=0;i<width;i++)
+		for(j=0;j<height;j++)
+		{
+			old=this.getPixel(i,j);
+			old[matrix[0]]=old[matrix[0]]*2-old[matrix[1]]-old[matrix[2]];
+			old[matrix[1]]=0;
+			old[matrix[2]]=0;
+			old[matrix[0]]=old[matrix[0]]>255?255:old[matrix[0]];
+			this.setPixel(i,j,old);
+		}
+	},matrix:
+		{
+			red:[0,1,2],
+			green:[1,0,2],
+			blue:[2,0,1]
+		}},
+	linear:{fn:function(width,height,matrix,type){
+		var newMatrix=[],old,i,j,k,m,n;
+		matrix=matrix[type];
+		m=matrix.length;
+		n=matrix[0].length;
+			for(i=0;i<width;i++)
+			{
+				newMatrix[i]=[];
+				for(j=0;j<height;j++)
+				{
+					newMatrix[i][j]=[0,0,0,1];
+					for(m=0;m<3;m++)
+					for(n=0;n<3;n++)
+					{
+						old=this.getPixel(i-parseInt(m/2),j-parseInt(n/2));
+						for(k=0;k<3;k++)
+						{
+							newMatrix[i][j][k]+=old[k]*matrix[m][n];
+						}
+					}
+				}
+			}
+			for(i=0;i<width;i++)
+			{
+				for(j=0;j<height;j++)
+					this.setPixel(i,j,newMatrix[i][j]);
+			}
+	},
+		matrix:{
+			sharp:[[-0.375,-0.375,-0.375],[-0.375,4,-0.375],[-0.375,-0.375,-0.375]],
+			blur:[[0.111,0.111,0.111],[0.111,0.111,0.111],[0.111,0.111,0.111]]
+		}
+	}
 }
 
 function multiplyM(m1,m2)
 {
 	return [[(m1[0][0]*m2[0][0]+m1[0][1]*m2[1][0]),(m1[0][0]*m2[0][1]+m1[0][1]*m2[1][1]),(m1[0][0]*m2[0][2]+m1[0][1]*m2[1][2]+m1[0][2])],[(m1[1][0]*m2[0][0]+m1[1][1]*m2[1][0]),(m1[1][0]*m2[0][1]+m1[1][1]*m2[1][1]),(m1[1][0]*m2[0][2]+m1[1][1]*m2[1][2]+m1[1][2])]];
+}
+function multiplyPointM(x,y,m)
+{
+	return {
+		x:(x*m[0][0]+y*m[0][1]+m[0][2]),
+		y:(x*m[1][0]+y*m[1][1]+m[1][2])
+	}
 }
 function transformPoint(x,y,m)
 {
@@ -324,96 +402,35 @@ function transformPoint(x,y,m)
 		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
 	}
 }
-function getObjectRectangle(object)
+function getRect(object,rect,type)
 {
-	var points={};
-	if(object._proto=='text')
+	if(type=='poor')return rect;
+	var min={x:rect.x,y:rect.y},max={x:rect.x+rect.width,y:rect.y+rect.height},
+	m=multiplyM(object.matrix(),objectLayer(object).matrix()),
+	lt=multiplyPointM(min.x,min.y,m),
+	rt=multiplyPointM(max.x,min.y,m),
+	lb=multiplyPointM(min.x,max.y,m),
+	rb=multiplyPointM(max.x,max.y,m),
+	coords=[[lt.x,lt.y],[rt.x,rt.y],[lb.x,lb.y],[rb.x,rb.y]];
+	if(type=='coords')return coords;
+	var minX, minY,
+	maxX=minX=lt.x,
+	maxY=minY=lt.y;
+	for(var i=0;i<4;i++)
 	{
-		var ctx=objectCanvas(object).optns.ctx;
-		var height=parseInt(object._font);
-		points.x=object._x;
-		points.y=object._y-height;
-		object.setOptns(ctx);
-		points.width=ctx.measureText(object._string).width;
-		points.height=height;
-		return points;
+		if(maxX<coords[i][0])maxX=coords[i][0];
+		if(maxY<coords[i][1])maxY=coords[i][1];
+		if(minX>coords[i][0])minX=coords[i][0];
+		if(minY>coords[i][1])minY=coords[i][1];
 	}
-	if(object._img!==undefined)
-	{
-		points.x=object._sx;
-		points.y=object._sy;
-		points.width=object._img.width;
-		points.height=object._img.height;
-		return points;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		points.x=object._x;
-		points.y=object._y;
-		points.width=object._width;
-		points.height=object._height;
-		return points;
-	}
-	if(object._radius!==undefined)
-	{
-		if(object._startAngle===undefined)
-		{
-			points.x=object._x-object._radius;
-			points.y=object._y-object._radius;
-			points.width=points.height=object._radius*2;
-			return points;
-		}
-	}
-	if(object.shapesCount!==undefined)
-	{
-		var minX;
-		var minY;
-		var maxX=minX=object._x0;
-		var maxY=minY=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			if(maxX<object['_x'+i])maxX=object['_x'+i];
-			if(maxY<object['_y'+i])maxY=object['_y'+i];
-			if(minX>object['_x'+i])minX=object['_x'+i];
-			if(minY>object['_y'+i])minY=object['_y'+i];
-		}
-		points.x=minX;
-		points.y=minX;
-		points.width=maxX-minX;
-		points.height=maxY-minY;
-		return points;
-	}
-	if(object.objs!==undefined)
-	{
-		var rect=getObjectRectangle(object.objs[0]);
-		points.x=rect.x;
-		points.y=rect.y;
-		points.width=rect.width;
-		points.height=rect.height;
-		points.bottom=rect.y+rect.height;
-		points.right=rect.x+rect.width;
-		for(i=1;i<object.objs.length;i++)
-		{
-			var rect=getObjectRectangle(object.objs[i]);
-			rect.bottom=rect.y+rect.height;
-			rect.right=rect.x+rect.width;
-			if(points.x>rect.x)points.x=rect.x;
-			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
-		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		return points;
-	}
-	return false;
+	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
 }
 function getObjectCenter(object)
 {
 	var point={};
 	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
-		var rect=getObjectRectangle(object);
+		var rect=object.getRect('poor');
 		point.x=(rect.x*2+rect.width)/2;
 		point.y=(rect.y*2+rect.height)/2;
 		return point;
@@ -452,10 +469,10 @@ function parseColor(color)
 			val:color,
 			notColor:undefined
 		},
-		colorR:0,
-		colorB:0,
-		colorG:0,
-		alpha:0};
+		r:0,
+		g:0,
+		b:0,
+		a:0};
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={
@@ -467,10 +484,10 @@ function parseColor(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.colorR=parseInt(color.substr(1,2),16);
-		colorKeeper.colorG=parseInt(color.substr(3,2),16);
-		colorKeeper.colorB=parseInt(color.substr(5,2),16);
-		colorKeeper.alpha=1;
+		colorKeeper.r=parseInt(color.substr(1,2),16);
+		colorKeeper.g=parseInt(color.substr(3,2),16);
+		colorKeeper.b=parseInt(color.substr(5,2),16);
+		colorKeeper.a=1;
 	}
 	else
 	{
@@ -479,19 +496,19 @@ function parseColor(color)
 		{
 			var colorR = arr[0].split('(');
 			var alpha = arr[3].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(arr[2]);
-			colorKeeper.alpha=parseFloat(alpha[0]);
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(arr[2]);
+			colorKeeper.a=parseFloat(alpha[0]);
 		}
 		if(arr.length==3)
 		{
 			colorR = arr[0].split('(');
 			var colorB = arr[2].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(colorB[0]);
-			colorKeeper.alpha=1;
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(colorB[0]);
+			colorKeeper.a=1;
 		}
 	}
 	colorKeeper.color.notColor = undefined;
@@ -553,13 +570,13 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox_lt5)
+	if(FireFox)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
-		var rectangle=getObjectRectangle(object);
+		var rectangle=object.getRect('poor');
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
@@ -574,8 +591,8 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x||optns.dblclick.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y||optns.dblclick.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.dblclick.x||optns.click.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.dblclick.y||optns.click.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
@@ -588,6 +605,8 @@ function checkMouseEvents(object,optns)
 			optns.mousedown.object=object;
 		if(optns.click.x!=false || optns.dblclick.x!=false)
 			optns.click.object=object;
+		if(optns.dblclick.x!=false)
+            optns.dblclick.object=object;
 		if(optns.mouseup.x!=false)
 			optns.mouseup.object=object;
 		optns.point=point;
@@ -741,25 +760,44 @@ var proto={};
 
 proto.object=function()
 {
+	this.position=function(){
+		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));;
+	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
-		if(doBuffering===undefined)return bufOptns.val;
+		if(doBuffering===undefined)
+			if(bufOptns.val)return bufOptns.cnv;
+			else return false;
+		if(bufOptns.val===doBuffering)return this;
 		if(doBuffering)
 		{
 			var cnv=bufOptns.cnv=document.createElement('canvas');
 			var ctx=bufOptns.ctx=cnv.getContext('2d');
-			var rect=bufOptns.rect=getObjectRectangle(this);
-			cnv.setAttribute('width',rect.right);
-			cnv.setAttribute('height',rect.bottom);
+			var rect=bufOptns.rect=this.getRect();
+			cnv.setAttribute('width',rect.width);
+			cnv.setAttribute('height',rect.height);
+			var oldM=this.transform();
+			bufOptns.x=this._x;
+			bufOptns.y=this._y;
+			bufOptns.dx=this._transformdx;
+			bufOptns.dy=this._transformdy;
+			this._x=this._y=0;
+			this.transform(1, 0, 0, 1, -rect.x+bufOptns.dx, -rect.y+bufOptns.dy,true);
 			this.setOptns(ctx);
 			take(bufOptns.optns={},objectCanvas(this).optns);
 			bufOptns.optns.ctx=ctx;
 			this.draw(ctx);
+			this._x=bufOptns.x;
+			this._y=bufOptns.y;
+			oldM[0][2]=rect.x;
+			oldM[1][2]=rect.y;
+			this.matrix(oldM);
 			bufOptns.val=true;
 		}
 		else
 		{
-			bufOptns={val:false};
+			this.translate(-bufOptns.rect.x+bufOptns.dx,-bufOptns.rect.y+bufOptns.dy);
+			this.optns.buffer={val:false};
 		}
 		return this;
 	}
@@ -789,10 +827,10 @@ proto.object=function()
 			case 'color':
 				var colorKeeper = parseColor(options.color);
 				this._shadowColor = options.color.val;
-				this._shadowColorR = colorKeeper.colorR;
-				this._shadowColorG = colorKeeper.colorG;
-				this._shadowColorB = colorKeeper.colorB;
-				this._shadowColorA = colorKeeper.alpha;
+				this._shadowColorR = colorKeeper.r;
+				this._shadowColorG = colorKeeper.g;
+				this._shadowColorB = colorKeeper.b;
+				this._shadowColorA = colorKeeper.a;
 				break;
 		}
 		redraw(this);
@@ -916,6 +954,47 @@ proto.object=function()
 		}
 		return this.animate(parameters);
 	}
+	this.queue=function(){
+		var animateQueueLength=this.animateQueue.length, queue,i,j,key,duration=0,longFn=0,fn,args=arguments;
+		for (i=0;i<args.length;i++)
+		{
+			if(typeof args[i]=='function'){
+				args[i].apply(this);
+				args[i]=false;
+				i++;
+				if(this.animateQueue.length>animateQueueLength)
+				{
+					for (j=animateQueueLength;j<this.animateQueue.length;j++)
+					{
+						queue=this.animateQueue[j];
+						for(key in queue)
+						{
+							if(queue[key].duration!==undefined){
+								if(queue[key].duration>duration)
+								{
+									duration=queue[key].duration;
+									longFn=j;
+								}
+								break;
+							}
+						}
+					}
+					if(duration){
+						queue=this.animateQueue[longFn];
+						if(queue.animateFn){
+							fn=queue.animateFn;
+							queue.animateFn=function(){
+								fn.apply(this);
+								this.queue.apply(this,args)
+							}
+						}
+						else queue.animateFn=function(){this.queue.apply(this,args)};
+						break;
+					}
+				}
+			}
+		}
+	}
 	this.stop=function(jumpToEnd,runCallbacks)
 	{
 		this.optns.animated=false;
@@ -954,7 +1033,7 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=duration/1000*objectCanvas(this).fps;
+		if(duration!=1)duration=(duration/1000)*objectCanvas(this).fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -976,15 +1055,15 @@ proto.object=function()
 		}
 		if(options.scale!==undefined)
 		{
-			this._scaleX=this._scaleY=0;
+			this._scaleX=this._scaleY=1;
 			if(typeof options.scale!='object')
 			{
 				options.scaleX=options.scaleY=options.scale;
 			}
 			else
 			{
-				options.scaleX=options.scale.x||0;
-				options.scaleY=options.scale.y||0;
+				options.scaleX=options.scale.x||1;
+				options.scaleY=options.scale.y||1;
 			}
 		}
 		if(options.translate!==undefined)
@@ -1016,26 +1095,26 @@ proto.object=function()
 				this.optns.color.notColor=colorKeeper.color.notColor;
 			else
 			{
-				options.colorR=colorKeeper.colorR;
-				options.colorG=colorKeeper.colorG;
-				options.colorB=colorKeeper.colorB;
-				options.alpha=colorKeeper.alpha;
+				options.colorR=colorKeeper.r;
+				options.colorG=colorKeeper.g;
+				options.colorB=colorKeeper.b;
+				options.alpha=colorKeeper.a;
 			}
 			options.color = undefined;
 		}
 		if(options.shadowColor !== undefined)
 		{
 			colorKeeper=parseColor(options.shadowColor);
-			options.shadowColorR=colorKeeper.colorR;
-			options.shadowColorG=colorKeeper.colorG;
-			options.shadowColorB=colorKeeper.colorB;
-			options.shadowColorA=colorKeeper.alpha;
+			options.shadowColorR=colorKeeper.r;
+			options.shadowColorG=colorKeeper.g;
+			options.shadowColorB=colorKeeper.b;
+			options.shadowColorA=colorKeeper.a;
 			options.shadowColor = undefined;
 		}
 		if(duration>1)
 		{
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
-			if (fn) queue.animateFn=fn;
+			queue.animateFn=fn||false;
 			this.optns.animated=true;
 		}
 		for(var key in options)
@@ -1046,7 +1125,8 @@ proto.object=function()
 				{
 					if(options[key].charAt)
 					{
-						if(options[key].charAt(1)=='=')
+						if(key=='string')this._string=options[key];
+						else if(options[key].charAt(1)=='=')
 						{
 							options[key]=this['_'+key]+parseInt(options[key].charAt(0)+options[key].substr(2));
 						}
@@ -1095,9 +1175,8 @@ proto.object=function()
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
-		var oldX=this._x+this._transformdx,
-			oldY=this._y+this._transformdy,
-			x=newX-oldX,y=newY-oldY;
+		var point=this.position(),
+			x=newX-point.x,y=newY-point.y;
 		return this.translate(x,y,duration,easing,onstep,fn);
 	}
 	this.translate=function(x,y,duration,easing,onstep,fn)
@@ -1110,7 +1189,7 @@ proto.object=function()
 	}
 	this.scale=function(x,y,duration,easing,onstep,fn)
 	{
-		if(duration===undefined)
+		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
 		if(this.scaleMatrix)
@@ -1123,9 +1202,9 @@ proto.object=function()
 	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
-			return this.animate({rotate:{rotateAngle:x,x:x1,y:y1}},duration,easing,onstep,fn);
+			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
-		x=Math.PI*x/180;
+		x=x/radian;
 		var cos=Math.cos(x);
 		var sin=Math.sin(x);
 		var matrix=[];
@@ -1308,15 +1387,24 @@ proto.object=function()
 	}
 	this.fadeIn=function(duration,easing,onstep,fn)
 	{
-		return this.animate({opacity:1},duration,easing,onstep,fn);
+		return this.fadeTo(1,duration,easing,onstep,fn);
 	}
 	this.fadeOut=function(duration,easing,onstep,fn)
 	{
-		return this.animate({opacity:0},duration,easing,onstep,fn);
+		return this.fadeTo(0,duration,easing,onstep,fn);
 	}
 	this.fadeTo=function(val,duration,easing,onstep,fn)
 	{
+		if(duration===undefined)duration=600;
 		return this.animate({opacity:val},duration,easing,onstep,fn);
+	}
+	this.fadeToggle=function(duration,easing,onstep,fn)
+	{
+		if(this._opacity)
+			this.fadeOut(duration,easing,onstep,fn);
+		else
+			this.fadeIn(duration,easing,onstep,fn);
+		return this;
 	}
 	this.level=function(n)
 	{
@@ -1333,6 +1421,13 @@ proto.object=function()
 	}
 	this.base=function(x,y,service)
 	{
+		if(typeof x == 'object'){
+			x=checkDefaults(x,{x:0,y:0,service:false});
+			service=x.service;
+			y=x.y;
+			x=x.x;
+		}
+		else{if(service===undefined)service=false;}
 		var canvasItem=canvases[lastCanvas];
 		this.optns={
 			animated:false,
@@ -1345,9 +1440,9 @@ proto.object=function()
 			buffer:{val:false}
 		}
 		this.animateQueue = [];
-		this._x=x||0;
-		this._y=y||0;
-		if(service===undefined && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
+		this._x=x;
+		this._y=y;
+		if(service==false && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;
@@ -1372,8 +1467,8 @@ proto.object=function()
 	this._shadowColorA= 0;
 	this._translateX=0;
 	this._translateY=0;
-	this._scaleX=0;
-	this._scaleY=0;
+	this._scaleX=1;
+	this._scaleY=1;
 	this._rotateAngle=0;
 	this._rotateX=0;
 	this._rotateY=0;
@@ -1385,6 +1480,7 @@ proto.object=function()
 	this._transformdy=0;
 	this.rotateMatrix=this.scaleMatrix=false;
 }
+proto.object.prototype=new proto.object();
 
 proto.shape=function()
 {
@@ -1424,23 +1520,23 @@ proto.shape=function()
 			optns.ctx.stroke();
 		proto.shape.prototype.afterDraw.call(this,optns);
 	}
-	this.base=function(x,y,color,fill)
+	this.base=function(x)
 	{
-		if(color===undefined)color='rgba(0,0,0,1)';
+		if(x===undefined)x={};
+		if(x.color===undefined)x.color='rgba(0,0,0,1)';
 		else
 		{
-			if(!color.charAt && color.id===undefined)
+			if(!x.color.charAt && x.color.id===undefined)
 			{
-				fill=color;
-				color='rgba(0,0,0,1)';
+				x.fill=x.color;
+				x.color='rgba(0,0,0,1)';
 			}
 		}
-		proto.shape.prototype.base.call(this,x,y);
-		this._fill=fill;
-		this.optns.color={val:color,notColor:undefined};
-		
-		if(color===undefined)return this;
-		return this.color(color);
+		x=checkDefaults(x,{color:'rgba(0,0,0,1)',fill:0});
+		proto.shape.prototype.base.call(this,x);
+		this._fill=x.fill;
+		this.optns.color={val:x.color,notColor:undefined};
+		return this.color(x.color);
 	}
 	this._colorR=0;
 	this._colorG=0;
@@ -1455,6 +1551,23 @@ proto.shape.prototype=new proto.object;
 
 proto.lines=function()
 {
+	this.position=function(){
+		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
+	}
+	this.getRect=function(type){
+		var minX, minY,
+		maxX=minX=this._x0,
+		maxY=minY=this._y0;
+		for(var i=1;i<this.shapesCount;i++)
+		{
+			if(maxX<this['_x'+i])maxX=this['_x'+i];
+			if(maxY<this['_y'+i])maxY=this['_y'+i];
+			if(minX>this['_x'+i])minX=this['_x'+i];
+			if(minY>this['_y'+i])minY=this['_y'+i];
+		}
+		var points={x:minX,y:minY,width:maxX-minX,height:maxY-minY};
+		return getRect(this,points,type);
+	}
 	this.addPoint=function(){
 		redraw(this);
 		var names=this.pointNames;
@@ -1506,10 +1619,18 @@ proto.lines=function()
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	this.base=function(color,fill)
+	this.base=function(points,color,fill)
 	{
-		proto.lines.prototype.base.call(this,0,0,color,fill);
+		if(points!==undefined)
+		{
+			if(typeof points.pop == 'function')
+				points={points:points,color:color,fill:fill};
+		}
+		proto.lines.prototype.base.call(this,points);
 		this.shapesCount=0;
+		if(points!==undefined)
+			if(points.points!==undefined)
+				this.points(points.points);
 		return this;
 	}
 }
@@ -1527,8 +1648,7 @@ proto.line=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.line.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.line.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='line';
@@ -1547,8 +1667,7 @@ proto.qCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.qCurve.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.qCurve.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='qCurve';
@@ -1567,8 +1686,7 @@ proto.bCurve=function(){
 	}
 	this.base=function(points,color,fill)
 	{
-		proto.bCurve.prototype.base.call(this,color,fill);
-		if(points!==undefined)this.points(points);
+		proto.bCurve.prototype.base.call(this,points,color,fill);
 		return this;
 	}
 	this._proto='bCurve';
@@ -1577,48 +1695,184 @@ proto.bCurve=function(){
 proto.bCurve.prototype=new proto.lines;
 
 proto.circle=function(){
+	this.getRect=function(type)
+	{
+		var points={x:this._x-this._radius,y:this._y-this._radius};
+		points.width=points.height=this._radius*2;
+		return getRect(this,points,type);
+	}
 	this.draw=function(ctx)
 	{
-		ctx.arc (this._x, this._y, this._radius, 0,pi,true);
+		ctx.arc(this._x, this._y, this._radius, 0,pi,true);
 	}
 	this.base=function(x,y,radius,color,fill)
 	{
-		proto.circle.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius;
+		if(typeof x != 'object')
+			x={x:x,y:y,radius:radius,color:color,fill:fill};
+		x=checkDefaults(x,{radius:0});
+		proto.circle.prototype.base.call(this,x);
+		this._radius=x.radius;
 		return this;
 	}
 	this._proto='circle';
 }
 proto.circle.prototype=new proto.shape;
 proto.rect=function(){
+	this.getRect=function(type)
+	{
+		return getRect(this,{x:this._x,y:this._y,width:this._width,height:this._height},type);
+	}
 	this.draw=function(ctx)
 	{
 		ctx.rect(this._x, this._y, this._width, this._height);
 	}
 	this.base=function(x,y,width,height,color,fill)
 	{
-		proto.rect.prototype.base.call(this,x,y,color,fill);
-		this._width=width;
-		this._height=height;
+		if(typeof x != 'object')
+			x={x:x,y:y,width:width,height:height,color:color,fill:fill};
+		x=checkDefaults(x,{width:0,height:0});
+		proto.rect.prototype.base.call(this,x);
+		this._width=x.width;
+		this._height=x.height;
 		return this;
 	}
 	this._proto='rect';
 }
 proto.rect.prototype=new proto.shape;
 proto.arc=function(){
+	this.getRect=function(type)
+	{
+		var points={x:this._x,y:this._y},
+		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
+		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
+		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
+		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
+		points.width=points.height=radius;
+		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
+		{
+			if(((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX==0 && endX==0))
+			{
+				points.y-=radius;
+				points.height+=radius;
+			}
+			else
+			{
+				if(positiveXs && endY<0 && startY>0)
+				{
+					points.y+=endY;
+					points.height+=endY;
+				}
+				else
+				if(endX>0 && endY<0 && startX<0)
+				{
+					points.y+=Math.min(endY,startY);
+					points.height-=Math.min(endY,startY);
+				}
+				else
+				{
+					if(negtiveYs)points.y-=Math.max(endY,startY);
+					else points.y-=radius;
+					points.height+=Math.max(endY,startY);
+				}
+			}
+			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY==0 && endY==0))
+			{
+				points.x-=radius;
+				points.width+=radius;
+			}
+			else
+			{
+				if(endY<0 && startY>0)
+				{
+					points.x+=Math.min(endX,startX);
+					points.width-=Math.min(endX,startX);
+				}
+				else
+				{
+					if(negtiveXs)points.x-=Math.max(endX,startX);
+					else points.x-=radius;
+					points.width+=Math.max(endX,startX);
+				}
+			}
+		}
+		else
+		{
+			positiveXs=startX>=0 && endX>=0;
+			positiveYs=startY>=0 && endY>=0;
+			negtiveXs=startX<=0 && endX<=0;
+			negtiveYs=startY<=0 && endY<=0;
+			if(negtiveYs && positiveXs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width-=Math.min(endX,startX);
+				points.y+=Math.min(endY,startY);
+				points.height+=Math.max(endY,startY);
+			}
+			else if (negtiveYs && negtiveXs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width+=Math.max(endX,startX);
+				points.y+=Math.min(endY,startY);
+				points.height+=Math.max(endY,startY);
+			}
+			else if (negtiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=Math.max(endY,startY);
+			}
+			else if (positiveXs && positiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width=Math.abs(endX-startX);
+				points.y+=Math.min(endY,startY);
+				points.height-=Math.min(endY,startY);
+			}
+			else if (positiveYs)
+			{
+				points.x+=Math.min(endX,startX);
+				points.width=Math.abs(endX)+Math.abs(startX);
+				points.y+=Math.min(endY,startY);
+				points.height-=Math.min(endY,startY);
+			}
+			else if (negtiveXs)
+			{
+				points.x-=radius;
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=Math.max(endY,startY);
+			}
+			else if (positiveXs)
+			{
+				points.x-=radius;
+				points.width+=Math.max(endX,startX);
+				points.y-=radius;
+				points.height+=radius;
+			}
+		}
+		return getRect(this,points,type);
+	}
 	this.draw=function(ctx)
 	{
-		ctx.arc (this._x, this._y, this._radius, this._startAngle,this._endAngle,this._anticlockwise);
+		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
 	}
 	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,color,fill)
 	{
 		if(anticlockwise!==undefined)
-		if(anticlockwise.charAt)color=anticlockwise;
-		proto.arc.prototype.base.call(this,x,y,color,fill);
-		this._radius=radius;
-		this._startAngle=startAngle;
-		this._endAngle=endAngle;
-		this._anticlockwise=anticlockwise||true;
+		{
+			if(anticlockwise.charAt)color=anticlockwise;
+			if(anticlockwise)anticlockwise=true;
+			else anticlockwise=false;
+		}
+		if(typeof x != 'object')
+			x={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,color:color,fill:fill};
+		x=checkDefaults(x,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
+		proto.arc.prototype.base.call(this,x);
+		this._radius=x.radius;
+		this._startAngle=x.startAngle;
+		this._endAngle=x.endAngle;
+		this._anticlockwise=x.anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -1640,6 +1894,38 @@ proto.text=function(){
 		return this.attr('baseline',baseline);
 	}
 	this._baseline="alphabetic";
+	this.string=function(string)
+	{
+		return this.attr('string',string);
+	}
+	this.position=function()
+	{
+		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
+		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
+		points.y-=points.height;
+		ctx.save();
+		ctx.textBaseline=this._baseline;
+		ctx.font=this._font;
+		ctx.textAlign=this._align;
+		points.width=ctx.measureText(this._string).width;
+		ctx.restore();
+		return getRect(this,points);
+	}
+	this.getRect=function(type)
+	{
+		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
+		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
+		points.y-=points.height;
+		ctx.save();
+		ctx.textBaseline=this._baseline;
+		ctx.font=this._font;
+		ctx.textAlign=this._align;
+		points.width=ctx.measureText(this._string).width;
+		if(this._align=='center')points.x-=points.width/2;
+		if(this._align=='right')points.x-=points.width;
+		ctx.restore();
+		return getRect(this,points,type);
+	}
 	this.setOptns = function(ctx)
 	{
 		proto.text.prototype.setOptns.call(this,ctx);
@@ -1649,16 +1935,12 @@ proto.text=function(){
 	}
 	this.draw=function(ctx)
 	{
-		if(this._maxWidth==false)
-		{
-			if(this._fill){ctx.fillText(this._string,this._x,this._y);}
-			else{ctx.strokeText(this._string,this._x,this._y);}
-		}
-		else
-		{
-			if(this._fill){ctx.fillText(this._string,this._x,this._y,this._maxWidth);}
-			else{ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
-		}
+		if(this._maxWidth===false)	{
+			if(this._fill)ctx.fillText(this._string,this._x,this._y);
+			else ctx.strokeText(this._string,this._x,this._y);}
+		else {
+			if(this._fill) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
+			else ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
 	}
 	this.base=function(string,x,y,maxWidth,color,fill)
 	{
@@ -1671,9 +1953,12 @@ proto.text=function(){
 				maxWidth=false;
 			}
 		}
-		proto.text.prototype.base.call(this,x,y,color,fill||1);
-		this._string=string;
-		this._maxWidth=maxWidth||false;
+		if(typeof string != 'object')
+			string={string:string,x:x,y:y,maxWidth:maxWidth,color:color,fill:fill};
+		string=checkDefaults(string,{string:'',maxWidth:false,fill:1});
+		proto.text.prototype.base.call(this,string);
+		this._string=string.string;
+		this._maxWidth=string.maxWidth;
 		return this;
 	}
 	this._proto='text';
@@ -1725,10 +2010,10 @@ proto.gradients=function()
 		var colorKeeper = parseColor(color);
 		var i=this.colorStopsCount;
 		this['_pos'+i] = pos;
-		this['_colorR'+i] = colorKeeper.colorR;
-		this['_colorG'+i] = colorKeeper.colorG;
-		this['_colorB'+i] = colorKeeper.colorB;
-		this['_alpha'+i] = colorKeeper.alpha;
+		this['_colorR'+i] = colorKeeper.r;
+		this['_colorG'+i] = colorKeeper.g;
+		this['_colorB'+i] = colorKeeper.b;
+		this['_alpha'+i] = colorKeeper.a;
 		this.colorStopsCount++;
 		return this;
 	}
@@ -1739,10 +2024,10 @@ proto.gradients=function()
 			{
 				var i=key.substring(5);
 				var colorKeeper=parseColor(parameters[key]);
-				parameters['colorR'+i] = colorKeeper.colorR.val;
-				parameters['colorG'+i] = colorKeeper.colorG.val;
-				parameters['colorB'+i] = colorKeeper.colorB.val;
-				parameters['alpha'+i] = colorKeeper.alpha.val;
+				parameters['colorR'+i] = colorKeeper.r;
+				parameters['colorG'+i] = colorKeeper.g;
+				parameters['colorB'+i] = colorKeeper.b;
+				parameters['alpha'+i] = colorKeeper.a;
 			}
 		}
 		proto.gradients.prototype.animate.call(this,parameters,duration,easing,onstep,fn);
@@ -1802,11 +2087,14 @@ proto.pattern = function()
 		if(this.optns.animated)animating.call(this);
 		this.val = ctx.createPattern(this._img,this._type);
 	}
-	this.base=function(img,type)
+	this.base=function(image,type)
 	{
+		if(image.hasOwnProperty('onload'))
+			image={image:image,type:type};
+		image=checkDefaults(image,{type:'repeat'});
 		proto.pattern.prototype.base.call(this);
-		this._img=img;
-		this._type=type||'repeat';
+		this._img=image.image;
+		this._type=image.type;
 		return this;
 	}
 	this._proto='pattern';
@@ -1825,11 +2113,14 @@ proto.lGradient=function()
 	}
 	this.base=function(x1,y1,x2,y2,colors)
 	{
-		proto.lGradient.prototype.base.call(this,colors);
-		this._x1 = x1;
-		this._y1 = y1;
-		this._x2 = x2;
-		this._y2 = y2;
+		if(typeof x1!=='object')
+			x1={x1:x1,y1:y1,x2:x2,y2:y2,colors:colors};
+		x1=checkDefaults(x1,{x1:0,y1:0,x2:0,y2:0})
+		proto.lGradient.prototype.base.call(this,x1.colors);
+		this._x1 = x1.x1;
+		this._y1 = x1.y1;
+		this._x2 = x1.x2;
+		this._y2 = x1.y2;
 		return this;
 	}
 	this._proto='lGradient';
@@ -1848,13 +2139,16 @@ proto.rGradient=function()
 	}
 	this.base=function(x1,y1,r1,x2,y2,r2,colors)
 	{
-		proto.rGradient.prototype.base.call(this,colors);
-		this._x1 = x1;
-		this._y1 = y1;
-		this._r1 = r1;
-		this._x2 = x2;
-		this._y2 = y2;
-		this._r2 = r2;
+		if(typeof x1!=='object')
+			x1={x1:x1,y1:y1,r1:r1,x2:x2,y2:y2,r2:r2,colors:colors};
+		x1=checkDefaults(x1,{x1:0,y1:0,r1:0,x2:0,y2:0,r2:0})
+		proto.rGradient.prototype.base.call(this,x1.colors);
+		this._x1 = x1.x1;
+		this._y1 = x1.y1;
+		this._r1 = x1.r1;
+		this._x2 = x1.x2;
+		this._y2 = x1.y2;
+		this._r2 = x1.r2;
 		return this;
 	}
 	this._proto='rGradient';
@@ -1863,6 +2157,48 @@ proto.rGradient.prototype=new proto.gradients;
 
 proto.layer=function()
 {
+	this.position=function(){
+		var objs=this.objs,
+		points=objs[0].position();
+		for(var i=1;i<objs.length;i++)
+		{
+			var point=objs[i].position();
+			if(points.x>point.x)points.x=point.x;
+			if(points.y>point.y)points.y=point.y;
+		}
+		return points;
+	}
+	this.getRect=function(type){
+		var objs=this.objs,
+		points=objs[0].getRect(type);
+		if(type=='coords')
+		{
+			for(var i=1;i<objs.length;i++)
+			{
+				var rect=objs[i].getRect(type);
+				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
+				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
+				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
+				if(points[1][1]>rect[1][1])points[1][1]=rect[1][1];
+				if(points[2][0]>rect[2][0])points[2][0]=rect[2][0];
+				if(points[2][1]<rect[2][1])points[2][1]=rect[2][1];
+				if(points[3][0]<rect[3][0])points[3][0]=rect[3][0];
+				if(points[3][1]<rect[3][1])points[3][1]=rect[3][1];
+			}
+			return points;
+		}
+		for(var i=1;i<objs.length;i++)
+		{
+			var rect=objs[i].getRect(type);
+			if(points.x>rect.x)points.x=rect.x;
+			if(points.y>rect.y)points.y=rect.y;
+			if(points.width<rect.width)points.width=rect.width;
+			if(points.height<rect.height)points.height=rect.height;
+		}
+		points.right=points.width+points.x;
+		points.bottom=points.height+points.y;
+		return points;
+	}
 	this.canvas=function(idCanvas)
 	{
 		if (idCanvas===undefined)return this.idCanvas;
@@ -1951,17 +2287,33 @@ proto.layer=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		for(var i=0;i<this.objs.length;i++)
-			if(this.objs[i].isPointIn(x,y,global))
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			if(objs[i].isPointIn(x,y,global))
 				return true;
 		return false;
+	}
+	this.opacity=function(n)
+	{
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].attr('opacity',n);
+		return this;
+	}
+	this.fadeTo=function(val,duration,easing,onstep,fn)
+	{
+		if(duration===undefined)duration=600;
+		var objs=this.objs;
+		for(var i=0;i<objs.length;i++)
+			objs[i].animate({opacity:val},duration,easing,onstep,fn);
+		return this;
 	}
 	this.draw=function(ctx)
 	{
 		var bufOptns=this.optns.buffer;
 		if(bufOptns.val)
 		{
-			ctx.drawImage(bufOptns.cnv,0,0);
+			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
 			return this;
 		}
 		var limitGrdntsNPtrns = this.grdntsnptrns.length;
@@ -1993,7 +2345,7 @@ proto.layer=function()
 					{
 						var objBufOptns=object.optns.buffer;
 						if(objBufOptns.val)
-							ctx.drawImage(objBufOptns.cnv,0,0);
+							ctx.drawImage(objBufOptns.cnv,objBufOptns.x,objBufOptns.y);
 						else
 							object.draw(ctx);
 						if(bufOptns.optns)
@@ -2035,21 +2387,30 @@ function layers(idLayer)
 
 proto.imageData=function()
 {
+	this.filter=function(filterName,filterType)
+	{
+		var filter=imageDataFilters[filterName];
+		filter.fn.call(this,this._width,this._height,filter.matrix,filterType);
+		return this;
+	};
 	this.setPixel=function(x,y,color)
 	{
-		var colorKeeper = parseColor(color);
-		var index=(x + y * this._width) * 4;
-		this.data[index+0] = colorKeeper.colorR;
-		this.data[index+1] = colorKeeper.colorG;
-		this.data[index+2] = colorKeeper.colorB;
-		this.data[index+3] = colorKeeper.alpha*255;
+		var colorKeeper,index=(x + y * this._width) * 4;
+		if (color.r !== undefined) colorKeeper=color;
+		else if (color[0] !== undefined)
+			if (!color.charAt) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
+			else colorKeeper = parseColor(color);
+		this._data[index+0] = colorKeeper.r;
+		this._data[index+1] = colorKeeper.g;
+		this._data[index+2] = colorKeeper.b;
+		this._data[index+3] = colorKeeper.a*255;
 		redraw(this);
 		return this;
 	}
 	this.getPixel=function(x,y)
 	{
 		var index=(x + y * this._width) * 4;
-		return [this.data[index+0],this.data[index+1],this.data[index+2],this.data[index+3]/255];
+		return [this._data[index+0],this._data[index+1],this._data[index+2],this._data[index+3]/255];
 	}
 	this._getX=0;
 	this._getY=0;
@@ -2059,14 +2420,14 @@ proto.imageData=function()
 		this._getY=y;
 		this._width=width;
 		this._height=height;
-		var ctx=canvases[this.optns.canvas.number].optns.ctx;
+		var ctx=objectCanvas(this).optns.ctx;
 		try{
-				this.imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
+				this._imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
 			}catch(e){
 				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-				this.imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
+				this._imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
 		}
-		this.data=this.imgData.data;
+		this._data=this._imgData.data;
 		redraw(this);
 		return this;
 	}
@@ -2078,17 +2439,22 @@ proto.imageData=function()
 		redraw(this);
 		return this;
 	}
+	this.clone=function(){
+		var clone=proto.imageData.prototype.clone.call(this);
+		clone._imgData=undefined;
+		return clone;
+	}
 	this.draw=function(ctx)
 	{
-		if(this.imgData===undefined)
+		if(this._imgData===undefined)
 		{
-			this.imgData=ctx.createImageData(this._width,this._height);
+			this._imgData=ctx.createImageData(this._width,this._height);
 			for(var i=0;i<this._width*this._height*4;i++)
-				this.imgData.data[i]=this.data[i];
-			this.data=this.imgData.data;
+				this._imgData.data[i]=this._data[i];
+			this._data=this._imgData.data;
 		}
 		if(this._putData)
-			ctx.putImageData(this.imgData,this._x,this._y);
+			ctx.putImageData(this._imgData,this._x,this._y);
 	}
 	this.base=function(width,height)
 	{
@@ -2096,20 +2462,29 @@ proto.imageData=function()
 		if(height===undefined)
 		{
 			var oldImageData=width;
-			width=oldImageData._width;
-			height=oldImageData._height;
+			if(oldImageData._width!==undefined)
+			{
+				width=oldImageData._width;
+				height=oldImageData._height;
+			}
+			else
+			{
+				width=checkDefaults(width,{width:0,height:0});
+				height=width.height;
+				width=width.width;
+			}
 		}
 		this._width=width;
 		this._height=height;
-		this.data=[];
+		this._data=[];
 		for(var i=0;i<this._width;i++)
 			for(var j=0;j<this._height;j++)
 			{
 				var index=(i+j*this._width)*4;
-				this.data[index+0]=0;
-				this.data[index+1]=0;
-				this.data[index+2]=0;
-				this.data[index+3]=0;
+				this._data[index+0]=0;
+				this._data[index+1]=0;
+				this._data[index+2]=0;
+				this._data[index+3]=0;
 			}
 		return this;
 	}
@@ -2119,24 +2494,34 @@ proto.imageData=function()
 proto.imageData.prototype=new proto.object;
 proto.image=function()
 {
+	this.getRect=function(type)
+	{
+		var points={x:this._x,y:this._y,width:this._width,height:this._height};
+		return getRect(this,points,type);
+	}
 	this.draw=function(ctx)
 	{
-		if(this._swidth==false && this._dx==false){ctx.drawImage(this._img,this._sx,this._sy);}
-		else{if(this._dx==false)ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight);
-			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._dx,this._dy,this._dwidth,this._dheight);}
+		if(this._swidth===false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
+			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
 	}
-	this.base=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
+	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		proto.image.prototype.base.call(this);
-		this._img=img;
-		this._swidth=swidth||false;
-		this._sheight=sheight||false;
-		this._sx=sx;
-		this._sy=sy;
-		this._dx=dx||false;
-		this._dy=dy||false;
-		this._dwidth=dwidth||false;
-		this._dheight=dheight||false;
+		if(typeof image!='object' || image.hasOwnProperty('onload'))
+			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
+		image=checkDefaults(image,{width:false,height:false,sx:false,sy:false,swidth:false,sheight:false});
+		if(image.width===false)
+		{
+			image.width=image.image.width;
+			image.height=image.image.height;
+		}
+		proto.image.prototype.base.call(this,image);
+		this._img=image.image;
+		this._width=image.width;
+		this._height=image.height;
+		this._sx=image.sx;
+		this._sy=image.sy;
+		this._swidth=image.swidth;
+		this._sheight=image.sheight;
 		return this;
 	}
 	this._proto='image';
@@ -2193,7 +2578,12 @@ function group()
 }
 
 
-jCanvaScript.addObject=function(name,parameters,drawfn)
+jCanvaScript.addFunction=function(name,fn,prototype)
+{
+	proto[prototype||'object'].prototype[name]=fn;
+	return jCanvaScript;
+}
+jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 {
 	proto[name]=function(name){
 		this.draw=proto[name].draw;
@@ -2201,11 +2591,12 @@ jCanvaScript.addObject=function(name,parameters,drawfn)
 		this._proto=name;
 	};
 	var protoItem=proto[name];
-	protoItem.prototype=new proto.shape;
+	if(parent===undefined)parent='shape';
+	protoItem.prototype=new proto[parent];
 	protoItem.draw=drawfn;
 	protoItem.base=function(name,parameters,args)
 	{
-		protoItem.prototype.base.call(this,parameters.x||0,parameters.y||0,parameters.color||"rgba(0,0,0,0)",parameters.fill||1);
+		protoItem.prototype.base.call(this,parameters);
 		var i=0;
 		for(var key in parameters)
 		{
@@ -2214,34 +2605,47 @@ jCanvaScript.addObject=function(name,parameters,drawfn)
 			i++;
 		}
 		return this;
-	}
-	jCanvaScript[name]=function()
+	};
+	(function(name,parameters)
 	{
-		var name=arguments.callee.val;
-		var object=new proto[name](name);
-		return object.base(name,arguments.callee.parameters,arguments);
-	}
-	jCanvaScript[name].val=name;
-	jCanvaScript[name].parameters=parameters;
+		jCanvaScript[name]=function()
+		{
+			var object=new proto[name](name);
+			return object.base(name,parameters,arguments);
+		}
+	})(name,parameters);
+	return jCanvaScript;
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
 {
 	animateFunctions[name]=fn;
+	return jCanvaScript;
+}
+jCanvaScript.addImageDataFilter=function(name,properties)
+{
+	if(imageDataFilters[name]===undefined)imageDataFilters[name]={};
+	if(properties.fn!==undefined)imageDataFilters[name].fn=properties.fn;
+	if(properties.matrix!==undefined && properties.type===undefined)imageDataFilters[name].matrix=properties.matrix;
+	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
+	return jCanvaScript;
 }
 jCanvaScript.clear=function(idCanvas)
 {
 	if(canvases[0]===undefined)return;
 	if(idCanvas===undefined){canvases[0].clear();return;}
 	jCanvaScript.canvas(idCanvas).clear();
+	return jCanvaScript;
 }
 jCanvaScript.pause=function(idCanvas)
 {
 	if(idCanvas===undefined){canvases[0].pause();return;}
 	jCanvaScript.canvas(idCanvas).pause();
+	return jCanvaScript;
 }
 jCanvaScript.start=function(idCanvas,fps)
 {
 	jCanvaScript.canvas(idCanvas).start(fps);
+	return jCanvaScript;
 }
 
 
@@ -2284,10 +2688,10 @@ jCanvaScript.imageData=function(width,height)
 	var imageData=new proto.imageData;
 	return imageData.base(width,height);
 }
-jCanvaScript.image=function(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight)
+jCanvaScript.image=function(img,x,y,width,height,sx,sy,swidth,sheight)
 {
 	var image=new proto.image;
-	return image.base(img,sx,sy,swidth,sheight,dx,dy,dwidth,dheight);
+	return image.base(img,x,y,width,height,sx,sy,swidth,sheight);
 }
 
 jCanvaScript.circle=function(x,y,radius,color,fill)
@@ -2329,7 +2733,7 @@ jCanvaScript.canvas = function(idCanvas)
 	canvases[limit]=canvas;
 	lastCanvas=limit;
 	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v')G_vmlCanvasManager.initElement(canvas.cnv);
+	if ('\v'=='v' && G_vmlCanvasManager!==undefined)G_vmlCanvasManager.initElement(canvas.cnv);
 	canvas.optns =
 	{
 		id:idCanvas,
@@ -2459,6 +2863,7 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
+			var point = this.optns.point;
 			if(optns.mousemove.object!=false)
 			{
 				var mousemoveObject=optns.mousemove.object;
@@ -2466,19 +2871,19 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
 					{
-						mousemoveObject.onmousemove(this.optns.point);
+						mousemoveObject.onmousemove(point);
 					}
 				}
 				else
 				{
 					if(underMouse==false)
 					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					else
 					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout();}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					underMouse=mousemoveObject;
 				}
@@ -2489,7 +2894,7 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof underMouse.onmouseout=='function')
 					{
-						underMouse.onmouseout();
+						underMouse.onmouseout(point);
 					}
 					underMouse=false;
 				}
@@ -2559,17 +2964,25 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
-			var mouseDblClick=this.optns.dblclick;
 			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
 			for(i=0;i<2;i++)
 			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
 					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
-				if(typeof mouseClickObjects[i].ondblclick == 'function')
-					mouseClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
 			}
 			mouseClick.object=false;
 		}
+		if(this.optns.dblclick.object!=false)
+        {
+            var mouseDblClick=this.optns.dblclick;
+            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
+            for(i=0;i<2;i++)
+            {
+                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
+                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+            }
+            mouseDblClick.object=false;
+        }
 		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;

@@ -15,7 +15,7 @@ jCanvaScript.canvas = function(idCanvas)
 	canvases[limit]=canvas;
 	lastCanvas=limit;
 	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v')G_vmlCanvasManager.initElement(canvas.cnv);
+	if ('\v'=='v' && G_vmlCanvasManager!==undefined)G_vmlCanvasManager.initElement(canvas.cnv);
 	canvas.optns =
 	{
 		id:idCanvas,
@@ -145,6 +145,7 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
+			var point = this.optns.point;
 			if(optns.mousemove.object!=false)
 			{
 				var mousemoveObject=optns.mousemove.object;
@@ -152,19 +153,19 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
 					{
-						mousemoveObject.onmousemove(this.optns.point);
+						mousemoveObject.onmousemove(point);
 					}
 				}
 				else
 				{
 					if(underMouse==false)
 					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					else
 					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout();}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover();}
+						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
+						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
 					}
 					underMouse=mousemoveObject;
 				}
@@ -175,7 +176,7 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(typeof underMouse.onmouseout=='function')
 					{
-						underMouse.onmouseout();
+						underMouse.onmouseout(point);
 					}
 					underMouse=false;
 				}
@@ -245,17 +246,25 @@ jCanvaScript.canvas = function(idCanvas)
 		if(this.optns.click.object!=false)
 		{
 			var mouseClick=this.optns.click;
-			var mouseDblClick=this.optns.dblclick;
 			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
 			for(i=0;i<2;i++)
 			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
 					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
-				if(typeof mouseClickObjects[i].ondblclick == 'function')
-					mouseClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
 			}
 			mouseClick.object=false;
 		}
+		if(this.optns.dblclick.object!=false)
+        {
+            var mouseDblClick=this.optns.dblclick;
+            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
+            for(i=0;i<2;i++)
+            {
+                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
+                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+            }
+            mouseDblClick.object=false;
+        }
 		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
 	}
 	return canvas;

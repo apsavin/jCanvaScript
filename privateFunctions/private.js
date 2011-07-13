@@ -1,3 +1,12 @@
+function checkDefaults(check,def)
+{
+	for(var key in def)
+	{
+		if(check[key]===undefined)check[key]=def[key];
+	}
+	return check;
+}
+
 function redraw(object)
 {
 	objectCanvas(object).optns.redraw=1;
@@ -12,7 +21,7 @@ function animating()
 		var queue=this.animateQueue[q];
 		for(var key in queue)
 		{
-			if(this.hasOwnProperty(key) && this[key]!==undefined)
+			if(this[key]!==undefined)
 			{
 				if(queue[key])
 				{
@@ -39,7 +48,7 @@ function animating()
 				else
 				{
 					if(!queue.animateKeyCount){
-						if(queue.animateFn!==undefined)queue.animateFn.apply(this);
+						if(queue.animateFn)queue.animateFn.apply(this);
 						this.animateQueue.splice(q,1);
 						q--;
 					}
@@ -67,10 +76,12 @@ function animateTransforms(key,object,queue)
 			object.translate(0,val-prev);
 			break;
 		case '_scaleX':
-			object.scale(val-prev,0);
+			if(!prev)prev=1;
+			object.scale(val/prev,1);
 			break;
 		case '_scaleY':
-			object.scale(0,val-prev);
+			if(!prev)prev=1;
+			object.scale(1,val/prev);
 			break;
 		default:
 			return;
@@ -151,11 +162,72 @@ var animateFunctions={
 		}
 		return 1;
 	}
+},
+imageDataFilters={
+	color:{fn:function(width,height,matrix,type){
+		var old,i,j;
+		matrix=matrix[type];
+		for(i=0;i<width;i++)
+		for(j=0;j<height;j++)
+		{
+			old=this.getPixel(i,j);
+			old[matrix[0]]=old[matrix[0]]*2-old[matrix[1]]-old[matrix[2]];
+			old[matrix[1]]=0;
+			old[matrix[2]]=0;
+			old[matrix[0]]=old[matrix[0]]>255?255:old[matrix[0]];
+			this.setPixel(i,j,old);
+		}
+	},matrix:
+		{
+			red:[0,1,2],
+			green:[1,0,2],
+			blue:[2,0,1]
+		}},
+	linear:{fn:function(width,height,matrix,type){
+		var newMatrix=[],old,i,j,k,m,n;
+		matrix=matrix[type];
+		m=matrix.length;
+		n=matrix[0].length;
+			for(i=0;i<width;i++)
+			{
+				newMatrix[i]=[];
+				for(j=0;j<height;j++)
+				{
+					newMatrix[i][j]=[0,0,0,1];
+					for(m=0;m<3;m++)
+					for(n=0;n<3;n++)
+					{
+						old=this.getPixel(i-parseInt(m/2),j-parseInt(n/2));
+						for(k=0;k<3;k++)
+						{
+							newMatrix[i][j][k]+=old[k]*matrix[m][n];
+						}
+					}
+				}
+			}
+			for(i=0;i<width;i++)
+			{
+				for(j=0;j<height;j++)
+					this.setPixel(i,j,newMatrix[i][j]);
+			}
+	},
+		matrix:{
+			sharp:[[-0.375,-0.375,-0.375],[-0.375,4,-0.375],[-0.375,-0.375,-0.375]],
+			blur:[[0.111,0.111,0.111],[0.111,0.111,0.111],[0.111,0.111,0.111]]
+		}
+	}
 }
 
 function multiplyM(m1,m2)
 {
 	return [[(m1[0][0]*m2[0][0]+m1[0][1]*m2[1][0]),(m1[0][0]*m2[0][1]+m1[0][1]*m2[1][1]),(m1[0][0]*m2[0][2]+m1[0][1]*m2[1][2]+m1[0][2])],[(m1[1][0]*m2[0][0]+m1[1][1]*m2[1][0]),(m1[1][0]*m2[0][1]+m1[1][1]*m2[1][1]),(m1[1][0]*m2[0][2]+m1[1][1]*m2[1][2]+m1[1][2])]];
+}
+function multiplyPointM(x,y,m)
+{
+	return {
+		x:(x*m[0][0]+y*m[0][1]+m[0][2]),
+		y:(x*m[1][0]+y*m[1][1]+m[1][2])
+	}
 }
 function transformPoint(x,y,m)
 {
@@ -164,96 +236,35 @@ function transformPoint(x,y,m)
 		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
 	}
 }
-function getObjectRectangle(object)
+function getRect(object,rect,type)
 {
-	var points={};
-	if(object._proto=='text')
+	if(type=='poor')return rect;
+	var min={x:rect.x,y:rect.y},max={x:rect.x+rect.width,y:rect.y+rect.height},
+	m=multiplyM(object.matrix(),objectLayer(object).matrix()),
+	lt=multiplyPointM(min.x,min.y,m),
+	rt=multiplyPointM(max.x,min.y,m),
+	lb=multiplyPointM(min.x,max.y,m),
+	rb=multiplyPointM(max.x,max.y,m),
+	coords=[[lt.x,lt.y],[rt.x,rt.y],[lb.x,lb.y],[rb.x,rb.y]];
+	if(type=='coords')return coords;
+	var minX, minY,
+	maxX=minX=lt.x,
+	maxY=minY=lt.y;
+	for(var i=0;i<4;i++)
 	{
-		var ctx=objectCanvas(object).optns.ctx;
-		var height=parseInt(object._font);
-		points.x=object._x;
-		points.y=object._y-height;
-		object.setOptns(ctx);
-		points.width=ctx.measureText(object._string).width;
-		points.height=height;
-		return points;
+		if(maxX<coords[i][0])maxX=coords[i][0];
+		if(maxY<coords[i][1])maxY=coords[i][1];
+		if(minX>coords[i][0])minX=coords[i][0];
+		if(minY>coords[i][1])minY=coords[i][1];
 	}
-	if(object._img!==undefined)
-	{
-		points.x=object._sx;
-		points.y=object._sy;
-		points.width=object._img.width;
-		points.height=object._img.height;
-		return points;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		points.x=object._x;
-		points.y=object._y;
-		points.width=object._width;
-		points.height=object._height;
-		return points;
-	}
-	if(object._radius!==undefined)
-	{
-		if(object._startAngle===undefined)
-		{
-			points.x=object._x-object._radius;
-			points.y=object._y-object._radius;
-			points.width=points.height=object._radius*2;
-			return points;
-		}
-	}
-	if(object.shapesCount!==undefined)
-	{
-		var minX;
-		var minY;
-		var maxX=minX=object._x0;
-		var maxY=minY=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			if(maxX<object['_x'+i])maxX=object['_x'+i];
-			if(maxY<object['_y'+i])maxY=object['_y'+i];
-			if(minX>object['_x'+i])minX=object['_x'+i];
-			if(minY>object['_y'+i])minY=object['_y'+i];
-		}
-		points.x=minX;
-		points.y=minX;
-		points.width=maxX-minX;
-		points.height=maxY-minY;
-		return points;
-	}
-	if(object.objs!==undefined)
-	{
-		var rect=getObjectRectangle(object.objs[0]);
-		points.x=rect.x;
-		points.y=rect.y;
-		points.width=rect.width;
-		points.height=rect.height;
-		points.bottom=rect.y+rect.height;
-		points.right=rect.x+rect.width;
-		for(i=1;i<object.objs.length;i++)
-		{
-			var rect=getObjectRectangle(object.objs[i]);
-			rect.bottom=rect.y+rect.height;
-			rect.right=rect.x+rect.width;
-			if(points.x>rect.x)points.x=rect.x;
-			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
-		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		return points;
-	}
-	return false;
+	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
 }
 function getObjectCenter(object)
 {
 	var point={};
 	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
 	{
-		var rect=getObjectRectangle(object);
+		var rect=object.getRect('poor');
 		point.x=(rect.x*2+rect.width)/2;
 		point.y=(rect.y*2+rect.height)/2;
 		return point;
@@ -292,10 +303,10 @@ function parseColor(color)
 			val:color,
 			notColor:undefined
 		},
-		colorR:0,
-		colorB:0,
-		colorG:0,
-		alpha:0};
+		r:0,
+		g:0,
+		b:0,
+		a:0};
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={
@@ -307,10 +318,10 @@ function parseColor(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.colorR=parseInt(color.substr(1,2),16);
-		colorKeeper.colorG=parseInt(color.substr(3,2),16);
-		colorKeeper.colorB=parseInt(color.substr(5,2),16);
-		colorKeeper.alpha=1;
+		colorKeeper.r=parseInt(color.substr(1,2),16);
+		colorKeeper.g=parseInt(color.substr(3,2),16);
+		colorKeeper.b=parseInt(color.substr(5,2),16);
+		colorKeeper.a=1;
 	}
 	else
 	{
@@ -319,19 +330,19 @@ function parseColor(color)
 		{
 			var colorR = arr[0].split('(');
 			var alpha = arr[3].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(arr[2]);
-			colorKeeper.alpha=parseFloat(alpha[0]);
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(arr[2]);
+			colorKeeper.a=parseFloat(alpha[0]);
 		}
 		if(arr.length==3)
 		{
 			colorR = arr[0].split('(');
 			var colorB = arr[2].split(')');
-			colorKeeper.colorR=parseInt(colorR[1]);
-			colorKeeper.colorG=parseInt(arr[1]);
-			colorKeeper.colorB=parseInt(colorB[0]);
-			colorKeeper.alpha=1;
+			colorKeeper.r=parseInt(colorR[1]);
+			colorKeeper.g=parseInt(arr[1]);
+			colorKeeper.b=parseInt(colorB[0]);
+			colorKeeper.a=1;
 		}
 	}
 	colorKeeper.color.notColor = undefined;
@@ -393,13 +404,13 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox_lt5)
+	if(FireFox)
 	{
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
-		var rectangle=getObjectRectangle(object);
+		var rectangle=object.getRect('poor');
 		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
@@ -414,8 +425,8 @@ function isPointInPath(object,x,y)
 function checkMouseEvents(object,optns)
 {
 	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.click.x||optns.dblclick.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.click.y||optns.dblclick.y;
+	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.dblclick.x||optns.click.x;
+	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.dblclick.y||optns.click.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
@@ -428,6 +439,8 @@ function checkMouseEvents(object,optns)
 			optns.mousedown.object=object;
 		if(optns.click.x!=false || optns.dblclick.x!=false)
 			optns.click.object=object;
+		if(optns.dblclick.x!=false)
+            optns.dblclick.object=object;
 		if(optns.mouseup.x!=false)
 			optns.mouseup.object=object;
 		optns.point=point;
