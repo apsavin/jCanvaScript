@@ -30,7 +30,7 @@ proto.layer=function()
 			}
 			return points;
 		}
-		for(var i=1;i<objs.length;i++)
+		for(i=1;i<objs.length;i++)
 		{
 			var rect=objs[i].getRect(type);
 			if(points.x>rect.x)points.x=rect.x;
@@ -74,10 +74,6 @@ proto.layer=function()
 		if(n === undefined)n=1;
 		if(n == 'top')n=objectCanvas(this).layers.length-1;
 		this._level+=n;
-		for(var i=0;i<this.objs.length;i++)
-		{
-			this.objs[i].optns.layer.number=this._level;
-		}
 		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
@@ -88,10 +84,6 @@ proto.layer=function()
 		if(n == undefined)n=1;
 		if(n == 'bottom')n=this._level;
 		this._level-=n;
-		for(var i=0;i<this.objs.length;i++)
-		{
-			this.objs[i].options.layer.number=this._level;
-		}
 		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;

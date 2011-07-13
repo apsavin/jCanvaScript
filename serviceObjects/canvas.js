@@ -104,9 +104,11 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	canvas.del=function()
 	{
-		this.clear();
+		clearInterval(this.interval);
+		this.layers=[];
 		canvases.splice(this.optns.number,1);
 		if(this.cnv.length)this.cnv.parentNode.removeChild(this.optns.id);
+		lastCanvas=0;
 		return false;
 	}
 	canvas.clear=function()
@@ -128,16 +130,21 @@ jCanvaScript.canvas = function(idCanvas)
 		var limit=this.layers.length;
 		if(limit==0)return;
 		if(optns.anyLayerLevelChanged)
-		{
 			levelChanger(this.layers);
-			optns.anyLayerLevelChanged=false;
-		}
 		if(optns.anyLayerDeleted)
-		{
 			limit=objDeleter(this.layers);
-			optns.anyLayerDeleted=false;
+		if(optns.anyLayerLevelChanged || optns.anyLayerDeleted)
+		{
+			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
+			normalizeLevels(this.layers);
+			for(var i=0;i<limit;i++)
+			{
+				var layer=this.layers[i];
+				for(var j=0;i<layer.objs.length;i++)
+					layer.objs[j].optns.layer.number=layer._level;
+			}
 		}
-		for(var i=0;i<limit;i++)
+		for(i=0;i<limit;i++)
 		{
 			var object=this.layers[i];
 			if(typeof (object.draw)=='function')

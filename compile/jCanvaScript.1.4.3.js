@@ -1121,23 +1121,24 @@ proto.object=function()
 		{
 			if(this['_'+key] !== undefined && options[key]!==undefined)
 			{
-				if(options[key]!=this['_'+key])
+				var keyValue=options[key],privateKey='_'+key;
+				if(keyValue!=this[privateKey])
 				{
-					if(options[key].charAt)
+					if(keyValue.charAt)
 					{
-						if(key=='string')this._string=options[key];
-						else if(options[key].charAt(1)=='=')
+						if(key=='string')this._string=keyValue;
+						else if(keyValue.charAt(1)=='=')
 						{
-							options[key]=this['_'+key]+parseInt(options[key].charAt(0)+options[key].substr(2));
+							keyValue=this[privateKey]+parseInt(keyValue.charAt(0)+'1')*parseInt(keyValue.substr(2));
 						}
-						else if(!regHasLetters.test(options[key]))options[key]=parseInt(options[key]);
-						else this['_'+key]=options[key];
+						else if(!regHasLetters.test(keyValue))options[key]=parseInt(keyValue);
+						else this[privateKey]=keyValue;
 					}
-					if(duration==1)this['_'+key]=options[key];
+					if(duration==1)this[privateKey]=keyValue;
 					else
 					{
-						queue['_'+key]={
-							from:this['_'+key],
+						queue[privateKey]={
+							from:this[privateKey],
 							to:options[key],
 							duration:duration,
 							step:1,
@@ -2089,7 +2090,7 @@ proto.pattern = function()
 	}
 	this.base=function(image,type)
 	{
-		if(image.hasOwnProperty('onload'))
+		if(image.onload)
 			image={image:image,type:type};
 		image=checkDefaults(image,{type:'repeat'});
 		proto.pattern.prototype.base.call(this);
@@ -2155,6 +2156,7 @@ proto.rGradient=function()
 }
 proto.rGradient.prototype=new proto.gradients;
 
+
 proto.layer=function()
 {
 	this.position=function(){
@@ -2187,7 +2189,7 @@ proto.layer=function()
 			}
 			return points;
 		}
-		for(var i=1;i<objs.length;i++)
+		for(i=1;i<objs.length;i++)
 		{
 			var rect=objs[i].getRect(type);
 			if(points.x>rect.x)points.x=rect.x;
@@ -2231,10 +2233,6 @@ proto.layer=function()
 		if(n === undefined)n=1;
 		if(n == 'top')n=objectCanvas(this).layers.length-1;
 		this._level+=n;
-		for(var i=0;i<this.objs.length;i++)
-		{
-			this.objs[i].optns.layer.number=this._level;
-		}
 		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
@@ -2245,10 +2243,6 @@ proto.layer=function()
 		if(n == undefined)n=1;
 		if(n == 'bottom')n=this._level;
 		this._level-=n;
-		for(var i=0;i<this.objs.length;i++)
-		{
-			this.objs[i].options.layer.number=this._level;
-		}
 		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
@@ -2506,7 +2500,7 @@ proto.image=function()
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		if(typeof image!='object' || image.hasOwnProperty('onload'))
+		if(typeof image!='object' || image.onload)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
 		image=checkDefaults(image,{width:false,height:false,sx:false,sy:false,swidth:false,sheight:false});
 		if(image.width===false)
@@ -2527,6 +2521,7 @@ proto.image=function()
 	this._proto='image';
 }
 proto.image.prototype=new proto.object;
+
 
 proto.groups=function()
 {
@@ -2822,9 +2817,11 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	canvas.del=function()
 	{
-		this.clear();
+		clearInterval(this.interval);
+		this.layers=[];
 		canvases.splice(this.optns.number,1);
 		if(this.cnv.length)this.cnv.parentNode.removeChild(this.optns.id);
+		lastCanvas=0;
 		return false;
 	}
 	canvas.clear=function()
@@ -2846,16 +2843,21 @@ jCanvaScript.canvas = function(idCanvas)
 		var limit=this.layers.length;
 		if(limit==0)return;
 		if(optns.anyLayerLevelChanged)
-		{
 			levelChanger(this.layers);
-			optns.anyLayerLevelChanged=false;
-		}
 		if(optns.anyLayerDeleted)
-		{
 			limit=objDeleter(this.layers);
-			optns.anyLayerDeleted=false;
+		if(optns.anyLayerLevelChanged || optns.anyLayerDeleted)
+		{
+			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
+			normalizeLevels(this.layers);
+			for(var i=0;i<limit;i++)
+			{
+				var layer=this.layers[i];
+				for(var j=0;i<layer.objs.length;i++)
+					layer.objs[j].optns.layer.number=layer._level;
+			}
 		}
-		for(var i=0;i<limit;i++)
+		for(i=0;i<limit;i++)
 		{
 			var object=this.layers[i];
 			if(typeof (object.draw)=='function')

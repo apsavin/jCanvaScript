@@ -7,7 +7,7 @@ proto.pattern = function()
 	}
 	this.base=function(image,type)
 	{
-		if(image.hasOwnProperty('onload'))
+		if(image.onload)
 			image={image:image,type:type};
 		image=checkDefaults(image,{type:'repeat'});
 		proto.pattern.prototype.base.call(this);

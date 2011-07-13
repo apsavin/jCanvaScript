@@ -361,23 +361,24 @@ proto.object=function()
 		{
 			if(this['_'+key] !== undefined && options[key]!==undefined)
 			{
-				if(options[key]!=this['_'+key])
+				var keyValue=options[key],privateKey='_'+key;
+				if(keyValue!=this[privateKey])
 				{
-					if(options[key].charAt)
+					if(keyValue.charAt)
 					{
-						if(key=='string')this._string=options[key];
-						else if(options[key].charAt(1)=='=')
+						if(key=='string')this._string=keyValue;
+						else if(keyValue.charAt(1)=='=')
 						{
-							options[key]=this['_'+key]+parseInt(options[key].charAt(0)+options[key].substr(2));
+							keyValue=this[privateKey]+parseInt(keyValue.charAt(0)+'1')*parseInt(keyValue.substr(2));
 						}
-						else if(!regHasLetters.test(options[key]))options[key]=parseInt(options[key]);
-						else this['_'+key]=options[key];
+						else if(!regHasLetters.test(keyValue))options[key]=parseInt(keyValue);
+						else this[privateKey]=keyValue;
 					}
-					if(duration==1)this['_'+key]=options[key];
+					if(duration==1)this[privateKey]=keyValue;
 					else
 					{
-						queue['_'+key]={
-							from:this['_'+key],
+						queue[privateKey]={
+							from:this[privateKey],
 							to:options[key],
 							duration:duration,
 							step:1,
