@@ -40,6 +40,8 @@
 	
 	function start(idCanvas){
 		jc.start(idCanvas,25);
+		jc.bCurve([[0,0,10,10,15,15],[30,30,20,50,15,15],[150,50,70,60,85,85]]).shadow({x:2,y:2,color:'#000000',blur:5});
+		/*
 		jc.rect(0,0,200,200,jc.lGradient(100,100,120,150,[[0,"#FF0000"],[1,"#0000FF"]]).layer('buf'),1).layer('buf');
 		jc.rect(100,100,20,50,jc.lGradient(100,100,120,150,[[0,"#FF0000"],[1,"#0000FF"]]).layer('buf'),1)
 			.layer('buf');
@@ -49,7 +51,7 @@
 			var start=new Date();
 		jc.layer('buf')
 			.animate({translate:{x:-100,y:-100}},3000,function(){var end=new Date();console.log(end-start);})
-			.buffer(true);
+			.buffer(true);*/
 	}
 	/*
 	function test(){
