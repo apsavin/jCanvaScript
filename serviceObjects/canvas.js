@@ -102,6 +102,13 @@ jCanvaScript.canvas = function(idCanvas)
 		clearInterval(this.interval);
 		this.interval=0;
 	}
+	canvas.del=function()
+	{
+		this.clear();
+		canvases.splice(this.optns.number,1);
+		if(this.cnv.length)this.cnv.parentNode.removeChild(this.optns.id);
+		return false;
+	}
 	canvas.clear=function()
 	{
 		clearInterval(this.interval);
