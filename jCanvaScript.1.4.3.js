@@ -10,7 +10,7 @@ var canvases = [],pi=Math.PI*2,
 lastCanvas=0,lastLayer=0,
 underMouse = false,
 regHasLetters = /[A-z]+?/,
-regNumsWithMeasure = /\d.\w\w/
+regNumsWithMeasure = /\d.\w\w/,
 FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
 radian=180/Math.PI;
 if (FireFox!="" && FireFox!==null)FireFox=true;

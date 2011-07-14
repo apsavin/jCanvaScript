@@ -160,6 +160,7 @@ jCanvaScript.canvas = function(idCanvas)
 		if(optns.mousemove.x!=false)
 		{
 			var point = this.optns.point;
+			point.event=optns.mousemove.event;
 			if(optns.mousemove.object!=false)
 			{
 				var mousemoveObject=optns.mousemove.object;
@@ -202,7 +203,7 @@ jCanvaScript.canvas = function(idCanvas)
 			var mouseDownObjects=[mouseDown.object,objectLayer(mouseDown.object)];
 			for(i=0;i<2;i++)
 			{
-				if(typeof mouseDownObjects[i].onmousedown=='function')mouseDownObjects[i].onmousedown({x:mouseDown.x,y:mouseDown.y});
+				if(typeof mouseDownObjects[i].onmousedown=='function')mouseDownObjects[i].onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event});
 				if(mouseDownObjects[i].optns.drag.val==true)
 				{
 					var drag=optns.drag;
@@ -234,7 +235,7 @@ jCanvaScript.canvas = function(idCanvas)
 			drag=optns.drag;
 			for(i=0;i<2;i++)
 			{
-				if(typeof mouseUpObjects[i].onmouseup=='function')mouseUpObjects[i].onmouseup({x:mouseUp.x,y:mouseUp.y});
+				if(typeof mouseUpObjects[i].onmouseup=='function')mouseUpObjects[i].onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event});
 				if(mouseUpObjects[i].optns.drop.val==true && optns.drag.init!==undefined)
 				{
 					if(drag.init==drag.object)
@@ -264,7 +265,7 @@ jCanvaScript.canvas = function(idCanvas)
 			for(i=0;i<2;i++)
 			{
 				if(typeof mouseClickObjects[i].onclick == 'function')
-					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
+					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y,event:mouseClick.event});
 			}
 			mouseClick.object=false;
 		}
@@ -275,7 +276,7 @@ jCanvaScript.canvas = function(idCanvas)
             for(i=0;i<2;i++)
             {
                 if(typeof mouseDblClickObjects[i].ondblclick == 'function')
-                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
+                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y, event:mouseDblClick.event});
             }
             mouseDblClick.object=false;
         }

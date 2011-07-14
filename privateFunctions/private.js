@@ -91,6 +91,7 @@ function animateTransforms(key,object,queue)
 function keyEvent(e,key,optns)
 {
 	e=e||window.event;
+	optns[key].event=e;
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
 	optns.redraw=1;
@@ -103,6 +104,7 @@ function mouseEvent(e,key,optns)
 		pageX:e.pageX||e.clientX,
 		pageY:e.pageY||e.clientY
 	};
+	optns[key].event=e;
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
 	if(optns[key].val)optns.redraw=1;
