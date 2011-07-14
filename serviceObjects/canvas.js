@@ -114,7 +114,7 @@ jCanvaScript.canvas = function(idCanvas)
 		clearInterval(this.interval);
 		this.layers=[];
 		canvases.splice(this.optns.number,1);
-		if(this.cnv.length)this.cnv.parentNode.removeChild(this.optns.id);
+		if(this.cnv.parentNode)this.cnv.parentNode.removeChild(this.cnv);
 		lastCanvas=0;
 		return false;
 	}
