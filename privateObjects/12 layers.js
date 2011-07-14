@@ -89,6 +89,15 @@ proto.layer=function()
 		optns.redraw=1;
 		return this;
 	}
+	this.level=function(n)
+	{
+		if(n == undefined)return this._level;
+		this._level=n;
+		var optns=objectCanvas(this).optns;
+		optns.anyLayerLevelChanged = true;
+		optns.redraw=1;
+		return this;
+	}
 	this.del=function()
 	{
 		var optns=objectCanvas(this).optns;
