@@ -69,31 +69,17 @@ proto.layer=function()
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
-	this.up=function(n)
-	{
-		if(n === undefined)n=1;
-		if(n == 'top')n=objectCanvas(this).layers.length-1;
-		this._level+=n;
-		var optns=objectCanvas(this).optns;
-		optns.anyLayerLevelChanged = true;
-		optns.redraw=1;
-		return this;
-	}
-	this.down=function(n)
-	{
-		if(n == undefined)n=1;
-		if(n == 'bottom')n=this._level;
-		this._level-=n;
-		var optns=objectCanvas(this).optns;
-		optns.anyLayerLevelChanged = true;
-		optns.redraw=1;
-		return this;
-	}
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;
+		var canvas=objectCanvas(this),
+			optns=canvas.optns,
+			layersLength=canvas.layers.length-1;
+		if(n=='bottom')n=0;
+		if(n=='top')n=layersLength;
+		if(n<0)n=0;
+		if(n>layersLength)n=layersLength;
 		this._level=n;
-		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
 		return this;

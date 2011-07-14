@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.4.3
+ * jCanvaScript JavaScript Library v 1.4.4
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -875,18 +875,28 @@ proto.object=function()
 	this.up=function(n)
 	{
 		if(n === undefined)n=1;
-		if(n == 'top')n=objectLayer(this).objs.length-1;
-		this._level+=n;
-		objectLayer(this).optns.anyObjLevelChanged = true;
-		redraw(this);
+		if(n=='top')this.level(n);
+		else this.level(this._level+n);
 		return this;
 	}
 	this.down=function(n)
 	{
 		if(n == undefined)n=1;
-		if(n == 'bottom')n=this._level;
-		this._level-=n;
-		objectLayer(this).optns.anyObjLevelChanged = true;
+		if(n == 'bottom')this.level(n);
+		else this.level(this._level-n);
+		return this;
+	}
+	this.level=function(n)
+	{
+		if(n == undefined)return this._level;
+		var layer=objectLayer(this),
+		objsLength=layer.objs.length-1;
+		if(n=='bottom')n=0;
+		if(n=='top')n=objsLength;
+		if(n<0)n=0;
+		if(n>objsLength)n=objsLength;
+		this._level=n;
+		layer.optns.anyObjLevelChanged = true;
 		redraw(this);
 		return this;
 	}
@@ -1420,14 +1430,6 @@ proto.object=function()
 			this.fadeOut(duration,easing,onstep,fn);
 		else
 			this.fadeIn(duration,easing,onstep,fn);
-		return this;
-	}
-	this.level=function(n)
-	{
-		if(n == undefined)return this._level;
-		this._level=n;
-		objectLayer(this).optns.anyObjLevelChanged = true;
-		redraw(this);
 		return this;
 	}
 	this.instanceOf=function(name)
@@ -2243,31 +2245,17 @@ proto.layer=function()
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
-	this.up=function(n)
-	{
-		if(n === undefined)n=1;
-		if(n == 'top')n=objectCanvas(this).layers.length-1;
-		this._level+=n;
-		var optns=objectCanvas(this).optns;
-		optns.anyLayerLevelChanged = true;
-		optns.redraw=1;
-		return this;
-	}
-	this.down=function(n)
-	{
-		if(n == undefined)n=1;
-		if(n == 'bottom')n=this._level;
-		this._level-=n;
-		var optns=objectCanvas(this).optns;
-		optns.anyLayerLevelChanged = true;
-		optns.redraw=1;
-		return this;
-	}
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;
+		var canvas=objectCanvas(this),
+			optns=canvas.optns,
+			layersLength=canvas.layers.length-1;
+		if(n=='bottom')n=0;
+		if(n=='top')n=layersLength;
+		if(n<0)n=0;
+		if(n>layersLength)n=layersLength;
 		this._level=n;
-		var optns=objectCanvas(this).optns;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
 		return this;
