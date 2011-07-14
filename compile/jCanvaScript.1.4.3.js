@@ -2205,7 +2205,7 @@ proto.layer=function()
 		}
 		for(i=1;i<objs.length;i++)
 		{
-			rect=objs[i].getRect(type);
+			var rect=objs[i].getRect(type);
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
 			if(points.width<rect.width)points.width=rect.width;
