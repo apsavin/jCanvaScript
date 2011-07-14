@@ -2753,7 +2753,13 @@ jCanvaScript.canvas = function(idCanvas)
 	canvases[limit]=canvas;
 	lastCanvas=limit;
 	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v' && G_vmlCanvasManager!==undefined)G_vmlCanvasManager.initElement(canvas.cnv);
+	if ('\v'=='v')
+	{
+		if(typeof G_vmlCanvasManager!=='undefined')
+			G_vmlCanvasManager.initElement(canvas.cnv);
+		if(typeof FlashCanvas !=='undefined')
+			FlashCanvas.initElement(canvas.cnv);
+	}
 	canvas.optns =
 	{
 		id:idCanvas,
@@ -2862,11 +2868,11 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.frame=function()
 	{
 		var optns=this.optns;
-		if(!optns.redraw)return;
+		if(!optns.redraw)return this;
 		optns.redraw--;
 		optns.ctx.clearRect(0,0,optns.width,optns.height);
 		var limit=this.layers.length;
-		if(limit==0)return;
+		if(limit==0)return this;
 		if(optns.anyLayerLevelChanged)
 			levelChanger(this.layers);
 		if(optns.anyLayerDeleted)
@@ -3019,6 +3025,7 @@ jCanvaScript.canvas = function(idCanvas)
             mouseDblClick.object=false;
         }
 		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
+		return this;
 	}
 	return canvas;
 }
