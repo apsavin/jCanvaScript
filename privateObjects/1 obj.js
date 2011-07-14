@@ -1,7 +1,7 @@
 proto.object=function()
 {
 	this.position=function(){
-		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));;
+		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;

@@ -775,7 +775,7 @@ var proto={};
 proto.object=function()
 {
 	this.position=function(){
-		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));;
+		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
 	this.buffer=function(doBuffering){
 		var bufOptns=this.optns.buffer;
@@ -2205,7 +2205,7 @@ proto.layer=function()
 		}
 		for(i=1;i<objs.length;i++)
 		{
-			var rect=objs[i].getRect(type);
+			rect=objs[i].getRect(type);
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
 			if(points.width<rect.width)points.width=rect.width;
@@ -2938,7 +2938,7 @@ jCanvaScript.canvas = function(idCanvas)
 					drag.fn=mouseDownObjects[i].optns.drag.fn;
 					drag.init=mouseDownObjects[i];
 					if(drag.init.optns.drag.params!==undefined)drag.object.animate(drag.init.optns.drag.params);
-					var point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
+					point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
 					drag.x=point.x;
 					drag.y=point.y;
 					if(drag.object!=drag.init && drag.init.optns.drag.type!='clone')
