@@ -5,177 +5,178 @@
  * Copyright 2011, Alexander Savin
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
-(function(window,undefined){
-var canvases = [],
-m=Math,
-m_pi=m.PI,
-pi2=m_pi*2,
-lastCanvas=0,lastLayer=0,
-underMouse = false,
-regHasLetters = /[A-z]+?/,
-regNumsWithMeasure = /\d.\w\w/,
-FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
-radian=180/m_pi,
-m_max=m.max,
-m_min=m.min,
-m_cos=m.cos,
-m_sin=m.sin,
-m_floor=m.floor,
-m_round=m.round,
-m_abs=m.abs,
-m_pow=m.pow,
-m_sqrt=m.sqrt;
-if (FireFox!="" && FireFox!==null)FireFox=true;
-else FireFox=false;
+(function (window, undefined)
+{
+	var canvases = [],
+	m = Math,
+	m_pi = m.PI,
+	pi2 = m_pi*2,
+	lastCanvas = 0,lastLayer = 0,
+	underMouse = false,
+	regHasLetters = /[A-z]+?/,
+	regNumsWithMeasure = /\d.\w\w/,
+	FireFox = window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
+	radian = 180/m_pi,
+	m_max = m.max,
+	m_min = m.min,
+	m_cos = m.cos,
+	m_sin = m.sin,
+	m_floor = m.floor,
+	m_round = m.round,
+	m_abs = m.abs,
+	m_pow = m.pow,
+	m_sqrt = m.sqrt;
+	if (FireFox!="" && FireFox!==null)FireFox=true;
+	else FireFox=false;
 
-function findById(i,j,stroke)
-{
-	var objs=canvases[i].layers[j].objs;
-	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
-	var limit=objs.length;
-	for(var k=0;k<limit;k++)
-		if('#'+objs[k].optns.id==stroke)return objs[k];
-	limit=grdntsnptrns.length;
-	for(k=0;k<limit;k++)
-		if('#'+grdntsnptrns[k].optns.id==stroke)return grdntsnptrns[k];
-	return false;
-}
-function findByName(i,j,myGroup,stroke)
-{
-	var objs=canvases[i].layers[j].objs;
-	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
-	var limit=objs.length;
-	for(var k=0;k<limit;k++)
-		if(('.'+objs[k]._name)==stroke)myGroup.elements.push(objs[k]);
-	limit=grdntsnptrns.length;
-	for(k=0;k<limit;k++)
-		if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements.push(grdntsnptrns[k]);
-	return myGroup;
-}
-function findByCanvasAndLayer(i,j,myGroup)
-{
-	var objs=canvases[i].layers[j].objs;
-	var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
-	var limit=objs.length;
-	for(var k=0;k<limit;k++)
-		myGroup.elements.push(objs[k]);
-	limit=grdntsnptrns.length;
-	for(k=0;k<limit;k++)
-		myGroup.elements.push(grdntsnptrns[k]);
-	return myGroup;
-}
-var jCanvaScript=function(stroke,map)
-{
-	if(stroke===undefined)return this;
-	if(typeof stroke=='object')
+	function findById(i, j, stroke)
 	{
-		map=stroke;
-		stroke=undefined;
+		var objs=canvases[i].layers[j].objs;
+		var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+		var limit=objs.length;
+		for(var k=0;k<limit;k++)
+			if('#'+objs[k].optns.id==stroke)return objs[k];
+		limit=grdntsnptrns.length;
+		for(k=0;k<limit;k++)
+			if('#'+grdntsnptrns[k].optns.id==stroke)return grdntsnptrns[k];
+		return false;
 	}
-	var canvas=-1,layer=-1,limitC=canvases.length,limitL=0,limit=0,myGroup=group();
-	if (map===undefined)
+	function findByName(i, j, myGroup, stroke)
 	{
-		if(stroke.charAt(0)=='#')
-		{
-			for(i=0;i<limitC;i++)
-			{
-				limitL=canvases[i].layers.length;
-				for (j=0;j<limitL;j++)
-				{
-					var element=findById(i,j,stroke);
-					if(element)return element;
-				}
-			}
-		}
-		if(stroke.charAt(0)=='.')
-		{
-			for(var i=0;i<limitC;i++)
-			{
-				limitL=canvases[i].layers.length;
-				for (var j=0;j<limitL;j++)
-				{
-					myGroup=findByName(i,j,myGroup,stroke);
-				}
-			}
-			return myGroup;
-		}
+		var objs=canvases[i].layers[j].objs;
+		var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+		var limit=objs.length;
+		for(var k=0;k<limit;k++)
+			if(('.'+objs[k]._name)==stroke)myGroup.elements.push(objs[k]);
+		limit=grdntsnptrns.length;
+		for(k=0;k<limit;k++)
+			if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements.push(grdntsnptrns[k]);
+		return myGroup;
 	}
-	else
+	function findByCanvasAndLayer (i, j, myGroup)
 	{
-		if(map.canvas!==undefined)
+		var objs=canvases[i].layers[j].objs;
+		var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
+		var limit=objs.length;
+		for(var k=0;k<limit;k++)
+			myGroup.elements.push(objs[k]);
+		limit=grdntsnptrns.length;
+		for(k=0;k<limit;k++)
+			myGroup.elements.push(grdntsnptrns[k]);
+		return myGroup;
+	}
+	var jCanvaScript=function (stroke, map)
+	{
+		if(stroke===undefined)return this;
+		if(typeof stroke=='object')
 		{
-			for(i=0;i<limitC;i++)
-				if(canvases[i].optns.id==map.canvas){canvas=i;break;}
+			map=stroke;
+			stroke=undefined;
 		}
-		if(map.layer!==undefined)
+		var canvas=-1,layer=-1,limitC=canvases.length,limitL=0,limit=0,myGroup=group();
+		if (map===undefined)
 		{
-			if(canvas!=-1)
-			{
-				limit=canvases[canvas].layers.length;
-				for(i=0;i<limit;i++)
-					if(canvases[canvas].layers[i].optns.id==map.layer){layer=i;break;}
-			}
-			else
+			if(stroke.charAt(0)=='#')
 			{
 				for(i=0;i<limitC;i++)
 				{
-					limit=canvases[i].layers.length;
-					for (j=0;j<limit;j++)
+					limitL=canvases[i].layers.length;
+					for (j=0;j<limitL;j++)
 					{
-						if(canvases[i].layers[j].optns.id==map.layer){canvas=i;layer=j;break;}
+						var element=findById(i,j,stroke);
+						if(element)return element;
 					}
-					if (layer>-1)break;
-				}
-			}
-		}
-		if(layer<0 && canvas<0)return false;
-		if (layer<0)
-		{
-			limitL=canvases[canvas].layers.length;
-			if (stroke===undefined)
-			{
-				for (j=0;j<limitL;j++)
-				{
-					myGroup=findByCanvasAndLayer(canvas,j,myGroup);
-				}
-				return myGroup;
-			}
-			if(stroke.charAt(0)=='#')
-			{
-				for (j=0;j<limitL;j++)
-				{
-					element=findById(canvas,j,stroke);
-					if(element)return element;
 				}
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				for (j=0;j<limitL;j++)
+				for(var i=0;i<limitC;i++)
 				{
-					myGroup=findByName(canvas,j,myGroup,stroke);
+					limitL=canvases[i].layers.length;
+					for (var j=0;j<limitL;j++)
+					{
+						myGroup=findByName(i,j,myGroup,stroke);
+					}
 				}
 				return myGroup;
 			}
 		}
 		else
 		{
-			if(stroke===undefined)
+			if(map.canvas!==undefined)
 			{
-				return findByCanvasAndLayer(canvas,layer,myGroup);
+				for(i=0;i<limitC;i++)
+					if(canvases[i].optns.id==map.canvas){canvas=i;break;}
 			}
-			if(stroke.charAt(0)=='#')
+			if(map.layer!==undefined)
 			{
-				return findById(canvas,layer,stroke);
+				if(canvas!=-1)
+				{
+					limit=canvases[canvas].layers.length;
+					for(i=0;i<limit;i++)
+						if(canvases[canvas].layers[i].optns.id==map.layer){layer=i;break;}
+				}
+				else
+				{
+					for(i=0;i<limitC;i++)
+					{
+						limit=canvases[i].layers.length;
+						for (j=0;j<limit;j++)
+						{
+							if(canvases[i].layers[j].optns.id==map.layer){canvas=i;layer=j;break;}
+						}
+						if (layer>-1)break;
+					}
+				}
 			}
-			if(stroke.charAt(0)=='.')
+			if(layer<0 && canvas<0)return false;
+			if (layer<0)
 			{
-				return findByName(canvas,layer,myGroup,stroke)
+				limitL=canvases[canvas].layers.length;
+				if (stroke===undefined)
+				{
+					for (j=0;j<limitL;j++)
+					{
+						myGroup=findByCanvasAndLayer(canvas,j,myGroup);
+					}
+					return myGroup;
+				}
+				if(stroke.charAt(0)=='#')
+				{
+					for (j=0;j<limitL;j++)
+					{
+						element=findById(canvas,j,stroke);
+						if(element)return element;
+					}
+				}
+				if(stroke.charAt(0)=='.')
+				{
+					for (j=0;j<limitL;j++)
+					{
+						myGroup=findByName(canvas,j,myGroup,stroke);
+					}
+					return myGroup;
+				}
+			}
+			else
+			{
+				if(stroke===undefined)
+				{
+					return findByCanvasAndLayer(canvas,layer,myGroup);
+				}
+				if(stroke.charAt(0)=='#')
+				{
+					return findById(canvas,layer,stroke);
+				}
+				if(stroke.charAt(0)=='.')
+				{
+					return findByName(canvas,layer,myGroup,stroke)
+				}
 			}
 		}
 	}
-}
 
-
+	
 function checkDefaults(check,def)
 {
 	for(var key in def)
@@ -771,7 +772,7 @@ function objDeleter(array)
 var proto={};
 
 
-
+	
 proto.object=function()
 {
 	this.position=function(){
@@ -2586,7 +2587,7 @@ function group()
 	return group.base();
 }
 
-
+	
 jCanvaScript.addFunction=function(name,fn,prototype)
 {
 	proto[prototype||'object'].prototype[name]=fn;
@@ -2657,7 +2658,7 @@ jCanvaScript.start=function(idCanvas,fps)
 	return jCanvaScript;
 }
 
-
+	
 
 jCanvaScript.pattern = function(img,type)
 {
@@ -2724,13 +2725,14 @@ jCanvaScript.text = function(string,x,y,maxWidth,color,fill)
 	return text.base(string,x,y,maxWidth,color,fill);
 }
 
-
+	
 jCanvaScript.canvas = function(idCanvas)
 {
 	if(idCanvas===undefined)return canvases[0];
 	var limit=canvases.length;
 	for (var i=0;i<limit;i++)
-		if(canvases[i].optns.id==idCanvas)return canvases[i];
+		if(canvases[i].optns)
+			if(canvases[i].optns.id==idCanvas)return canvases[i];
 	var canvas={
 		id:function(id)
 		{
@@ -3029,4 +3031,4 @@ jCanvaScript.layer=function(idLayer)
 	return layers(idLayer);
 }
 
-window.jCanvaScript=window.jc=jCanvaScript;})(window,undefined);
+window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);

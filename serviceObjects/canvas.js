@@ -3,7 +3,8 @@ jCanvaScript.canvas = function(idCanvas)
 	if(idCanvas===undefined)return canvases[0];
 	var limit=canvases.length;
 	for (var i=0;i<limit;i++)
-		if(canvases[i].optns.id==idCanvas)return canvases[i];
+		if(canvases[i].optns)
+			if(canvases[i].optns.id==idCanvas)return canvases[i];
 	var canvas={
 		id:function(id)
 		{
