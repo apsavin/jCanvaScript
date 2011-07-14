@@ -6,13 +6,25 @@
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(window,undefined){
-var canvases = [],pi=Math.PI*2,
+var canvases = [],
+m=Math,
+m_pi=m.PI,
+pi2=m_pi*2,
 lastCanvas=0,lastLayer=0,
 underMouse = false,
 regHasLetters = /[A-z]+?/,
 regNumsWithMeasure = /\d.\w\w/,
 FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
-radian=180/Math.PI;
+radian=180/m_pi,
+m_max=m.max,
+m_min=m.min,
+m_cos=m.cos,
+m_sin=m.sin,
+m_floor=m.floor,
+m_round=m.round,
+m_abs=m.abs,
+m_pow=m.pow,
+m_sqrt=m.sqrt;
 if (FireFox!="" && FireFox!==null)FireFox=true;
 else FireFox=false;
 

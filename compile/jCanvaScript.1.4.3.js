@@ -6,13 +6,25 @@
  * Dual licensed under the MIT or GPL Version 2 licenses.
  */
 (function(window,undefined){
-var canvases = [],pi=Math.PI*2,
+var canvases = [],
+m=Math,
+m_pi=m.PI,
+pi2=m_pi*2,
 lastCanvas=0,lastLayer=0,
 underMouse = false,
 regHasLetters = /[A-z]+?/,
 regNumsWithMeasure = /\d.\w\w/,
 FireFox=window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
-radian=180/Math.PI;
+radian=180/m_pi,
+m_max=m.max,
+m_min=m.min,
+m_cos=m.cos,
+m_sin=m.sin,
+m_floor=m.floor,
+m_round=m.round,
+m_abs=m.abs,
+m_pow=m.pow,
+m_sqrt=m.sqrt;
 if (FireFox!="" && FireFox!==null)FireFox=true;
 else FireFox=false;
 
@@ -296,37 +308,37 @@ var animateFunctions={
 	},
 	exp:function(progress,params){
 		var n=params.n||2;
-		return Math.pow(progress,n);
+		return m_pow(progress,n);
 	},
 	circ:function(progress,params){
-		return 1 - Math.sqrt(1-progress*progress);
+		return 1 - m_sqrt(1-progress*progress);
 	},
 	sine:function(progress,params){
-		return 1 - Math.sin((1 - progress) * Math.PI/2);
+		return 1 - m_sin((1 - progress) * m_pi/2);
 	},
 	back:function(progress,params){
 		var n=params.n||2;
 		var x=params.x||1.5;
-		return Math.pow(progress, n) * ((x + 1) * progress - x);
+		return m_pow(progress, n) * ((x + 1) * progress - x);
 	},
 	elastic:function(progress,params){
 		var n=params.n||2;
 		var m=params.m||20;
 		var k=params.k||3;
 		var x=params.x||1.5;
-		return Math.pow(n,10 * (progress - 1)) * Math.cos(m * progress * Math.PI * x / k);
+		return m_pow(n,10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
 	},
 	bounce:function(progress,params)
 	{
 		var n=params.n||4;
 		var b=params.b||0.25;
 		var sum = [1];
-		for(var i=1; i<n; i++) sum[i] = sum[i-1] + Math.pow(b, i/2);
+		for(var i=1; i<n; i++) sum[i] = sum[i-1] + m_pow(b, i/2);
 		var x = 2*sum[n-1]-1;
 		for(i=0; i<n; i++)
 		{
 			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
-				return Math.pow(x*(progress-(2*sum[i]-1-Math.pow(b, i/2))/x), 2)+1-Math.pow(b, i);
+				return m_pow(x*(progress-(2*sum[i]-1-m_pow(b, i/2))/x), 2)+1-m_pow(b, i);
 		}
 		return 1;
 	}
@@ -548,8 +560,8 @@ function getOffsetRect(elem) {
 	var top  = box.top +  scrollTop - clientTop
 	var left = box.left + scrollLeft - clientLeft
 	return {
-		top: Math.round(top),
-		left: Math.round(left)
+		top: m_round(top),
+		left: m_round(left)
 	}
 }
 function checkEvents(object,optns)
@@ -1208,8 +1220,8 @@ proto.object=function()
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
 		x=x/radian;
-		var cos=Math.cos(x);
-		var sin=Math.sin(x);
+		var cos=m_cos(x);
+		var sin=m_sin(x);
 		var matrix=[];
 		if(x1===undefined)
 		{
@@ -1747,8 +1759,8 @@ proto.arc=function(){
 	{
 		var points={x:this._x,y:this._y},
 		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
-		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
-		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
+		startY=m_floor(m_sin(startAngle/radian)*radius), startX=m_floor(m_cos(startAngle/radian)*radius),
+		endY=m_floor(m_sin(endAngle/radian)*radius), endX=m_floor(m_cos(endAngle/radian)*radius),
 		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
 		points.width=points.height=radius;
 		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
@@ -1768,14 +1780,14 @@ proto.arc=function(){
 				else
 				if(endX>0 && endY<0 && startX<0)
 				{
-					points.y+=Math.min(endY,startY);
-					points.height-=Math.min(endY,startY);
+					points.y+=m_min(endY,startY);
+					points.height-=m_min(endY,startY);
 				}
 				else
 				{
-					if(negtiveYs)points.y-=Math.max(endY,startY);
+					if(negtiveYs)points.y-=m_max(endY,startY);
 					else points.y-=radius;
-					points.height+=Math.max(endY,startY);
+					points.height+=m_max(endY,startY);
 				}
 			}
 			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY==0 && endY==0))
@@ -1787,14 +1799,14 @@ proto.arc=function(){
 			{
 				if(endY<0 && startY>0)
 				{
-					points.x+=Math.min(endX,startX);
-					points.width-=Math.min(endX,startX);
+					points.x+=m_min(endX,startX);
+					points.width-=m_min(endX,startX);
 				}
 				else
 				{
-					if(negtiveXs)points.x-=Math.max(endX,startX);
+					if(negtiveXs)points.x-=m_max(endX,startX);
 					else points.x-=radius;
-					points.width+=Math.max(endX,startX);
+					points.width+=m_max(endX,startX);
 				}
 			}
 		}
@@ -1806,50 +1818,50 @@ proto.arc=function(){
 			negtiveYs=startY<=0 && endY<=0;
 			if(negtiveYs && positiveXs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width-=Math.min(endX,startX);
-				points.y+=Math.min(endY,startY);
-				points.height+=Math.max(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width-=m_min(endX,startX);
+				points.y+=m_min(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (negtiveYs && negtiveXs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width+=Math.max(endX,startX);
-				points.y+=Math.min(endY,startY);
-				points.height+=Math.max(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width+=m_max(endX,startX);
+				points.y+=m_min(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (negtiveYs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width+=Math.max(endX,startX);
+				points.x+=m_min(endX,startX);
+				points.width+=m_max(endX,startX);
 				points.y-=radius;
-				points.height+=Math.max(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (positiveXs && positiveYs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width=Math.abs(endX-startX);
-				points.y+=Math.min(endY,startY);
-				points.height-=Math.min(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width=m_abs(endX-startX);
+				points.y+=m_min(endY,startY);
+				points.height-=m_min(endY,startY);
 			}
 			else if (positiveYs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width=Math.abs(endX)+Math.abs(startX);
-				points.y+=Math.min(endY,startY);
-				points.height-=Math.min(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width=m_abs(endX)+m_abs(startX);
+				points.y+=m_min(endY,startY);
+				points.height-=m_min(endY,startY);
 			}
 			else if (negtiveXs)
 			{
 				points.x-=radius;
-				points.width+=Math.max(endX,startX);
+				points.width+=m_max(endX,startX);
 				points.y-=radius;
-				points.height+=Math.max(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (positiveXs)
 			{
 				points.x-=radius;
-				points.width+=Math.max(endX,startX);
+				points.width+=m_max(endX,startX);
 				points.y-=radius;
 				points.height+=radius;
 			}

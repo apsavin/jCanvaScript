@@ -446,8 +446,8 @@ proto.object=function()
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
 		x=x/radian;
-		var cos=Math.cos(x);
-		var sin=Math.sin(x);
+		var cos=m_cos(x);
+		var sin=m_sin(x);
 		var matrix=[];
 		if(x1===undefined)
 		{
