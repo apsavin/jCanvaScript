@@ -308,7 +308,7 @@ function parseColor(color)
 		r:0,
 		g:0,
 		b:0,
-		a:0};
+		a:1};
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={
@@ -320,7 +320,7 @@ function parseColor(color)
 	}
 	if(color.r!==undefined)
 	{
-		colorKeeper=checkDefaults(color,{a:1});
+		colorKeeper=checkDefaults(color,{r:0,g:0,b:0,a:1});
 		colorKeeper.color={
 			val:'rgba('+colorKeeper.r+','+colorKeeper.g+','+colorKeeper.b+','+colorKeeper.a+')',
 			notColor:undefined
@@ -332,7 +332,6 @@ function parseColor(color)
 		colorKeeper.r=parseInt(color.substr(1,2),16);
 		colorKeeper.g=parseInt(color.substr(3,2),16);
 		colorKeeper.b=parseInt(color.substr(5,2),16);
-		colorKeeper.a=1;
 	}
 	else
 	{
@@ -353,7 +352,6 @@ function parseColor(color)
 			colorKeeper.r=parseInt(colorR[1]);
 			colorKeeper.g=parseInt(arr[1]);
 			colorKeeper.b=parseInt(colorB[0]);
-			colorKeeper.a=1;
 		}
 	}
 	colorKeeper.color.notColor = undefined;
