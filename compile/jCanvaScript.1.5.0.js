@@ -907,14 +907,28 @@ proto.object=function()
 	{
 		if(n === undefined)n=1;
 		if(n=='top')this.level(n);
-		else this.level(this._level+n);
+		else {
+			var next=objectLayer(this).objs[this.optns.number+n];
+			if(next!==undefined)
+			{
+				n=next._level+1-this._level;
+			}
+			this.level(this._level+n);
+		}
 		return this;
 	}
 	this.down=function(n)
 	{
 		if(n == undefined)n=1;
 		if(n == 'bottom')this.level(n);
-		else this.level(this._level-n);
+		else {
+			var previous=objectLayer(this).objs[this.optns.number-n];
+			if(previous!==undefined)
+			{
+				n=this._level-(previous._level-1);
+			}
+			this.level(this._level-n);
+		}
 		return this;
 	}
 	this.level=function(n)
@@ -2284,6 +2298,34 @@ proto.layer=function()
 		setLayerAndCanvasToArray(this.objs,this.optns.id,this._level,idCanvas,newCanvas);
 		setLayerAndCanvasToArray(this.grdntsnptrns,this.optns.id,this._level,idCanvas,newCanvas);
 		canvases[newCanvas].optns.redraw=1;
+		return this;
+	}
+	this.up=function(n)
+	{
+		if(n === undefined)n=1;
+		if(n=='top')this.level(n);
+		else {
+			var next=objectCanvas(this).layers[this.optns.number+n];
+			if(next!==undefined)
+			{
+				n=next._level+1-this._level;
+			}
+			this.level(this._level+n);
+		}
+		return this;
+	}
+	this.down=function(n)
+	{
+		if(n == undefined)n=1;
+		if(n == 'bottom')this.level(n);
+		else {
+			var previous=objectCanvas(this).layers[this.optns.number-n];
+			if(previous!==undefined)
+			{
+				n=this._level-(previous._level-1);
+			}
+			this.level(this._level-n);
+		}
 		return this;
 	}
 	this.level=function(n)

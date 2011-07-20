@@ -71,6 +71,34 @@ proto.layer=function()
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
+	this.up=function(n)
+	{
+		if(n === undefined)n=1;
+		if(n=='top')this.level(n);
+		else {
+			var next=objectCanvas(this).layers[this.optns.number+n];
+			if(next!==undefined)
+			{
+				n=next._level+1-this._level;
+			}
+			this.level(this._level+n);
+		}
+		return this;
+	}
+	this.down=function(n)
+	{
+		if(n == undefined)n=1;
+		if(n == 'bottom')this.level(n);
+		else {
+			var previous=objectCanvas(this).layers[this.optns.number-n];
+			if(previous!==undefined)
+			{
+				n=this._level-(previous._level-1);
+			}
+			this.level(this._level-n);
+		}
+		return this;
+	}
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;

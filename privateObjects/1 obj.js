@@ -101,14 +101,28 @@ proto.object=function()
 	{
 		if(n === undefined)n=1;
 		if(n=='top')this.level(n);
-		else this.level(this._level+n);
+		else {
+			var next=objectLayer(this).objs[this.optns.number+n];
+			if(next!==undefined)
+			{
+				n=next._level+1-this._level;
+			}
+			this.level(this._level+n);
+		}
 		return this;
 	}
 	this.down=function(n)
 	{
 		if(n == undefined)n=1;
 		if(n == 'bottom')this.level(n);
-		else this.level(this._level-n);
+		else {
+			var previous=objectLayer(this).objs[this.optns.number-n];
+			if(previous!==undefined)
+			{
+				n=this._level-(previous._level-1);
+			}
+			this.level(this._level-n);
+		}
 		return this;
 	}
 	this.level=function(n)
