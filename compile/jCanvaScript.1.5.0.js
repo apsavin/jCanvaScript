@@ -526,6 +526,15 @@ function parseColor(color)
 		}
 		return colorKeeper;
 	}
+	if(color.r!==undefined)
+	{
+		colorKeeper=checkDefaults(color,{a:1});
+		colorKeeper.color={
+			val:'rgba('+colorKeeper.r+','+colorKeeper.g+','+colorKeeper.b+','+colorKeeper.a+')',
+			notColor:undefined
+		}
+		return colorKeeper;
+	}
 	if(color.charAt(0)=='#')
 	{
 		colorKeeper.r=parseInt(color.substr(1,2),16);
