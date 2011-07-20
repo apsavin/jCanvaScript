@@ -114,18 +114,22 @@ proto.image=function()
 	}
 	this.draw=function(ctx)
 	{
-		if(this._swidth===false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
-			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
+		ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
 		if(typeof image!='object' || image.onload)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
-		image=checkDefaults(image,{width:false,height:false,sx:false,sy:false,swidth:false,sheight:false});
+		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
 		if(image.width===false)
 		{
 			image.width=image.image.width;
 			image.height=image.image.height;
+		}
+		if(image.swidth===false)
+		{
+			image.swidth=image.image.width;
+			image.sheight=image.image.height;
 		}
 		proto.image.prototype.base.call(this,image);
 		this._img=image.image;

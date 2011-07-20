@@ -14,8 +14,8 @@ function redraw(object)
 
 function animating()
 {
-	var limit=this.animateQueue.length;
-	var progress=1;
+	var limit=this.animateQueue.length,
+	progress=1;
 	for(var q=0;q<limit;q++)
 	{
 		var queue=this.animateQueue[q];
@@ -472,18 +472,19 @@ function layer(idLayer,object,array)
 	var newLayer=jCanvaScript.layer(idLayer);
 	var newIndex={
 		i:newLayer.optns.canvas.number,
-		j:newLayer._level
+		j:newLayer.optns.number
 	};
 	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
-	oldArray.splice(object._level,1);
-	normalizeLevels(oldArray);
-	object._level=newArray.length;
+	oldArray.splice(object.optns.number,1);
+	object._level=object.optns.number=newArray.length;
 	newArray[object._level]=object;
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
+	objectCanvas.id=newLayer.optns.canvas.id;
 	redraw(object);
 	return object;
 }
+
 function take(f,s) {
 	for(var key in s)
 	{
@@ -497,9 +498,10 @@ function take(f,s) {
 				if(key=='optns' || key=='animateQueue')break;
 				if(key=='objs' || key=='grdntsnptrns')
 				{
-					for(var i=0;i<s[key].length;i++)
+					for(var i in s[key])
 					{
-						s[key][i].clone().layer(f.optns.id);
+						if(s[key].hasOwnProperty(i))
+							s[key][i].clone().layer(f.optns.id);
 					}
 					break;
 				}
@@ -530,9 +532,8 @@ function canvas(idCanvas,object,array)
 		if(canvasItem.optns.id==idCanvas)
 		{
 			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
-			oldArray.splice(object._level,1);
-			normalizeLevels(oldArray);
-			object._level=newArray.length;
+			oldArray.splice(object.optns.number,1);
+			object._level=object.optns.number=newArray.length;
 			newArray[object._level]=object;
 			objectLayer.number=0;
 			objectCanvas.number=i;
@@ -546,48 +547,42 @@ function normalizeLevels(array)
 {
 	for(var i=0;i<array.length;i++)
 	{
-		array[i]._level=i;
+		array[i].optns.number=i;
+	}
+}
+function setLayerAndCanvasToArray(array,newLayerId,newLayerNumber,newCanvasId,newCanvasNumber)
+{
+	var limit=array.length,
+	optns,canvas,layer;
+	for(var i=0;i<limit;i++)
+	{
+		optns=array[i].optns;
+		canvas=optns.canvas;
+		layer=optns.layer;
+		canvas.id=newCanvasId;
+		canvas.number=newCanvasNumber;
+		layer.id=newLayerId;
+		layer.number=newLayerNumber;
 	}
 }
 function levelChanger(array)
 {
-	var limit=array.length;
-	var tmp;
-	for(var j=0;j<limit;j++)
-	{
-		if(array[j]._level!=j)
-		{
-			tmp=array[j];
-			var id=tmp._level;
-			if (id>=limit)id=limit-1;
-			if (id<0)id=0;
-			if(id>j)
-				for(var i=j;i<id;i++)
-				{
-					array[i]=array[i+1];
-					array[i]._level=i;
-				}
-			if(id<j)
-				for(i=j;i>id;i--)
-				{
-					array[i]=array[i-1];
-					array[i]._level=i;
-				}
-			array[id]=tmp;
-			array[id]._level=id;
-		}
-	}
+	array.sort(function(a,b){
+		if(a._level>b._level)return 1;
+		if(a._level<b._level)return -1;
+		return 0;
+	});
+	normalizeLevels(array);
+	return array.length;
 }
 function objDeleter(array)
 {
 	for(var i=0;i<array.length;i++)
 	{
 		if(array[i].optns.deleted)
-		{
 			array.splice(i,1);
-			i--;
-		}
 	}
+	normalizeLevels(array);
 	return array.length;
 }
 var proto={};

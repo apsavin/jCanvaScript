@@ -48,13 +48,13 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
-	canvas.start=function(fps)
+	canvas.start=function(isAnimated)
 	{
-		lastCanvas=this.layers[0].optns.canvas.number;
-		if(fps)
+		lastCanvas=this.optns.number;
+		if(isAnimated)
 		{
 			if(this.interval)return this;
-			this.fps=fps;
+			this.isAnimated=isAnimated;
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left;
 			this.optns.y=offset.top;
@@ -62,7 +62,7 @@ jCanvaScript.canvas = function(idCanvas)
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.click.val)return;
 				mouseEvent(e,'click',canvas.optns);
-			};
+			}
 			this.cnv.ondblclick=function(e){
 				if(!canvas.optns.dblclick.val)return;
 				mouseEvent(e,'dblclick',canvas.optns);
@@ -70,11 +70,11 @@ jCanvaScript.canvas = function(idCanvas)
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.mousedown.val)return;
 				mouseEvent(e,'mousedown',canvas.optns);
-			};
+			}
 			this.cnv.onmouseup=function(e){
 				if(!canvas.optns.mouseup.val)return;
 				mouseEvent(e,'mouseup',canvas.optns);
-			};
+			}
 			this.cnv.onkeyup=function(e){
 				keyEvent(e,'keyUp',canvas.optns);
 			}
@@ -99,28 +99,45 @@ jCanvaScript.canvas = function(idCanvas)
 					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
 				}
 			};
-			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
+			this.interval=requestAnimFrame(function(){
+					canvas.interval=canvas.interval||1;
+					canvas.frame();},
+				this.cnv);
 		}
-		else this.frame();
+		else return this.frame();
 		return this;
 	}
 	canvas.pause=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
 	}
 	canvas.del=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.layers=[];
 		canvases.splice(this.optns.number,1);
+		for(var i=0;i<canvases.length;i++)
+		{
+			var canvas=canvases[i],
+			layers=canvas.layers,
+			limitL=layers.length;
+			canvas.optns.number=i;
+			for(var j=0;j<limitL;j++)
+			{
+				var layer=layers[j];
+				layer.optns.canvas.number=i;
+				setLayerAndCanvasToArray(layer.objs,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
+			}
+		}
 		if(this.cnv.parentNode)this.cnv.parentNode.removeChild(this.cnv);
 		lastCanvas=0;
 		return false;
 	}
 	canvas.clear=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
 		this.layers=[];
 		jCanvaScript.layer(this.optns.id+'Layer_0').canvas(this.optns.id);
@@ -130,25 +147,29 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	canvas.frame=function()
 	{
-		var optns=this.optns;
+		var optns=this.optns,thisCanvas=this;
+		if(this.interval)
+		{
+			this.interval=requestAnimFrame(function(){thisCanvas.frame();},this.cnv);
+			this.interval=this.interval||1;
+		}
 		if(!optns.redraw)return this;
 		optns.redraw--;
 		optns.ctx.clearRect(0,0,optns.width,optns.height);
-		var limit=this.layers.length;
-		if(limit==0)return this;
+		if(this.layers.length==0)return this;
+		limit=this.layers.length;
 		if(optns.anyLayerLevelChanged)
-			levelChanger(this.layers);
+			limit=levelChanger(this.layers);
 		if(optns.anyLayerDeleted)
 			limit=objDeleter(this.layers);
 		if(optns.anyLayerLevelChanged || optns.anyLayerDeleted)
 		{
 			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
-			normalizeLevels(this.layers);
 			for(var i=0;i<limit;i++)
 			{
-				var layer=this.layers[i];
-				for(var j=0;i<layer.objs.length;i++)
-					layer.objs[j].optns.layer.number=layer._level;
+				var layer=this.layers[i],layerOptns=layer.optns;
+				setLayerAndCanvasToArray(layer.objs,layerOptns.id,layerOptns.number,this.optns.id,this.optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layerOptns.id,layerOptns.number,idCanvas,this.optns.number);
 			}
 		}
 		for(i=0;i<limit;i++)
@@ -166,7 +187,7 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
-			var point = this.optns.point;
+			var point = this.optns.point||{};
 			point.event=optns.mousemove.event;
 			if(optns.mousemove.object!=false)
 			{

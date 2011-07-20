@@ -1,17 +1,51 @@
 <body onload="start()">
-<script src="jCanvaScript.1.4.4.js" type="text/javascript"></script>
+<script src="jCanvaScript.1.5.0.js" type="text/javascript"></script>
 <script type="text/javascript">
 	function start()
 	{
 		jc.start('myCanvas',25);
-		jc.rect(0,0,100,100,1).layer('rect');
-		jc.circle(100,100,50,'#ff0000',1).layer('circle');
+		jc.rect(0,0,100,100,1).id('rect');
+		jc.circle(100,100,50,'#ff0000',1).id('circle');
 	}
 	function up()
 	{
-		var rect=jc.layer('rect').up();
-		var circ=jc.layer('circle');
-		console.log(rect.level());
+		var rect=jc('#rect'), circ=jc('#circle');
+		console.log('rect before '+rect.level());
+		console.log('circle before '+circ.level());
+		rect.level(101);
+		circ.level(100);
+		console.log('rect after '+rect.level());
+		console.log('circle after '+circ.level());
+	}
+	function top()
+	{
+		var rect=jc('#rect'), circ=jc('#circle');
+		console.log('rect before '+rect.level());
+		console.log('circle before '+circ.level());
+		circ.level('top');
+		console.log('rect after '+rect.level());
+		console.log('circle after '+circ.level());
+	}
+	function bottom()
+	{
+		var rect=jc('#rect'), circ=jc('#circle');
+		console.log('rect before '+rect.level());
+		console.log('circle before '+circ.level());
+		circ.level('bottom');
+		console.log('rect after '+rect.level());
+		console.log('circle after '+circ.level());
+	}
+	function oneMore()
+	{
+		jc.circle(100,50,50,'#ffff00',1).id('circle2');
+		var rect=jc('#rect'), circ=jc('#circle'),circ2=jc('#circle2');
+		console.log('rect before '+rect.level());
+		console.log('circle before '+circ.level());
+		console.log('circle2 before '+circ2.level());
+		circ.level('bottom');
+		console.log('rect after '+rect.level());
+		console.log('circle after '+circ.level());
+		console.log('circle2 after '+circ2.level());
 	}
 </script>
 <style>
@@ -19,6 +53,9 @@
 		border:1px solid black;
 	}
 </style>
-<canvas id="myCanvas" width="800px" height="600px"></canvas>
-<input type="button" onclick="up()"/>
+<canvas id="myCanvas" width="400px" height="400px"></canvas><br/>
+<input type="button" onclick="up()" value="1"/>
+<input type="button" onclick="top()" value="2"/>
+<input type="button" onclick="bottom()" value="3"/>
+<input type="button" onclick="oneMore()" value="4"/>
 </body>

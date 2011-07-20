@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.4.4
+ * jCanvaScript JavaScript Library v 1.5.0
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -25,43 +25,60 @@
 	m_round = m.round,
 	m_abs = m.abs,
 	m_pow = m.pow,
-	m_sqrt = m.sqrt;
+	m_sqrt = m.sqrt,
+	fps=1000/60,
+	requestAnimFrame = (function(){return window.requestAnimationFrame       ||
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame    ||
+              window.oRequestAnimationFrame      ||
+              window.msRequestAnimationFrame     ||
+              function(callback, element){
+				return setTimeout(callback, fps);
+              }})(),
+	cancelRequestAnimFrame = (function(){return window.cancelAnimationFrame   ||
+			window.webkitCancelRequestAnimationFrame    ||
+			window.mozCancelRequestAnimationFrame       ||
+			window.oCancelRequestAnimationFrame     ||
+			window.msCancelRequestAnimationFrame        ||
+			clearTimeout})();
 	if (FireFox!="" && FireFox!==null)FireFox=true;
 	else FireFox=false;
 
 	function findById(i, j, stroke)
 	{
-		var objs=canvases[i].layers[j].objs;
-		var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
-		var limit=objs.length;
-		for(var k=0;k<limit;k++)
-			if('#'+objs[k].optns.id==stroke)return objs[k];
-		limit=grdntsnptrns.length;
-		for(k=0;k<limit;k++)
-			if('#'+grdntsnptrns[k].optns.id==stroke)return grdntsnptrns[k];
+		var objs=canvases[i].layers[j].objs,
+		grdntsnptrns=canvases[i].layers[j].grdntsnptrns,
+		objsLength=objs.length,
+		grdntsnptrnsLength=grdntsnptrns.length;
+		stroke=stroke.slice(1);
+		for(var k=0;k<objsLength;k++)
+			if(objs[k].optns.id==stroke)return objs[k];
+		for(k=0;k<grdntsnptrnsLength;k++)
+			if(grdntsnptrns[k].optns.id==stroke)return grdntsnptrns[k];
 		return false;
 	}
 	function findByName(i, j, myGroup, stroke)
 	{
-		var objs=canvases[i].layers[j].objs;
-		var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
-		var limit=objs.length;
-		for(var k=0;k<limit;k++)
-			if(('.'+objs[k]._name)==stroke)myGroup.elements.push(objs[k]);
-		limit=grdntsnptrns.length;
-		for(k=0;k<limit;k++)
-			if(('.'+grdntsnptrns[k]._name)==stroke)myGroup.elements.push(grdntsnptrns[k]);
+		var objs=canvases[i].layers[j].objs,
+		grdntsnptrns=canvases[i].layers[j].grdntsnptrns,
+		objsLength=objs.length,
+		grdntsnptrnsLength=grdntsnptrns.length;
+		stroke=stroke.slice(1);
+		for(var k=0;k<objsLength;k++)
+			if(objs[k]._name==stroke)myGroup.elements.push(objs[k]);
+		for(k=0;k<grdntsnptrnsLength;k++)
+			if(grdntsnptrns[k]._name==stroke)myGroup.elements.push(grdntsnptrns[k]);
 		return myGroup;
 	}
 	function findByCanvasAndLayer (i, j, myGroup)
 	{
-		var objs=canvases[i].layers[j].objs;
-		var grdntsnptrns=canvases[i].layers[j].grdntsnptrns;
-		var limit=objs.length;
-		for(var k=0;k<limit;k++)
+		var objs=canvases[i].layers[j].objs,
+		grdntsnptrns=canvases[i].layers[j].grdntsnptrns,
+		objsLength=objs.length,
+		grdntsnptrnsLength=grdntsnptrns.length;
+		for(var k=0;k<objsLength;k++)
 			myGroup.elements.push(objs[k]);
-		limit=grdntsnptrns.length;
-		for(k=0;k<limit;k++)
+		for(k=0;k<grdntsnptrnsLength;k++)
 			myGroup.elements.push(grdntsnptrns[k]);
 		return myGroup;
 	}
@@ -73,7 +90,7 @@
 			map=stroke;
 			stroke=undefined;
 		}
-		var canvas=-1,layer=-1,limitC=canvases.length,limitL=0,limit=0,myGroup=group();
+		var canvasNumber=-1,layerNumber=-1,limitC=canvases.length,limit=0,myGroup=group(),i,j,canvas,layer,layers,element,limitL;
 		if (map===undefined)
 		{
 			if(stroke.charAt(0)=='#')
@@ -83,20 +100,18 @@
 					limitL=canvases[i].layers.length;
 					for (j=0;j<limitL;j++)
 					{
-						var element=findById(i,j,stroke);
+						element=findById(i,j,stroke);
 						if(element)return element;
 					}
 				}
 			}
 			if(stroke.charAt(0)=='.')
 			{
-				for(var i=0;i<limitC;i++)
+				for(i=0;i<limitC;i++)
 				{
 					limitL=canvases[i].layers.length;
-					for (var j=0;j<limitL;j++)
-					{
+					for (j=0;j<limitL;j++)
 						myGroup=findByName(i,j,myGroup,stroke);
-					}
 				}
 				return myGroup;
 			}
@@ -106,55 +121,69 @@
 			if(map.canvas!==undefined)
 			{
 				for(i=0;i<limitC;i++)
-					if(canvases[i].optns.id==map.canvas){canvas=i;break;}
+					if(canvases[i].optns.id==map.canvas){
+						canvasNumber=i;
+						canvas=canvases[i];
+						break;
+					}
 			}
 			if(map.layer!==undefined)
 			{
-				if(canvas!=-1)
+				if(canvasNumber!=-1)
 				{
-					limit=canvases[canvas].layers.length;
-					for(i=0;i<limit;i++)
-						if(canvases[canvas].layers[i].optns.id==map.layer){layer=i;break;}
+					limitL=canvas.layers.length;
+					for(i=0;i<limitL;i++)
+						if(canvas.layers[i].optns.id==map.layer)
+						{
+							layerNumber=i;
+							layer=canvas.layers[i];
+							break;
+						}
 				}
 				else
 				{
 					for(i=0;i<limitC;i++)
 					{
-						limit=canvases[i].layers.length;
-						for (j=0;j<limit;j++)
+						layers=canvases[i].layers;
+						limitL=layers.length;
+						for (j=0;j<limitL;j++)
 						{
-							if(canvases[i].layers[j].optns.id==map.layer){canvas=i;layer=j;break;}
+							if(layers[j].optns.id==map.layer)
+							{
+								canvasNumber=i;
+								layerNumber=j;
+								canvas=canvases[i]
+								layer=canvas.layers[j];
+								break;
+							}
 						}
 						if (layer>-1)break;
 					}
 				}
 			}
-			if(layer<0 && canvas<0)return false;
-			if (layer<0)
+			if(layerNumber<0 && canvasNumber<0)return false;
+			if (layerNumber<0)
 			{
-				limitL=canvases[canvas].layers.length;
+				layers=canvas.layers;
+				limitL=layers.length;
 				if (stroke===undefined)
 				{
 					for (j=0;j<limitL;j++)
-					{
-						myGroup=findByCanvasAndLayer(canvas,j,myGroup);
-					}
+						myGroup=findByCanvasAndLayer(canvasNumber,j,myGroup);
 					return myGroup;
 				}
 				if(stroke.charAt(0)=='#')
 				{
 					for (j=0;j<limitL;j++)
 					{
-						element=findById(canvas,j,stroke);
+						element=findById(canvasNumber,j,stroke);
 						if(element)return element;
 					}
 				}
 				if(stroke.charAt(0)=='.')
 				{
 					for (j=0;j<limitL;j++)
-					{
-						myGroup=findByName(canvas,j,myGroup,stroke);
-					}
+						myGroup=findByName(canvasNumber,j,myGroup,stroke);
 					return myGroup;
 				}
 			}
@@ -162,15 +191,15 @@
 			{
 				if(stroke===undefined)
 				{
-					return findByCanvasAndLayer(canvas,layer,myGroup);
+					return findByCanvasAndLayer(canvasNumber,layerNumber,myGroup);
 				}
 				if(stroke.charAt(0)=='#')
 				{
-					return findById(canvas,layer,stroke);
+					return findById(canvasNumber,layerNumber,stroke);
 				}
 				if(stroke.charAt(0)=='.')
 				{
-					return findByName(canvas,layer,myGroup,stroke)
+					return findByName(canvasNumber,layerNumber,myGroup,stroke)
 				}
 			}
 		}
@@ -193,8 +222,8 @@ function redraw(object)
 
 function animating()
 {
-	var limit=this.animateQueue.length;
-	var progress=1;
+	var limit=this.animateQueue.length,
+	progress=1;
 	for(var q=0;q<limit;q++)
 	{
 		var queue=this.animateQueue[q];
@@ -651,18 +680,19 @@ function layer(idLayer,object,array)
 	var newLayer=jCanvaScript.layer(idLayer);
 	var newIndex={
 		i:newLayer.optns.canvas.number,
-		j:newLayer._level
+		j:newLayer.optns.number
 	};
 	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
-	oldArray.splice(object._level,1);
-	normalizeLevels(oldArray);
-	object._level=newArray.length;
+	oldArray.splice(object.optns.number,1);
+	object._level=object.optns.number=newArray.length;
 	newArray[object._level]=object;
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
+	objectCanvas.id=newLayer.optns.canvas.id;
 	redraw(object);
 	return object;
 }
+
 function take(f,s) {
 	for(var key in s)
 	{
@@ -676,9 +706,10 @@ function take(f,s) {
 				if(key=='optns' || key=='animateQueue')break;
 				if(key=='objs' || key=='grdntsnptrns')
 				{
-					for(var i=0;i<s[key].length;i++)
+					for(var i in s[key])
 					{
-						s[key][i].clone().layer(f.optns.id);
+						if(s[key].hasOwnProperty(i))
+							s[key][i].clone().layer(f.optns.id);
 					}
 					break;
 				}
@@ -709,9 +740,8 @@ function canvas(idCanvas,object,array)
 		if(canvasItem.optns.id==idCanvas)
 		{
 			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
-			oldArray.splice(object._level,1);
-			normalizeLevels(oldArray);
-			object._level=newArray.length;
+			oldArray.splice(object.optns.number,1);
+			object._level=object.optns.number=newArray.length;
 			newArray[object._level]=object;
 			objectLayer.number=0;
 			objectCanvas.number=i;
@@ -725,48 +755,42 @@ function normalizeLevels(array)
 {
 	for(var i=0;i<array.length;i++)
 	{
-		array[i]._level=i;
+		array[i].optns.number=i;
+	}
+}
+function setLayerAndCanvasToArray(array,newLayerId,newLayerNumber,newCanvasId,newCanvasNumber)
+{
+	var limit=array.length,
+	optns,canvas,layer;
+	for(var i=0;i<limit;i++)
+	{
+		optns=array[i].optns;
+		canvas=optns.canvas;
+		layer=optns.layer;
+		canvas.id=newCanvasId;
+		canvas.number=newCanvasNumber;
+		layer.id=newLayerId;
+		layer.number=newLayerNumber;
 	}
 }
 function levelChanger(array)
 {
-	var limit=array.length;
-	var tmp;
-	for(var j=0;j<limit;j++)
-	{
-		if(array[j]._level!=j)
-		{
-			tmp=array[j];
-			var id=tmp._level;
-			if (id>=limit)id=limit-1;
-			if (id<0)id=0;
-			if(id>j)
-				for(var i=j;i<id;i++)
-				{
-					array[i]=array[i+1];
-					array[i]._level=i;
-				}
-			if(id<j)
-				for(i=j;i>id;i--)
-				{
-					array[i]=array[i-1];
-					array[i]._level=i;
-				}
-			array[id]=tmp;
-			array[id]._level=id;
-		}
-	}
+	array.sort(function(a,b){
+		if(a._level>b._level)return 1;
+		if(a._level<b._level)return -1;
+		return 0;
+	});
+	normalizeLevels(array);
+	return array.length;
 }
 function objDeleter(array)
 {
 	for(var i=0;i<array.length;i++)
 	{
 		if(array[i].optns.deleted)
-		{
 			array.splice(i,1);
-			i--;
-		}
 	}
+	normalizeLevels(array);
 	return array.length;
 }
 var proto={};
@@ -889,12 +913,17 @@ proto.object=function()
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;
-		var layer=objectLayer(this),
-		objsLength=layer.objs.length-1;
-		if(n=='bottom')n=0;
-		if(n=='top')n=objsLength;
-		if(n<0)n=0;
-		if(n>objsLength)n=objsLength;
+		var layer=objectLayer(this);
+		if(n=='bottom')
+		{
+			if(this.optns.number==0)n=this._level;
+			else n=layer.objs[0]._level-1;
+		}
+		if(n=='top')
+		{
+			if(this.optns.number==layer.objs.length)n=this._level;
+			else n=layer.objs[layer.objs.length-1]._level+1;
+		}
 		this._level=n;
 		layer.optns.anyObjLevelChanged = true;
 		redraw(this);
@@ -1058,7 +1087,7 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=(duration/1000)*objectCanvas(this).fps;
+		if(duration!=1)duration=duration/fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -1156,7 +1185,7 @@ proto.object=function()
 						{
 							keyValue=this[privateKey]+parseInt(keyValue.charAt(0)+'1')*parseInt(keyValue.substr(2));
 						}
-						else if(!regHasLetters.test(keyValue))options[key]=parseInt(keyValue);
+						else if(!regHasLetters.test(keyValue))keyValue=parseInt(keyValue);
 						else this[privateKey]=keyValue;
 					}
 					if(duration==1)this[privateKey]=keyValue;
@@ -1164,7 +1193,7 @@ proto.object=function()
 					{
 						queue[privateKey]={
 							from:this[privateKey],
-							to:options[key],
+							to:keyValue,
 							duration:duration,
 							step:1,
 							easing:easing,
@@ -1299,7 +1328,7 @@ proto.object=function()
 	this.clip=function(object)
 	{
 		if(object===undefined)return this.optns.clipObject;
-		objectLayer(this).objs.splice(object._level,1);
+		objectLayer(this).objs.splice(object.optns.number,1);
 		this.optns.clipObject=object;
 		return this;
 	}
@@ -1464,9 +1493,12 @@ proto.object=function()
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;
-			this._level=objectLayer(this).objs.length;
-			objectLayer(this).objs[this._level]=this;
-			this.optns.layer.id=objectLayer(this).optns.id;
+			var layer=objectLayer(this),
+			limit=layer.objs.length;
+			this.optns.number=limit;
+			this._level=limit?(layer.objs[limit-1]._level+1):0;
+			layer.objs[limit]=this;
+			this.optns.layer.id=layer.optns.id;
 			redraw(this);
 		}
 		return this;
@@ -2178,10 +2210,12 @@ proto.layer=function()
 {
 	this.position=function(){
 		var objs=this.objs,
-		points=objs[0].position();
-		for(var i=1;i<objs.length;i++)
+		points,point,i,
+		limit=objs.length;
+		for(i=0;i<limit;i++)
 		{
-			var point=objs[i].position();
+			point=objs[i].position();
+			if(points===undefined)points=point;
 			if(points.x>point.x)points.x=point.x;
 			if(points.y>point.y)points.y=point.y;
 		}
@@ -2189,12 +2223,15 @@ proto.layer=function()
 	}
 	this.getRect=function(type){
 		var objs=this.objs,
-		points=objs[0].getRect(type);
+		points,rect,i,
+		limit=objs.length;
+		if (objs.length==0)return false;
 		if(type=='coords')
 		{
-			for(var i=1;i<objs.length;i++)
+			for(i=0;i<limit;i++)
 			{
-				var rect=objs[i].getRect(type);
+				rect=objs[i].getRect(type);
+				if(points===undefined)points=rect;
 				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
 				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
 				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
@@ -2206,9 +2243,10 @@ proto.layer=function()
 			}
 			return points;
 		}
-		for(i=1;i<objs.length;i++)
+		for(i=0;i<limit;i++)
 		{
-			var rect=objs[i].getRect(type);
+			rect=objs[i].getRect(type);
+			if(points===undefined)points=rect;
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
 			if(points.width<rect.width)points.width=rect.width;
@@ -2232,16 +2270,12 @@ proto.layer=function()
 		if(newCanvas<0){newCanvas=canvases.length;jCanvaScript.canvas(idCanvas);}
 		this.optns.canvas.id=idCanvas;
 		this.optns.canvas.number=newCanvas;
-		canvases[oldCanvas].layers.splice(this._level,1);
+		canvases[oldCanvas].layers.splice(this.optns.number,1);
 		var layersArray=canvases[newCanvas].layers;
-		this._level=layersArray.length;
+		this._level=this.optns.number=layersArray.length;
 		layersArray[this._level]=this;
-		for(i=0;i<this.objs.length;i++)
-		{
-			var optns=this.objs[i].optns;
-			optns.layer.number=this._level;
-			optns.canvas.number=newCanvas;
-		}
+		setLayerAndCanvasToArray(this.objs,this.optns.id,this._level,idCanvas,newCanvas);
+		setLayerAndCanvasToArray(this.grdntsnptrns,this.optns.id,this._level,idCanvas,newCanvas);
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
@@ -2249,12 +2283,13 @@ proto.layer=function()
 	{
 		if(n == undefined)return this._level;
 		var canvas=objectCanvas(this),
-			optns=canvas.optns,
-			layersLength=canvas.layers.length-1;
-		if(n=='bottom')n=0;
-		if(n=='top')n=layersLength;
-		if(n<0)n=0;
-		if(n>layersLength)n=layersLength;
+			optns=canvas.optns;
+		if(n=='bottom')
+			if(this.optns.number==0)n=this._level;
+			else n=canvas.layers[0]._level-1;
+		if(n=='top')
+			if(this.optns.number==canvas.layers.length-1)n=this._level;
+			else n=canvas.layers[canvas.layers.length-1]._level+1;
 		this._level=n;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
@@ -2293,8 +2328,8 @@ proto.layer=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var objs=this.objs;
-		for(var i=0;i<objs.length;i++)
+		var objs=this.objs,i;
+		for(i=0;i<objs.length;i++)
 			if(objs[i].isPointIn(x,y,global))
 				return true;
 		return false;
@@ -2322,12 +2357,8 @@ proto.layer=function()
 			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
 			return this;
 		}
-		var limitGrdntsNPtrns = this.grdntsnptrns.length;
-		var limit=this.objs.length;
-		for(var i=0;i<limitGrdntsNPtrns;i++)
-		{
+		for(var i=0;i<this.grdntsnptrns.length;i++)
 			this.grdntsnptrns[i].create(ctx);
-		}
 		if(this.optns.anyObjLevelChanged)
 		{
 			levelChanger(this.objs);
@@ -2335,11 +2366,11 @@ proto.layer=function()
 		}
 		if(this.optns.anyObjDeleted)
 		{
-			limit=objDeleter(this.objs);
+			objDeleter(this.objs);
 			this.optns.anyObjDeleted = false;
 		}
 		ctx.globalCompositeOperation = this.optns.gCO;
-		for(i=0;i<limit;i++)
+		for(i=0;i<this.objs.length;i++)
 		{
 			var object=this.objs[i];
 			if(typeof (object.draw)=='function')
@@ -2366,13 +2397,16 @@ proto.layer=function()
 	}
 	this.base=function(idLayer)
 	{
-		var lastCanvasLayers=canvases[lastCanvas].layers,lastCanvasOptns=canvases[lastCanvas].optns;
+		var canvas=canvases[lastCanvas],
+		lastCanvasLayers=canvas.layers,
+		lastCanvasOptns=canvas.optns;
 		proto.layer.prototype.base.call(this,0,0,true);
 		var limit=lastCanvasLayers.length;
 		lastCanvasLayers[limit]=this;
 		this.objs = [];
 		this.grdntsnptrns = [];
-		this._level=limit;
+		this._level=limit?(lastCanvasLayers[limit-1]._level+1):0;
+		this.optns.number=limit;
 		this.optns.id=idLayer;
 		var thisOptns=this.optns
 		thisOptns.anyObjDeleted= false;
@@ -2507,18 +2541,22 @@ proto.image=function()
 	}
 	this.draw=function(ctx)
 	{
-		if(this._swidth===false)ctx.drawImage(this._img,this._x,this._y,this._width,this._height);
-			else ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
+		ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
 		if(typeof image!='object' || image.onload)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
-		image=checkDefaults(image,{width:false,height:false,sx:false,sy:false,swidth:false,sheight:false});
+		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
 		if(image.width===false)
 		{
 			image.width=image.image.width;
 			image.height=image.image.height;
+		}
+		if(image.swidth===false)
+		{
+			image.swidth=image.image.width;
+			image.sheight=image.image.height;
 		}
 		proto.image.prototype.base.call(this,image);
 		this._img=image.image;
@@ -2638,20 +2676,20 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 }
 jCanvaScript.clear=function(idCanvas)
 {
-	if(canvases[0]===undefined)return;
-	if(idCanvas===undefined){canvases[0].clear();return;}
+	if(canvases[0]===undefined)return jCanvaScript;
+	if(idCanvas===undefined){canvases[0].clear();return jCanvaScript;}
 	jCanvaScript.canvas(idCanvas).clear();
 	return jCanvaScript;
 }
 jCanvaScript.pause=function(idCanvas)
 {
-	if(idCanvas===undefined){canvases[0].pause();return;}
+	if(idCanvas===undefined){canvases[0].pause();return jCanvaScript;}
 	jCanvaScript.canvas(idCanvas).pause();
 	return jCanvaScript;
 }
-jCanvaScript.start=function(idCanvas,fps)
+jCanvaScript.start=function(idCanvas,isAnimated)
 {
-	jCanvaScript.canvas(idCanvas).start(fps);
+	jCanvaScript.canvas(idCanvas).start(isAnimated);
 	return jCanvaScript;
 }
 
@@ -2773,13 +2811,13 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
-	canvas.start=function(fps)
+	canvas.start=function(isAnimated)
 	{
-		lastCanvas=this.layers[0].optns.canvas.number;
-		if(fps)
+		lastCanvas=this.optns.number;
+		if(isAnimated)
 		{
 			if(this.interval)return this;
-			this.fps=fps;
+			this.isAnimated=isAnimated;
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left;
 			this.optns.y=offset.top;
@@ -2787,7 +2825,7 @@ jCanvaScript.canvas = function(idCanvas)
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.click.val)return;
 				mouseEvent(e,'click',canvas.optns);
-			};
+			}
 			this.cnv.ondblclick=function(e){
 				if(!canvas.optns.dblclick.val)return;
 				mouseEvent(e,'dblclick',canvas.optns);
@@ -2795,11 +2833,11 @@ jCanvaScript.canvas = function(idCanvas)
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.mousedown.val)return;
 				mouseEvent(e,'mousedown',canvas.optns);
-			};
+			}
 			this.cnv.onmouseup=function(e){
 				if(!canvas.optns.mouseup.val)return;
 				mouseEvent(e,'mouseup',canvas.optns);
-			};
+			}
 			this.cnv.onkeyup=function(e){
 				keyEvent(e,'keyUp',canvas.optns);
 			}
@@ -2824,28 +2862,45 @@ jCanvaScript.canvas = function(idCanvas)
 					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
 				}
 			};
-			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
+			this.interval=requestAnimFrame(function(){
+					canvas.interval=canvas.interval||1;
+					canvas.frame();},
+				this.cnv);
 		}
-		else this.frame();
+		else return this.frame();
 		return this;
 	}
 	canvas.pause=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
 	}
 	canvas.del=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.layers=[];
 		canvases.splice(this.optns.number,1);
+		for(var i=0;i<canvases.length;i++)
+		{
+			var canvas=canvases[i],
+			layers=canvas.layers,
+			limitL=layers.length;
+			canvas.optns.number=i;
+			for(var j=0;j<limitL;j++)
+			{
+				var layer=layers[j];
+				layer.optns.canvas.number=i;
+				setLayerAndCanvasToArray(layer.objs,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
+			}
+		}
 		if(this.cnv.parentNode)this.cnv.parentNode.removeChild(this.cnv);
 		lastCanvas=0;
 		return false;
 	}
 	canvas.clear=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
 		this.layers=[];
 		jCanvaScript.layer(this.optns.id+'Layer_0').canvas(this.optns.id);
@@ -2855,25 +2910,29 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	canvas.frame=function()
 	{
-		var optns=this.optns;
+		var optns=this.optns,thisCanvas=this;
+		if(this.interval)
+		{
+			this.interval=requestAnimFrame(function(){thisCanvas.frame();},this.cnv);
+			this.interval=this.interval||1;
+		}
 		if(!optns.redraw)return this;
 		optns.redraw--;
 		optns.ctx.clearRect(0,0,optns.width,optns.height);
-		var limit=this.layers.length;
-		if(limit==0)return this;
+		if(this.layers.length==0)return this;
+		limit=this.layers.length;
 		if(optns.anyLayerLevelChanged)
-			levelChanger(this.layers);
+			limit=levelChanger(this.layers);
 		if(optns.anyLayerDeleted)
 			limit=objDeleter(this.layers);
 		if(optns.anyLayerLevelChanged || optns.anyLayerDeleted)
 		{
 			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
-			normalizeLevels(this.layers);
 			for(var i=0;i<limit;i++)
 			{
-				var layer=this.layers[i];
-				for(var j=0;i<layer.objs.length;i++)
-					layer.objs[j].optns.layer.number=layer._level;
+				var layer=this.layers[i],layerOptns=layer.optns;
+				setLayerAndCanvasToArray(layer.objs,layerOptns.id,layerOptns.number,this.optns.id,this.optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layerOptns.id,layerOptns.number,idCanvas,this.optns.number);
 			}
 		}
 		for(i=0;i<limit;i++)
@@ -2891,7 +2950,7 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
-			var point = this.optns.point;
+			var point = this.optns.point||{};
 			point.event=optns.mousemove.event;
 			if(optns.mousemove.object!=false)
 			{
@@ -3021,16 +3080,12 @@ jCanvaScript.canvas = function(idCanvas)
 jCanvaScript.layer=function(idLayer)
 {
 	if(idLayer===undefined)return canvases[0].layers[0];
-	var limit=0;
 	for(var i=0;i<canvases.length;i++)
 	{
-		var canvas=canvases[i];
-		limit=canvas.layers.length;
-		for (var j=0;j<limit;j++)
-		{
-			var layer=canvas.layers[j];
-			if(layer.optns.id==idLayer)return layer;
-		}
+		var layersArray=canvases[i].layers;
+		for (var j=0;j<layersArray.length;j++)
+			if(layersArray[j].optns.id==idLayer)
+				return layersArray[j];
 	}
 	return layers(idLayer);
 }

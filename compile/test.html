@@ -5,11 +5,30 @@
 				border: 1px solid;
 			}
 		</style>
-		<!--[if lt IE 9]><script src="js/flashcanvas.js"></script><![endif]-->
-		<script type="text/javascript" src="jCanvaScript.1.4.2.js"></script>
-		<script type="text/javascript" src="test1.js"></script>
+		<script type="text/javascript">
+			function start1(a)
+			{
+				var array=[];
+				for (var i=0;i<15;i++)
+				{
+					array[i]=i;
+				}
+				delete array[3];
+				delete array[4];
+				delete array[5];
+				array[18]=18;
+				array[4]=4;
+				array[-2]=-2;
+				array[-1]=-1;
+				for (i in array)
+				{
+					if(!array.hasOwnProperty(i))continue;
+					document.write(array[i]);
+				}
+			}
+		</script>
 	</head>
-	<body onload="init('canvas');">
+	<body>
 		<input type=button value="start" onclick=start1('canvas'); />
 		<input type=button value="stop" onclick=stop1('canvas'); />
 		<br />

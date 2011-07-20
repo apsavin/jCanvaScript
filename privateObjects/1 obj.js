@@ -114,12 +114,17 @@ proto.object=function()
 	this.level=function(n)
 	{
 		if(n == undefined)return this._level;
-		var layer=objectLayer(this),
-		objsLength=layer.objs.length-1;
-		if(n=='bottom')n=0;
-		if(n=='top')n=objsLength;
-		if(n<0)n=0;
-		if(n>objsLength)n=objsLength;
+		var layer=objectLayer(this);
+		if(n=='bottom')
+		{
+			if(this.optns.number==0)n=this._level;
+			else n=layer.objs[0]._level-1;
+		}
+		if(n=='top')
+		{
+			if(this.optns.number==layer.objs.length)n=this._level;
+			else n=layer.objs[layer.objs.length-1]._level+1;
+		}
 		this._level=n;
 		layer.optns.anyObjLevelChanged = true;
 		redraw(this);
@@ -283,7 +288,7 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=(duration/1000)*objectCanvas(this).fps;
+		if(duration!=1)duration=duration/fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -381,7 +386,7 @@ proto.object=function()
 						{
 							keyValue=this[privateKey]+parseInt(keyValue.charAt(0)+'1')*parseInt(keyValue.substr(2));
 						}
-						else if(!regHasLetters.test(keyValue))options[key]=parseInt(keyValue);
+						else if(!regHasLetters.test(keyValue))keyValue=parseInt(keyValue);
 						else this[privateKey]=keyValue;
 					}
 					if(duration==1)this[privateKey]=keyValue;
@@ -389,7 +394,7 @@ proto.object=function()
 					{
 						queue[privateKey]={
 							from:this[privateKey],
-							to:options[key],
+							to:keyValue,
 							duration:duration,
 							step:1,
 							easing:easing,
@@ -524,7 +529,7 @@ proto.object=function()
 	this.clip=function(object)
 	{
 		if(object===undefined)return this.optns.clipObject;
-		objectLayer(this).objs.splice(object._level,1);
+		objectLayer(this).objs.splice(object.optns.number,1);
 		this.optns.clipObject=object;
 		return this;
 	}
@@ -689,9 +694,12 @@ proto.object=function()
 		{
 			this.optns.layer.number=0;
 			this.optns.canvas.number=lastCanvas;
-			this._level=objectLayer(this).objs.length;
-			objectLayer(this).objs[this._level]=this;
-			this.optns.layer.id=objectLayer(this).optns.id;
+			var layer=objectLayer(this),
+			limit=layer.objs.length;
+			this.optns.number=limit;
+			this._level=limit?(layer.objs[limit-1]._level+1):0;
+			layer.objs[limit]=this;
+			this.optns.layer.id=layer.optns.id;
 			redraw(this);
 		}
 		return this;

@@ -2,10 +2,12 @@ proto.layer=function()
 {
 	this.position=function(){
 		var objs=this.objs,
-		points=objs[0].position();
-		for(var i=1;i<objs.length;i++)
+		points,point,i,
+		limit=objs.length;
+		for(i=0;i<limit;i++)
 		{
-			var point=objs[i].position();
+			point=objs[i].position();
+			if(points===undefined)points=point;
 			if(points.x>point.x)points.x=point.x;
 			if(points.y>point.y)points.y=point.y;
 		}
@@ -13,12 +15,15 @@ proto.layer=function()
 	}
 	this.getRect=function(type){
 		var objs=this.objs,
-		points=objs[0].getRect(type);
+		points,rect,i,
+		limit=objs.length;
+		if (objs.length==0)return false;
 		if(type=='coords')
 		{
-			for(var i=1;i<objs.length;i++)
+			for(i=0;i<limit;i++)
 			{
-				var rect=objs[i].getRect(type);
+				rect=objs[i].getRect(type);
+				if(points===undefined)points=rect;
 				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
 				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
 				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
@@ -30,9 +35,10 @@ proto.layer=function()
 			}
 			return points;
 		}
-		for(i=1;i<objs.length;i++)
+		for(i=0;i<limit;i++)
 		{
-			var rect=objs[i].getRect(type);
+			rect=objs[i].getRect(type);
+			if(points===undefined)points=rect;
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
 			if(points.width<rect.width)points.width=rect.width;
@@ -56,16 +62,12 @@ proto.layer=function()
 		if(newCanvas<0){newCanvas=canvases.length;jCanvaScript.canvas(idCanvas);}
 		this.optns.canvas.id=idCanvas;
 		this.optns.canvas.number=newCanvas;
-		canvases[oldCanvas].layers.splice(this._level,1);
+		canvases[oldCanvas].layers.splice(this.optns.number,1);
 		var layersArray=canvases[newCanvas].layers;
-		this._level=layersArray.length;
+		this._level=this.optns.number=layersArray.length;
 		layersArray[this._level]=this;
-		for(i=0;i<this.objs.length;i++)
-		{
-			var optns=this.objs[i].optns;
-			optns.layer.number=this._level;
-			optns.canvas.number=newCanvas;
-		}
+		setLayerAndCanvasToArray(this.objs,this.optns.id,this._level,idCanvas,newCanvas);
+		setLayerAndCanvasToArray(this.grdntsnptrns,this.optns.id,this._level,idCanvas,newCanvas);
 		canvases[newCanvas].optns.redraw=1;
 		return this;
 	}
@@ -73,12 +75,13 @@ proto.layer=function()
 	{
 		if(n == undefined)return this._level;
 		var canvas=objectCanvas(this),
-			optns=canvas.optns,
-			layersLength=canvas.layers.length-1;
-		if(n=='bottom')n=0;
-		if(n=='top')n=layersLength;
-		if(n<0)n=0;
-		if(n>layersLength)n=layersLength;
+			optns=canvas.optns;
+		if(n=='bottom')
+			if(this.optns.number==0)n=this._level;
+			else n=canvas.layers[0]._level-1;
+		if(n=='top')
+			if(this.optns.number==canvas.layers.length-1)n=this._level;
+			else n=canvas.layers[canvas.layers.length-1]._level+1;
 		this._level=n;
 		optns.anyLayerLevelChanged = true;
 		optns.redraw=1;
@@ -117,8 +120,8 @@ proto.layer=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var objs=this.objs;
-		for(var i=0;i<objs.length;i++)
+		var objs=this.objs,i;
+		for(i=0;i<objs.length;i++)
 			if(objs[i].isPointIn(x,y,global))
 				return true;
 		return false;
@@ -146,12 +149,8 @@ proto.layer=function()
 			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
 			return this;
 		}
-		var limitGrdntsNPtrns = this.grdntsnptrns.length;
-		var limit=this.objs.length;
-		for(var i=0;i<limitGrdntsNPtrns;i++)
-		{
+		for(var i=0;i<this.grdntsnptrns.length;i++)
 			this.grdntsnptrns[i].create(ctx);
-		}
 		if(this.optns.anyObjLevelChanged)
 		{
 			levelChanger(this.objs);
@@ -159,11 +158,11 @@ proto.layer=function()
 		}
 		if(this.optns.anyObjDeleted)
 		{
-			limit=objDeleter(this.objs);
+			objDeleter(this.objs);
 			this.optns.anyObjDeleted = false;
 		}
 		ctx.globalCompositeOperation = this.optns.gCO;
-		for(i=0;i<limit;i++)
+		for(i=0;i<this.objs.length;i++)
 		{
 			var object=this.objs[i];
 			if(typeof (object.draw)=='function')
@@ -190,13 +189,16 @@ proto.layer=function()
 	}
 	this.base=function(idLayer)
 	{
-		var lastCanvasLayers=canvases[lastCanvas].layers,lastCanvasOptns=canvases[lastCanvas].optns;
+		var canvas=canvases[lastCanvas],
+		lastCanvasLayers=canvas.layers,
+		lastCanvasOptns=canvas.optns;
 		proto.layer.prototype.base.call(this,0,0,true);
 		var limit=lastCanvasLayers.length;
 		lastCanvasLayers[limit]=this;
 		this.objs = [];
 		this.grdntsnptrns = [];
-		this._level=limit;
+		this._level=limit?(lastCanvasLayers[limit-1]._level+1):0;
+		this.optns.number=limit;
 		this.optns.id=idLayer;
 		var thisOptns=this.optns
 		thisOptns.anyObjDeleted= false;
