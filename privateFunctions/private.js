@@ -584,11 +584,18 @@ function levelChanger(array)
 }
 function objDeleter(array)
 {
-	for(var i=0;i<array.length;i++)
-	{
-		if(array[i].optns.deleted)
-			array.splice(i,1);
-	}
+	var isAnyObjectDeleted;
+	do{
+		isAnyObjectDeleted=false;
+		for(var i=0;i<array.length;i++)
+		{
+			if(array[i].optns.deleted)
+			{
+				array.splice(i,1);
+				isAnyObjectDeleted=true;
+			}
+		}
+	}while(isAnyObjectDeleted);
 	normalizeLevels(array);
 	return array.length;
 }

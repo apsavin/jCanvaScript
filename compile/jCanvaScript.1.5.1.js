@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.0
+ * jCanvaScript JavaScript Library v 1.5.1
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -792,11 +792,18 @@ function levelChanger(array)
 }
 function objDeleter(array)
 {
-	for(var i=0;i<array.length;i++)
-	{
-		if(array[i].optns.deleted)
-			array.splice(i,1);
-	}
+	var isAnyObjectDeleted;
+	do{
+		isAnyObjectDeleted=false;
+		for(var i=0;i<array.length;i++)
+		{
+			if(array[i].optns.deleted)
+			{
+				array.splice(i,1);
+				isAnyObjectDeleted=true;
+			}
+		}
+	}while(isAnyObjectDeleted);
 	normalizeLevels(array);
 	return array.length;
 }
