@@ -35,11 +35,11 @@ jCanvaScript.canvas = function(idCanvas)
 		keyDown:{val:false,code:false},
 		keyUp:{val:false,code:false},
 		keyPress:{val:false,code:false},
-		mousemove:{val:false,x:false,y:false,object:false},
-		click:{val:false,x:false,y:false,object:false},
-		dblclick:{val:false,x:false,y:false,object:false},
-		mouseup:{val:false,x:false,y:false,object:false},
-		mousedown:{val:false,x:false,y:false,object:false},
+		mousemove:{val:false,x:false,y:false,objects:[]},
+		click:{val:false,x:false,y:false,objects:[]},
+		dblclick:{val:false,x:false,y:false,objects:[]},
+		mouseup:{val:false,x:false,y:false,objects:[]},
+		mousedown:{val:false,x:false,y:false,objects:[]},
 		drag:{object:false,x:0,y:0},
 		gCO: 'source-over',
 		redraw:1
@@ -56,8 +56,8 @@ jCanvaScript.canvas = function(idCanvas)
 			if(this.interval)return this;
 			this.isAnimated=isAnimated;
 			var offset=getOffset(this.cnv);
-			this.optns.x=offset.left;
-			this.optns.y=offset.top;
+			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
+			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
 			var canvas=canvases[this.optns.number];
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.click.val)return;
@@ -187,30 +187,40 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(optns.mousemove.x!=false)
 		{
-			var point = this.optns.point||{};
-			point.event=optns.mousemove.event;
-			if(optns.mousemove.object!=false)
+			var point = this.optns.point||{},
+				mm=optns.mousemove;
+			point.event=mm.event;
+			if(mm.objects!=false)
 			{
-				var mousemoveObject=optns.mousemove.object;
-				if(underMouse===mousemoveObject)
+				for(i=mm.objects.length-1;i>-1;i--)
 				{
-					if(typeof mousemoveObject.onmousemove=='function')
+					var mousemoveObject=mm.objects[i];
+					if(underMouse===mousemoveObject)
 					{
-						mousemoveObject.onmousemove(point);
-					}
-				}
-				else
-				{
-					if(underMouse==false)
-					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
+						if(typeof mousemoveObject.onmousemove=='function')
+						{
+							if(mousemoveObject.onmousemove(point)===false)break;
+						}
 					}
 					else
 					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
+						if(underMouse==false)
+						{
+							if(typeof mousemoveObject.onmouseover=='function')
+							{
+								if(mousemoveObject.onmouseover(point)===false)break;
+							}
+						}
+						else
+						{
+							if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
+							if(typeof mousemoveObject.onmouseover=='function')
+							{
+								if(mousemoveObject.onmouseover(point)===false)break;
+							}
+						}
+						underMouse=mousemoveObject;
 					}
-					underMouse=mousemoveObject;
 				}
 			}
 			else
@@ -224,91 +234,114 @@ jCanvaScript.canvas = function(idCanvas)
 					underMouse=false;
 				}
 			}
+			optns.mousemove.objects=[];
 		}
-		if(optns.mousedown.object!=false)
+		if(optns.mousedown.objects.length)
 		{
 			var mouseDown=this.optns.mousedown;
-			var mouseDownObjects=[mouseDown.object,objectLayer(mouseDown.object)];
-			for(i=0;i<2;i++)
+			mdCicle:
+			for(i=mouseDown.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseDownObjects[i].onmousedown=='function')mouseDownObjects[i].onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event});
-				if(mouseDownObjects[i].optns.drag.val==true)
+				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])];
+				for(var j=0;j<2;j++)
 				{
-					var drag=optns.drag;
-					drag.object=mouseDownObjects[i].optns.drag.object.visible(true);
-					drag.fn=mouseDownObjects[i].optns.drag.fn;
-					drag.init=mouseDownObjects[i];
-					if(drag.init.optns.drag.params!==undefined)drag.object.animate(drag.init.optns.drag.params);
-					point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
-					drag.x=point.x;
-					drag.y=point.y;
-					if(drag.object!=drag.init && drag.init.optns.drag.type!='clone')
+					if(mouseDownObjects[j].optns.drag.val==true)
 					{
-						point.x=-drag.object._x+point.x;
-						point.y=-drag.object._y+point.y;
-						drag.x-=point.x;
-						drag.y-=point.y;
-						drag.object.transform(1,0,0,1,point.x,point.y);
+						var drag=optns.drag;
+						drag.object=mouseDownObjects[j].optns.drag.object.visible(true);
+						drag.fn=mouseDownObjects[j].optns.drag.fn;
+						drag.init=mouseDownObjects[j];
+						if(drag.init.optns.drag.params!==undefined)drag.object.animate(drag.init.optns.drag.params);
+						point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
+						drag.x=point.x;
+						drag.y=point.y;
+						if(drag.object!=drag.init && drag.init.optns.drag.type!='clone')
+						{
+							point.x=-drag.object._x+point.x;
+							point.y=-drag.object._y+point.y;
+							drag.x-=point.x;
+							drag.y-=point.y;
+							drag.object.transform(1,0,0,1,point.x,point.y);
+						}
+						drag.object._transformdx+=drag.init.optns.drag.shiftX;
+						drag.object._transformdy+=drag.init.optns.drag.shiftY;
 					}
-					drag.object._transformdx+=drag.init.optns.drag.shiftX;
-					drag.object._transformdy+=drag.init.optns.drag.shiftY;
+					if(typeof mouseDownObjects[j].onmousedown=='function')
+						if(mouseDownObjects[j].onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event})===false)
+							break mdCicle;
 				}
 			}
-			mouseDown.object=false;
+			mouseDown.objects=[];
 		}
-		if(optns.mouseup.object!=false)
+		if(optns.mouseup.objects.length)
 		{
 			var mouseUp=optns.mouseup;
-			var mouseUpObjects=[mouseUp.object,objectLayer(mouseUp.object)];
-			drag=optns.drag;
-			for(i=0;i<2;i++)
+			muCicle:
+			for(i=mouseUp.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseUpObjects[i].onmouseup=='function')mouseUpObjects[i].onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event});
-				if(mouseUpObjects[i].optns.drop.val==true && optns.drag.init!==undefined)
+				var mouseUpObjects=[mouseUp.objects[i],objectLayer(mouseUp.objects[i])];
+				drag=optns.drag;
+				for(j=0;j<2;j++)
 				{
-					if(drag.init==drag.object)
-						drag.init.visible(true);
-					if(typeof mouseUpObjects[i].optns.drop.fn=='function')mouseUpObjects[i].optns.drop.fn.call(mouseUpObjects[i],drag.init);
-					this.optns.drag={object:false,x:0,y:0};
-				}
-				else
-				{
-					if(drag.init!==undefined)
+					if(mouseUpObjects[j].optns.drop.val==true && optns.drag.init!==undefined)
 					{
-						drag.object.visible(false);
-						drag.init.visible(true);
-						drag.init._transformdx=drag.object._transformdx;
-						drag.init._transformdy=drag.object._transformdy;
-						if(drag.object!=drag.init)drag.object.visible(false);
-						this.optns.drag={object:false,x:0,y:0};
+						if(drag.init==drag.object)
+							drag.init.visible(true);
+						if(typeof mouseUpObjects[j].optns.drop.fn=='function')
+							mouseUpObjects[j].optns.drop.fn.call(mouseUpObjects[j],drag.init);
 					}
+					else
+					{
+						if(drag.init!==undefined)
+						{
+							drag.object.visible(false);
+							drag.init.visible(true);
+							drag.init._transformdx=drag.object._transformdx;
+							drag.init._transformdy=drag.object._transformdy;
+							if(drag.object!=drag.init)drag.object.visible(false);
+						}
+					}
+					if(typeof mouseUpObjects[j].onmouseup=='function')
+						if(mouseUpObjects[j].onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
+							break muCicle;
 				}
 			}
-			mouseUp.object=false;
+			this.optns.drag={object:false,x:0,y:0};
+			mouseUp.objects=[];
 		}
-		if(this.optns.click.object!=false)
+		if(optns.click.objects.length)
 		{
-			var mouseClick=this.optns.click;
-			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
-			for(i=0;i<2;i++)
+			var click=this.optns.click;
+			cCicle:
+			for(i=click.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseClickObjects[i].onclick == 'function')
-					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y,event:mouseClick.event});
+				var mouseClickObjects=[click.objects[i],objectLayer(click.objects[i])];
+				for(j=0;j<2;j++)
+				{
+					if(typeof mouseClickObjects[j].onclick == 'function')
+						if(mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event})===false)
+							break cCicle;
+				}
 			}
-			mouseClick.object=false;
+			click.objects=[];
 		}
-		if(this.optns.dblclick.object!=false)
+		if(optns.dblclick.objects.length)
         {
-            var mouseDblClick=this.optns.dblclick;
-            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
-            for(i=0;i<2;i++)
-            {
-                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
-                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y, event:mouseDblClick.event});
-            }
-            mouseDblClick.object=false;
+            var dblClick=this.optns.dblclick;
+			dcCicle:
+			for(i=dblClick.objects.length-1;i>-1;i--)
+			{
+				var mouseDblClickObjects=[dblClick.objects[i],objectLayer(dblClick.objects[i])];
+				for(j=0;j<2;j++)
+				{
+					if(typeof mouseDblClickObjects[j].ondblclick == 'function')
+						if(mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event})===false)
+							break dcCicle;
+				}
+			}
+            dblClick.objects=[];
         }
-		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
+		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=optns.click.x=optns.dblclick.x=optns.mouseup.x=optns.mousedown.x=optns.mousemove.x=false;
 		return this;
 	}
 	return canvas;

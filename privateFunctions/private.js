@@ -442,16 +442,21 @@ function checkMouseEvents(object,optns)
 	}
 	if(point)
 	{
-		if(optns.mousemove.x!=false)
-			optns.mousemove.object=object;
-		if(optns.mousedown.x!=false)
-			optns.mousedown.object=object;
-		if(optns.click.x!=false || optns.dblclick.x!=false)
-			optns.click.object=object;
-		if(optns.dblclick.x!=false)
-            optns.dblclick.object=object;
-		if(optns.mouseup.x!=false)
-			optns.mouseup.object=object;
+		var mm=optns.mousemove,
+			md=optns.mousedown,
+			mu=optns.mouseup,
+			c=optns.click,
+			dc=optns.dblclick;
+		if(mm.x!=false)
+			mm.objects[mm.objects.length]=object;
+		if(md.x!=false)
+			md.objects[md.objects.length]=object;
+		if(c.x!=false || dc.x!=false)
+			c.objects[c.objects.length]=object;
+		if(dc.x!=false)
+            dc.objects[dc.objects.length]=object;
+		if(mu.x!=false)
+			mu.objects[mu.objects.length]=object;
 		optns.point=point;
 	}
 }
