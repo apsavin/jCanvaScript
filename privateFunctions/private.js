@@ -75,6 +75,12 @@ function animateTransforms(key,object,queue)
 		case '_translateY':
 			object.translate(0,val-prev);
 			break;
+		case '_translateToX':
+			object.translateTo(val,undefined);
+			break;
+		case '_translateToY':
+			object.translateTo(undefined,val);
+			break;
 		case '_scaleX':
 			if(!prev)prev=1;
 			object.scale(val/prev,1);

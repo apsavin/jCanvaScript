@@ -283,6 +283,12 @@ function animateTransforms(key,object,queue)
 		case '_translateY':
 			object.translate(0,val-prev);
 			break;
+		case '_translateToX':
+			object.translateTo(val,undefined);
+			break;
+		case '_translateToY':
+			object.translateTo(undefined,val);
+			break;
 		case '_scaleX':
 			if(!prev)prev=1;
 			object.scale(val/prev,1);
@@ -902,17 +908,23 @@ proto.object=function()
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
 		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
-		if(this.scaleMatrix)
+		if(this._matrixChanged)
 		{
-			this.matrix(multiplyM(this.matrix(),this.scaleMatrix));
-			this.scaleMatrix=false;
+			this.matrix(this.transformMatrix);
+			if(this.translateMatrix.length)
+			{
+				this.matrix(multiplyM(this.matrix(),this.translateMatrix));
+			}
+			if(this.scaleMatrix.length)
+			{
+				this.matrix(multiplyM(this.matrix(),this.scaleMatrix));
+			}
+			if(this.rotateMatrix.length)
+			{
+				this.matrix(multiplyM(this.matrix(),this.rotateMatrix));
+			}
 		}
-		if(this.rotateMatrix)
-		{
-			this.matrix(multiplyM(this.matrix(),this.rotateMatrix));
-			this.rotateMatrix=false;
-		}
-		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
+		ctx.setTransform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
 	this.up=function(n)
@@ -1167,6 +1179,22 @@ proto.object=function()
 			}
 			options.translate=undefined;
 		}
+		if(options.translateTo!==undefined)
+		{
+			var point=this.position();
+			this._translateToX=point.x;
+			this._translateToY=point.y;
+			if(typeof options.translateTo!='object')
+			{
+				options.translateToX=options.translateToY=options.translateTo;
+			}
+			else
+			{
+				options.translateToX=options.translateTo.x||0;
+				options.translateToY=options.translateTo.y||0;
+			}
+			options.translateTo=undefined;
+		}
 		if(options.rotate!==undefined)
 		{
 			options.rotateAngle=options.rotate.angle;
@@ -1244,6 +1272,8 @@ proto.object=function()
 				this.rotate(this._rotateAngle,this._rotateX,this._rotateY);
 			if(options['translateX']||options['translateY'])
 				this.translate(this._translateX,this._translateY);
+			if(options['translateToX']||options['translateToY'])
+				this.translate(this._translateToX,this._translateToY);
 			if(options['scaleX']||options['scaleY'])
 				this.scale(this._scaleX,this._scaleY);
 		}
@@ -1259,19 +1289,30 @@ proto.object=function()
 		this._transform22=m[1][1];
 		this._transformdx=m[0][2];
 		this._transformdy=m[1][2];
+		this._matrixChanged=true;
 		return this;
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
+		if(duration!==undefined)
+			return this.animate({translateTo:{x:newX,y:newY}},duration,easing,onstep,fn);
 		var point=this.position(),
-			x=newX-point.x,y=newY-point.y;
-		return this.translate(x,y,duration,easing,onstep,fn);
+			x=0,y=0;
+		if(newX!==undefined)
+			x=newX-point.x;
+		if(newY!==undefined)
+			y=newY-point.y;
+		return this.translate(x,y);
 	}
 	this.translate=function(x,y,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
 			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		this.matrix(multiplyM(this.matrix(),[[1,0,x],[0,1,y]]));
+		if(this.translateMatrix.length)
+			this.translateMatrix=multiplyM(this.translateMatrix,[[1,0,x],[0,1,y]]);
+		else
+			this.translateMatrix=[[1,0,x],[0,1,y]];
+		this._matrixChanged=true;
 		redraw(this);
 		return this;
 	}
@@ -1280,10 +1321,11 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
-		if(this.scaleMatrix)
+		if(this.scaleMatrix.length)
 			this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
 		else
 			this.scaleMatrix=[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]];
+		this._matrixChanged=true;
 		redraw(this);
 		return this;
 	}
@@ -1293,14 +1335,11 @@ proto.object=function()
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
 		redraw(this);
 		x=x/radian;
-		var cos=m_cos(x);
-		var sin=m_sin(x);
-		var matrix=[];
-		if(x1===undefined)
-		{
-			matrix=[[cos,-sin,0],[sin,cos,0]];
-		}
-		else
+		var cos=m_cos(x),
+			sin=m_sin(x),
+			translateX=0,
+			translateY=0;
+		if(x1!==undefined)
 		{
 			if(x1=='center')
 			{
@@ -1316,12 +1355,14 @@ proto.object=function()
 					y1=point.y+y1.y;
 				}
 			}
-			matrix=[[cos,-sin,-x1*(cos-1)+y1*sin],[sin,cos,-y1*(cos-1)-x1*sin]];
+			translateX=-x1*(cos-1)+y1*sin;
+			translateY=-y1*(cos-1)-x1*sin;
 		}
-		if(this.rotateMatrix)
-				this.rotateMatrix=multiplyM(this.rotateMatrix,matrix);
-			else
-				this.rotateMatrix=matrix;
+		if(this.rotateMatrix.length)
+			this.rotateMatrix=multiplyM(this.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
+		else
+			this.rotateMatrix=[[cos,-sin,translateX],[sin,cos,translateY]];
+		this._matrixChanged=true;
 		return this;
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
@@ -1329,14 +1370,14 @@ proto.object=function()
 		if(m11===undefined)return this.matrix();
 		if(reset!==undefined)
 		{
-			this.matrix([[m11,m21,dx],[m12,m22,dy]]);
+			this.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
 		}
 		else
 		{
-			var m=multiplyM(this.matrix(),[[m11,m21,dx],[m12,m22,dy]]);
-			this.matrix(m);
+			this.transformMatrix=multiplyM(this.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
 		}
 		redraw(this);
+		this._matrixChanged=true;
 		return this;
 	}
 	this.beforeDraw=function(ctx)
@@ -1561,7 +1602,11 @@ proto.object=function()
 	this._transform22=1;
 	this._transformdx=0;
 	this._transformdy=0;
-	this.rotateMatrix=this.scaleMatrix=false;
+	this.rotateMatrix=[];
+	this.scaleMatrix=[];
+	this.translateMatrix=[];
+	this.transformMatrix=[[1,0,0],[0,1,0]];
+	this._matrixChanged=false;
 }
 proto.object.prototype=new proto.object();
 

@@ -4,13 +4,40 @@
 	function start()
 	{
 		jc.start('myCanvas',true);
-		jc.rect(0,0,100,100,1)
-				.click(function(){alert(3);});
-		jc.rect(0,0,100,80,1)
+		jc.rect(50,50,100,100,1)
+				.click(function(){alert(3);})
+				.id('myRect');
+		jc.rect(0,0,100,80,0)
 				.click(function(){alert(2);return false;});
-		jc.circle(30,30,20,'#ff0000',true)
+		jc.circle(30,30,20,'#ff0000',0)
 				.click(function(){alert(1);});
 
+	}
+	function up()
+	{
+		jc('#myRect')
+			.scale(0.5,0.5,1000);
+	}
+	function top()
+	{
+		jc('#myRect')
+			.scale(0.5,0.5,1000)
+			.translateTo(100,80,1000);
+	}
+	function bottom()
+	{
+		jc('#myRect')
+			.scale(0.5,0.5,1000)
+			.translateTo(100,80,1000)
+			.rotate(30,'center',{x:0,y:0},1000);
+	}
+	function left()
+	{
+		jc('#myRect')
+			.rotate(30,'center',{x:0,y:0},1000,function(){
+				this.scale(0.5,0.5,1000);
+				this.translateTo(100,80,1000);
+			});
 	}
 </script>
 <style>
@@ -19,10 +46,10 @@
 	}
 </style>
 <div  >
-	<canvas id="myCanvas" width="400px" height="400px" style="border:20px solid #000"></canvas>
+	<canvas id="myCanvas" width="400px" height="400px"></canvas>
 </div><br/>
 <input type="button" onclick="up()" value="1"/>
 <input type="button" onclick="top()" value="2"/>
 <input type="button" onclick="bottom()" value="3"/>
-<input type="button" onclick="oneMore()" value="4"/>
+<input type="button" onclick="left()" value="4"/>
 </body>
