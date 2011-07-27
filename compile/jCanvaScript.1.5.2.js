@@ -754,11 +754,13 @@ function canvas(idCanvas,object,array)
 	};
 	jCanvaScript.canvas(idCanvas);
 	for(var i=0;i<canvases.length;i++)
+	{
 		var canvasItem=canvases[i];
 		if(canvasItem.optns.id==idCanvas)
 		{
 			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
 			oldArray.splice(object.optns.number,1);
+			normalizeLevels(oldArray);
 			object._level=object.optns.number=newArray.length;
 			newArray[object._level]=object;
 			objectLayer.number=0;
@@ -766,6 +768,7 @@ function canvas(idCanvas,object,array)
 			objectCanvas.id=canvasItem.optns.id;
 			objectLayer.id=canvasItem.layers[0].optns.id;
 		}
+	}
 	redraw(object);
 	return object;
 }
