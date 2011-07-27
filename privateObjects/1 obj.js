@@ -99,6 +99,7 @@ proto.object=function()
 			{
 				this.matrix(multiplyM(this.matrix(),this.rotateMatrix));
 			}
+			this._matrixChanged=false;
 		}
 		ctx.setTransform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
