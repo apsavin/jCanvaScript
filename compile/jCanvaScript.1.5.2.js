@@ -3065,27 +3065,14 @@ jCanvaScript.canvas = function(idCanvas)
 					if(underMouse===mousemoveObject)
 					{
 						if(typeof mousemoveObject.onmousemove=='function')
-						{
 							if(mousemoveObject.onmousemove(point)===false)break;
-						}
 					}
 					else
 					{
-						if(underMouse==false)
-						{
-							if(typeof mousemoveObject.onmouseover=='function')
-							{
-								if(mousemoveObject.onmouseover(point)===false)break;
-							}
-						}
-						else
-						{
+						if(underMouse!=false)
 							if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
-							if(typeof mousemoveObject.onmouseover=='function')
-							{
-								if(mousemoveObject.onmouseover(point)===false)break;
-							}
-						}
+						if(typeof mousemoveObject.onmouseover=='function')
+							if(mousemoveObject.onmouseover(point)===false)break;
 						if(!underMouse)underMouse=mousemoveObject;
 					}
 				}
