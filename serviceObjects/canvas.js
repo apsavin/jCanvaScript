@@ -260,9 +260,7 @@ jCanvaScript.canvas = function(idCanvas)
 						if(dobject!=drag.init && initoptns.drag.type!='clone')
 						{
 							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
-							point.x=-dobject._x+point.x;
-							point.y=-dobject._y+point.y;
-							dobject.translate(point.x,point.y);
+							dobject.translate(point.x-dobject._x,point.y-dobject._y);
 						}
 						dobject.translate(initoptns.drag.shiftX,initoptns.drag.shiftY);
 					}
@@ -296,8 +294,9 @@ jCanvaScript.canvas = function(idCanvas)
 						{
 							drag.object.visible(false);
 							drag.init.visible(true);
-							drag.init.translateMatrix[0][2]=drag.object.translateMatrix[0][2];
-							drag.init.translateMatrix[1][2]=drag.object.translateMatrix[1][2];
+							drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
+							drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
+							changeMatrix(drag.init);
 							if(drag.object!=drag.init)drag.object.visible(false);
 						}
 					}

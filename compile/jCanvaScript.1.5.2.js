@@ -208,7 +208,8 @@
 	
 function changeMatrix(object)
 {
-	object.matrix(multiplyM(multiplyM(multiplyM(object.transformMatrix,object.translateMatrix),object.scaleMatrix),object.rotateMatrix));
+	var optns=object.optns;
+	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
 	redraw(object);
 }
 function checkDefaults(check,def)
@@ -1299,7 +1300,7 @@ proto.object=function()
 	{
 		if(duration!==undefined)
 			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		this.translateMatrix=multiplyM(this.translateMatrix,[[1,0,x],[0,1,y]]);
+		this.optns.translateMatrix=multiplyM(this.optns.translateMatrix,[[1,0,x],[0,1,y]]);
 		changeMatrix(this);
 		return this;
 	}
@@ -1308,7 +1309,7 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
-		this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
+		this.optns.scaleMatrix=multiplyM(this.optns.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
 		changeMatrix(this);
 		return this;
 	}
@@ -1340,23 +1341,24 @@ proto.object=function()
 			translateX=-x1*(cos-1)+y1*sin;
 			translateY=-y1*(cos-1)-x1*sin;
 		}
-		this.rotateMatrix=multiplyM(this.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
+		this.optns.rotateMatrix=multiplyM(this.optns.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
 		changeMatrix(this);
 		return this;
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
 	{
 		if(m11===undefined)return this.matrix();
+		var optns=this.optns;
 		if(reset!==undefined)
 		{
-			this.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
-			this.rotateMatrix=[];
-			this.scaleMatrix=[];
-			this.translateMatrix=[];
+			optns.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
+			optns.rotateMatrix=[];
+			optns.scaleMatrix=[];
+			optns.translateMatrix=[];
 		}
 		else
 		{
-			this.transformMatrix=multiplyM(this.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
+			optns.transformMatrix=multiplyM(optns.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
 		}
 		changeMatrix(this);
 		return this;
@@ -1539,7 +1541,11 @@ proto.object=function()
 			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
 			focused:false,
-			buffer:{val:false}
+			buffer:{val:false},
+			rotateMatrix:[[1,0,0],[0,1,0]],
+			scaleMatrix:[[1,0,0],[0,1,0]],
+			translateMatrix:[[1,0,0],[0,1,0]],
+			transformMatrix:[[1,0,0],[0,1,0]]
 		}
 		this.animateQueue = [];
 		this._x=x;
@@ -1583,10 +1589,6 @@ proto.object=function()
 	this._transform22=1;
 	this._transformdx=0;
 	this._transformdy=0;
-	this.rotateMatrix=[[1,0,0],[0,1,0]];
-	this.scaleMatrix=[[1,0,0],[0,1,0]];
-	this.translateMatrix=[[1,0,0],[0,1,0]];
-	this.transformMatrix=[[1,0,0],[0,1,0]];
 	this._matrixChanged=false;
 }
 proto.object.prototype=new proto.object();
@@ -3110,9 +3112,7 @@ jCanvaScript.canvas = function(idCanvas)
 						if(dobject!=drag.init && initoptns.drag.type!='clone')
 						{
 							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
-							point.x=-dobject._x+point.x;
-							point.y=-dobject._y+point.y;
-							dobject.translate(point.x,point.y);
+							dobject.translate(point.x-dobject._x,point.y-dobject._y);
 						}
 						dobject.translate(initoptns.drag.shiftX,initoptns.drag.shiftY);
 					}
@@ -3146,8 +3146,9 @@ jCanvaScript.canvas = function(idCanvas)
 						{
 							drag.object.visible(false);
 							drag.init.visible(true);
-							drag.init.translateMatrix[0][2]=drag.object.translateMatrix[0][2];
-							drag.init.translateMatrix[1][2]=drag.object.translateMatrix[1][2];
+							drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
+							drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
+							changeMatrix(drag.init);
 							if(drag.object!=drag.init)drag.object.visible(false);
 						}
 					}

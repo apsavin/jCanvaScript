@@ -1,6 +1,7 @@
 function changeMatrix(object)
 {
-	object.matrix(multiplyM(multiplyM(multiplyM(object.transformMatrix,object.translateMatrix),object.scaleMatrix),object.rotateMatrix));
+	var optns=object.optns;
+	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
 	redraw(object);
 }
 function checkDefaults(check,def)
