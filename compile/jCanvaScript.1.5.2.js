@@ -2530,6 +2530,11 @@ proto.imageData=function()
 		filter.fn.call(this,this._width,this._height,filter.matrix,filterType);
 		return this;
 	};
+	this.getRect=function(type)
+	{
+		var points={x:this._x,y:this._y,width:this._width,height:this._height};
+		return getRect(this,points,type);
+	}
 	this.setPixel=function(x,y,color)
 	{
 		var colorKeeper,index=(x + y * this._width) * 4;
@@ -3081,7 +3086,7 @@ jCanvaScript.canvas = function(idCanvas)
 								if(mousemoveObject.onmouseover(point)===false)break;
 							}
 						}
-						underMouse=mousemoveObject;
+						if(!underMouse)underMouse=mousemoveObject;
 					}
 				}
 			}

@@ -221,7 +221,7 @@ jCanvaScript.canvas = function(idCanvas)
 								if(mousemoveObject.onmouseover(point)===false)break;
 							}
 						}
-						underMouse=mousemoveObject;
+						if(!underMouse)underMouse=mousemoveObject;
 					}
 				}
 			}
