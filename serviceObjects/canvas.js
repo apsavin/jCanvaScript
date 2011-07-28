@@ -58,46 +58,39 @@ jCanvaScript.canvas = function(idCanvas)
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
 			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
-			var canvas=canvases[this.optns.number];
+			var canvas=canvases[this.optns.number],
+			optns=canvas.optns;
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.click.val)return;
-				mouseEvent(e,'click',canvas.optns);
+				mouseEvent(e,'click',optns);
 			}
 			this.cnv.ondblclick=function(e){
 				if(!canvas.optns.dblclick.val)return;
-				mouseEvent(e,'dblclick',canvas.optns);
+				mouseEvent(e,'dblclick',optns);
 			}
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.mousedown.val)return;
-				mouseEvent(e,'mousedown',canvas.optns);
+				mouseEvent(e,'mousedown',optns);
 			}
 			this.cnv.onmouseup=function(e){
 				if(!canvas.optns.mouseup.val)return;
-				mouseEvent(e,'mouseup',canvas.optns);
+				mouseEvent(e,'mouseup',optns);
 			}
 			this.cnv.onkeyup=function(e){
-				keyEvent(e,'keyUp',canvas.optns);
+				keyEvent(e,'keyUp',optns);
 			}
 			this.cnv.onkeydown=function(e)
 			{
-				keyEvent(e,'keyDown',canvas.optns);
+				keyEvent(e,'keyDown',optns);
 			}
 			this.cnv.onkeypress=function(e)
 			{
-				keyEvent(e,'keyPress',canvas.optns);
+				keyEvent(e,'keyPress',optns);
 			}
 			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
-				if(!canvas.optns.mousemove.val)return;
-				mouseEvent(e,'mousemove',canvas.optns);
-				if(canvas.optns.drag.object!=false)
-				{
-					var drag=canvas.optns.drag;
-					var mousemove=canvas.optns.mousemove;
-					var point=transformPoint(mousemove.x,mousemove.y,drag.object.matrix());
-					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
-				}
+				if(!optns.mousemove.val)return;
+				mouseEvent(e,'mousemove',optns);
 			};
 			this.interval=requestAnimFrame(function(){
 					canvas.interval=canvas.interval||1;
@@ -189,6 +182,15 @@ jCanvaScript.canvas = function(idCanvas)
 		{
 			var point = this.optns.point||{},
 				mm=optns.mousemove;
+			if(optns.drag.object!=false)
+			{
+				var drag=optns.drag,
+					dobject=drag.object;
+				dobject.translate(mm.x-drag.x,mm.y-drag.y);
+				drag.x=mm.x;
+				drag.y=mm.y;
+				if(drag.fn)drag.fn.call(dobject,{x:mm.x,y:mm.y});
+			}
 			point.event=mm.event;
 			if(mm.objects!=false)
 			{
@@ -247,24 +249,22 @@ jCanvaScript.canvas = function(idCanvas)
 				{
 					if(mouseDownObjects[j].optns.drag.val==true)
 					{
-						var drag=optns.drag;
-						drag.object=mouseDownObjects[j].optns.drag.object.visible(true);
+						drag=optns.drag;
+						dobject=drag.object=mouseDownObjects[j].optns.drag.object.visible(true);
 						drag.fn=mouseDownObjects[j].optns.drag.fn;
 						drag.init=mouseDownObjects[j];
-						if(drag.init.optns.drag.params!==undefined)drag.object.animate(drag.init.optns.drag.params);
-						point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
-						drag.x=point.x;
-						drag.y=point.y;
-						if(drag.object!=drag.init && drag.init.optns.drag.type!='clone')
+						var initoptns=drag.init.optns;
+						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
+						drag.x=mouseDown.x;
+						drag.y=mouseDown.y;
+						if(dobject!=drag.init && initoptns.drag.type!='clone')
 						{
-							point.x=-drag.object._x+point.x;
-							point.y=-drag.object._y+point.y;
-							drag.x-=point.x;
-							drag.y-=point.y;
-							drag.object.transform(1,0,0,1,point.x,point.y);
+							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
+							point.x=-dobject._x+point.x;
+							point.y=-dobject._y+point.y;
+							dobject.translate(point.x,point.y);
 						}
-						drag.object._transformdx+=drag.init.optns.drag.shiftX;
-						drag.object._transformdy+=drag.init.optns.drag.shiftY;
+						dobject.translate(initoptns.drag.shiftX,initoptns.drag.shiftY);
 					}
 					if(typeof mouseDownObjects[j].onmousedown=='function')
 						if(mouseDownObjects[j].onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event})===false)
@@ -296,8 +296,8 @@ jCanvaScript.canvas = function(idCanvas)
 						{
 							drag.object.visible(false);
 							drag.init.visible(true);
-							drag.init._transformdx=drag.object._transformdx;
-							drag.init._transformdy=drag.object._transformdy;
+							drag.init.translateMatrix[0][2]=drag.object.translateMatrix[0][2];
+							drag.init.translateMatrix[1][2]=drag.object.translateMatrix[1][2];
 							if(drag.object!=drag.init)drag.object.visible(false);
 						}
 					}

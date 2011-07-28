@@ -5,7 +5,7 @@
 	{
 		jc.start('myCanvas',true);
 		jc.rect(50,50,100,100,1)
-				.click(function(){alert(3);})
+				.click(function(){alert(3);}).draggable()
 				.id('myRect');
 		jc.rect(0,0,100,80,0)
 				.click(function(){alert(2);return false;});

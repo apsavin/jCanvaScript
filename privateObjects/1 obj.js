@@ -84,23 +84,6 @@ proto.object=function()
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
 		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
-		if(this._matrixChanged)
-		{
-			this.matrix(this.transformMatrix);
-			if(this.translateMatrix.length)
-			{
-				this.matrix(multiplyM(this.matrix(),this.translateMatrix));
-			}
-			if(this.scaleMatrix.length)
-			{
-				this.matrix(multiplyM(this.matrix(),this.scaleMatrix));
-			}
-			if(this.rotateMatrix.length)
-			{
-				this.matrix(multiplyM(this.matrix(),this.rotateMatrix));
-			}
-			this._matrixChanged=false;
-		}
 		ctx.setTransform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
@@ -466,7 +449,6 @@ proto.object=function()
 		this._transform22=m[1][1];
 		this._transformdx=m[0][2];
 		this._transformdy=m[1][2];
-		this._matrixChanged=true;
 		return this;
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
@@ -485,12 +467,8 @@ proto.object=function()
 	{
 		if(duration!==undefined)
 			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		if(this.translateMatrix.length)
-			this.translateMatrix=multiplyM(this.translateMatrix,[[1,0,x],[0,1,y]]);
-		else
-			this.translateMatrix=[[1,0,x],[0,1,y]];
-		this._matrixChanged=true;
-		redraw(this);
+		this.translateMatrix=multiplyM(this.translateMatrix,[[1,0,x],[0,1,y]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.scale=function(x,y,duration,easing,onstep,fn)
@@ -498,19 +476,14 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
-		if(this.scaleMatrix.length)
-			this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
-		else
-			this.scaleMatrix=[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]];
-		this._matrixChanged=true;
-		redraw(this);
+		this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
-		redraw(this);
 		x=x/radian;
 		var cos=m_cos(x),
 			sin=m_sin(x),
@@ -535,11 +508,8 @@ proto.object=function()
 			translateX=-x1*(cos-1)+y1*sin;
 			translateY=-y1*(cos-1)-x1*sin;
 		}
-		if(this.rotateMatrix.length)
-			this.rotateMatrix=multiplyM(this.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
-		else
-			this.rotateMatrix=[[cos,-sin,translateX],[sin,cos,translateY]];
-		this._matrixChanged=true;
+		this.rotateMatrix=multiplyM(this.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
@@ -548,13 +518,15 @@ proto.object=function()
 		if(reset!==undefined)
 		{
 			this.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
+			this.rotateMatrix=[];
+			this.scaleMatrix=[];
+			this.translateMatrix=[];
 		}
 		else
 		{
 			this.transformMatrix=multiplyM(this.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
 		}
-		redraw(this);
-		this._matrixChanged=true;
+		changeMatrix(this);
 		return this;
 	}
 	this.beforeDraw=function(ctx)
@@ -779,9 +751,9 @@ proto.object=function()
 	this._transform22=1;
 	this._transformdx=0;
 	this._transformdy=0;
-	this.rotateMatrix=[];
-	this.scaleMatrix=[];
-	this.translateMatrix=[];
+	this.rotateMatrix=[[1,0,0],[0,1,0]];
+	this.scaleMatrix=[[1,0,0],[0,1,0]];
+	this.translateMatrix=[[1,0,0],[0,1,0]];
 	this.transformMatrix=[[1,0,0],[0,1,0]];
 	this._matrixChanged=false;
 }

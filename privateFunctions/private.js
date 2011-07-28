@@ -1,3 +1,8 @@
+function changeMatrix(object)
+{
+	object.matrix(multiplyM(multiplyM(multiplyM(object.transformMatrix,object.translateMatrix),object.scaleMatrix),object.rotateMatrix));
+	redraw(object);
+}
 function checkDefaults(check,def)
 {
 	for(var key in def)
