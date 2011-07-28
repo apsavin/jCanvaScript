@@ -34,10 +34,8 @@
 	function left()
 	{
 		jc('#myRect')
-			.rotate(30,'center',{x:0,y:0},1000,function(){
-				this.scale(0.5,0.5,1000);
-				this.translateTo(100,80,1000);
-			});
+			.clone()
+			.translate(50,0);
 	}
 </script>
 <style>

@@ -142,6 +142,10 @@ proto.layer=function()
 	{
 		var clone=jCanvaScript.layer(idLayer);
 		take(clone,this);
+		take(clone.optns.transformMatrix,this.optns.transformMatrix);
+		take(clone.optns.translateMatrix,this.optns.translateMatrix);
+		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
+		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
 		clone.canvas(objectCanvas(this).optns.id);
 		if(params===undefined) return clone;
 		return clone.animate(params);

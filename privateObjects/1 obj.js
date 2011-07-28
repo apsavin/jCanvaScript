@@ -47,6 +47,10 @@ proto.object=function()
 		proto[this._proto].prototype.base.call(clone);
 		take(clone,this);
 		clone.layer(objectLayer(this).optns.id);
+		take(clone.optns.transformMatrix,this.optns.transformMatrix);
+		take(clone.optns.translateMatrix,this.optns.translateMatrix);
+		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
+		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
 		if(params===undefined) return clone;
 		return clone.animate(params);
 	}
