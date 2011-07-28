@@ -921,7 +921,7 @@ proto.object=function()
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
 		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
-		ctx.setTransform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
+		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
 	this.up=function(n)
