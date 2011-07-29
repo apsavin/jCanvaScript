@@ -11,12 +11,12 @@ proto.object=function()
 		if(bufOptns.val===doBuffering)return this;
 		if(doBuffering)
 		{
-			var cnv=bufOptns.cnv=document.createElement('canvas');
-			var ctx=bufOptns.ctx=cnv.getContext('2d');
-			var rect=bufOptns.rect=this.getRect();
+			var cnv=bufOptns.cnv=document.createElement('canvas'),
+				ctx=bufOptns.ctx=cnv.getContext('2d'),
+				rect=bufOptns.rect=this.getRect(),
+				oldM=this.transform();
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
-			var oldM=this.transform();
 			bufOptns.x=this._x;
 			bufOptns.y=this._y;
 			bufOptns.dx=this._transformdx;
@@ -26,12 +26,10 @@ proto.object=function()
 			this.setOptns(ctx);
 			take(bufOptns.optns={},objectCanvas(this).optns);
 			bufOptns.optns.ctx=ctx;
-			this.draw(ctx);
+			this.draw(bufOptns.optns);
 			this._x=bufOptns.x;
 			this._y=bufOptns.y;
-			oldM[0][2]=rect.x;
-			oldM[1][2]=rect.y;
-			this.matrix(oldM);
+			this.transform(oldM[0][0], oldM[1][0], oldM[0][1], oldM[1][1], rect.x, rect.y,true);
 			bufOptns.val=true;
 		}
 		else

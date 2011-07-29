@@ -38,14 +38,16 @@ proto.layer=function()
 		for(i=0;i<limit;i++)
 		{
 			rect=objs[i].getRect(type);
+			rect.right=rect.width+rect.x;
+			rect.bottom=rect.height+rect.y;
 			if(points===undefined)points=rect;
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
-			if(points.width<rect.width)points.width=rect.width;
-			if(points.height<rect.height)points.height=rect.height;
+			if(points.right<rect.right)points.right=rect.right;
+			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
 		}
-		points.right=points.width+points.x;
-		points.bottom=points.height+points.y;
+		points.width=points.right-points.x;
+		points.height=points.bottom-points.y;
 		return points;
 	}
 	this.canvas=function(idCanvas)
@@ -184,7 +186,7 @@ proto.layer=function()
 			return this;
 		}
 		for(var i=0;i<this.grdntsnptrns.length;i++)
-			this.grdntsnptrns[i].create(ctx);
+			this.grdntsnptrns[i].create(canvasOptns);
 		if(optns.anyObjLevelChanged)
 		{
 			levelChanger(this.objs);

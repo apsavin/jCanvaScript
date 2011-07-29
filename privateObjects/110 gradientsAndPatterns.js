@@ -1,9 +1,9 @@
 proto.pattern = function()
 {
-	this.create = function(ctx)
+	this.create = function(canvasOptns)
 	{
-		if(this.optns.animated)animating.call(this);
-		this.val = ctx.createPattern(this._img,this._type);
+		if(this.optns.animated)animating.call(this,canvasOptns);
+		this.val = canvasOptns.ctx.createPattern(this._img,this._type);
 	}
 	this.base=function(image,type)
 	{
@@ -20,10 +20,10 @@ proto.pattern = function()
 proto.pattern.prototype=new proto.grdntsnptrn;
 proto.lGradient=function()
 {
-	this.create = function(ctx)
+	this.create = function(canvasOptns)
 	{
-		if(this.optns.animated)animating.call(this);
-		this.val=ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
+		if(this.optns.animated)animating.call(this,canvasOptns);
+		this.val=canvasOptns.ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
 		for(var i=0;i<this.colorStopsCount;i++)
 		{
 			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');

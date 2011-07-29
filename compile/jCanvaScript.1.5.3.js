@@ -842,12 +842,12 @@ proto.object=function()
 		if(bufOptns.val===doBuffering)return this;
 		if(doBuffering)
 		{
-			var cnv=bufOptns.cnv=document.createElement('canvas');
-			var ctx=bufOptns.ctx=cnv.getContext('2d');
-			var rect=bufOptns.rect=this.getRect();
+			var cnv=bufOptns.cnv=document.createElement('canvas'),
+				ctx=bufOptns.ctx=cnv.getContext('2d'),
+				rect=bufOptns.rect=this.getRect(),
+				oldM=this.transform();
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
-			var oldM=this.transform();
 			bufOptns.x=this._x;
 			bufOptns.y=this._y;
 			bufOptns.dx=this._transformdx;
@@ -857,12 +857,10 @@ proto.object=function()
 			this.setOptns(ctx);
 			take(bufOptns.optns={},objectCanvas(this).optns);
 			bufOptns.optns.ctx=ctx;
-			this.draw(ctx);
+			this.draw(bufOptns.optns);
 			this._x=bufOptns.x;
 			this._y=bufOptns.y;
-			oldM[0][2]=rect.x;
-			oldM[1][2]=rect.y;
-			this.matrix(oldM);
+			this.transform(oldM[0][0], oldM[1][0], oldM[0][1], oldM[1][1], rect.x, rect.y,true);
 			bufOptns.val=true;
 		}
 		else
@@ -2195,10 +2193,10 @@ proto.gradients.prototype=new proto.grdntsnptrn;
 
 proto.pattern = function()
 {
-	this.create = function(ctx)
+	this.create = function(canvasOptns)
 	{
-		if(this.optns.animated)animating.call(this);
-		this.val = ctx.createPattern(this._img,this._type);
+		if(this.optns.animated)animating.call(this,canvasOptns);
+		this.val = canvasOptns.ctx.createPattern(this._img,this._type);
 	}
 	this.base=function(image,type)
 	{
@@ -2215,10 +2213,10 @@ proto.pattern = function()
 proto.pattern.prototype=new proto.grdntsnptrn;
 proto.lGradient=function()
 {
-	this.create = function(ctx)
+	this.create = function(canvasOptns)
 	{
-		if(this.optns.animated)animating.call(this);
-		this.val=ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
+		if(this.optns.animated)animating.call(this,canvasOptns);
+		this.val=canvasOptns.ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
 		for(var i=0;i<this.colorStopsCount;i++)
 		{
 			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
@@ -2309,14 +2307,16 @@ proto.layer=function()
 		for(i=0;i<limit;i++)
 		{
 			rect=objs[i].getRect(type);
+			rect.right=rect.width+rect.x;
+			rect.bottom=rect.height+rect.y;
 			if(points===undefined)points=rect;
 			if(points.x>rect.x)points.x=rect.x;
 			if(points.y>rect.y)points.y=rect.y;
-			if(points.width<rect.width)points.width=rect.width;
-			if(points.height<rect.height)points.height=rect.height;
+			if(points.right<rect.right)points.right=rect.right;
+			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
 		}
-		points.right=points.width+points.x;
-		points.bottom=points.height+points.y;
+		points.width=points.right-points.x;
+		points.height=points.bottom-points.y;
 		return points;
 	}
 	this.canvas=function(idCanvas)
@@ -2455,7 +2455,7 @@ proto.layer=function()
 			return this;
 		}
 		for(var i=0;i<this.grdntsnptrns.length;i++)
-			this.grdntsnptrns[i].create(ctx);
+			this.grdntsnptrns[i].create(canvasOptns);
 		if(optns.anyObjLevelChanged)
 		{
 			levelChanger(this.objs);
@@ -2647,7 +2647,7 @@ proto.image=function()
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		if(typeof image!='object' || image.onload)
+		if(typeof image!='object' || typeof image.onload=='function' || image.onload==null)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
 		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
 		if(image.width===false)
