@@ -1,5 +1,5 @@
 <body onload="start()">
-<script src="jCanvaScript.1.5.2.js" type="text/javascript"></script>
+<script src="jCanvaScript.1.5.3.js" type="text/javascript"></script>
 <script type="text/javascript">
 	function start()
 	{
@@ -26,10 +26,14 @@
 	}
 	function bottom()
 	{
-		jc('#myRect')
-			.scale(0.5,0.5,1000)
-			.translateTo(100,80,1000)
-			.rotate(30,'center',{x:0,y:0},1000);
+		var rect=jc('#myRect');
+		var start=new Date();
+		rect
+			.scale(0.5,0.5,5000)
+			.translateTo(100,80,5000)
+			.rotate(30,'center',{x:0,y:0},5000,function(){
+				console.log((new Date())-start);
+			});
 	}
 	function left()
 	{

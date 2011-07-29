@@ -296,7 +296,6 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=duration/fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -395,6 +394,10 @@ proto.object=function()
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
 			queue.animateFn=fn||false;
 			this.optns.animated=true;
+			queue.duration=duration;
+			queue.step=0;
+			queue.easing=easing;
+			queue.onstep=onstep;
 		}
 		for(var key in options)
 		{
@@ -419,10 +422,6 @@ proto.object=function()
 						queue[privateKey]={
 							from:this[privateKey],
 							to:keyValue,
-							duration:duration,
-							step:1,
-							easing:easing,
-							onstep:onstep,
 							prev:0
 						}
 						queue.animateKeyCount++;
@@ -534,22 +533,23 @@ proto.object=function()
 		changeMatrix(this);
 		return this;
 	}
-	this.beforeDraw=function(ctx)
+	this.beforeDraw=function(canvasOptns)
 	{
 		if(!this._visible)return false;
+		var ctx=canvasOptns.ctx;
 		ctx.save();
 		if(this.optns.clipObject)
 		{
 			var clipObject=this.optns.clipObject;
 			clipObject._visible=true;
-			if (clipObject.optns.animated)animating.call(clipObject);
+			if (clipObject.optns.animated)animating.call(clipObject,canvasOptns);
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
 		this.setOptns(ctx);
-		if (this.optns.animated)animating.call(this);
+		if (this.optns.animated)animating.call(this,canvasOptns);
 		ctx.beginPath();
 		return true;
 	}
@@ -572,8 +572,8 @@ proto.object=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasOptns=objectCanvas(this).optns;
-		var ctx=canvasOptns.ctx;
+		var canvasOptns=objectCanvas(this).optns,
+			ctx=canvasOptns.ctx;
 		if(global!==undefined)
 		{
 			x-=canvasOptns.x;

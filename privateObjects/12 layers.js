@@ -173,9 +173,11 @@ proto.layer=function()
 			objs[i].animate({opacity:val},duration,easing,onstep,fn);
 		return this;
 	}
-	this.draw=function(ctx)
+	this.draw=function(canvasOptns)
 	{
-		var bufOptns=this.optns.buffer;
+		var optns=this.optns,
+			bufOptns=optns.buffer,
+			ctx=canvasOptns.ctx;
 		if(bufOptns.val)
 		{
 			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
@@ -183,24 +185,24 @@ proto.layer=function()
 		}
 		for(var i=0;i<this.grdntsnptrns.length;i++)
 			this.grdntsnptrns[i].create(ctx);
-		if(this.optns.anyObjLevelChanged)
+		if(optns.anyObjLevelChanged)
 		{
 			levelChanger(this.objs);
-			this.optns.anyObjLevelChanged = false;
+			optns.anyObjLevelChanged = false;
 		}
-		if(this.optns.anyObjDeleted)
+		if(optns.anyObjDeleted)
 		{
 			objDeleter(this.objs);
-			this.optns.anyObjDeleted = false;
+			optns.anyObjDeleted = false;
 		}
-		ctx.globalCompositeOperation = this.optns.gCO;
+		ctx.globalCompositeOperation = optns.gCO;
 		for(i=0;i<this.objs.length;i++)
 		{
 			var object=this.objs[i];
 			if(typeof (object.draw)=='function')
 			{
 				this.setOptns(ctx);
-				if(object.beforeDraw(ctx))
+				if(object.beforeDraw(canvasOptns))
 				{
 					if(typeof (object.draw)=='function')
 					{
@@ -212,7 +214,7 @@ proto.layer=function()
 						if(bufOptns.optns)
 							object.afterDraw(bufOptns.optns);
 						else
-							object.afterDraw(objectCanvas(this).optns);
+							object.afterDraw(canvasOptns);
 					}
 				}
 			}

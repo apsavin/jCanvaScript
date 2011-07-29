@@ -18,42 +18,40 @@ function redraw(object)
 	objectCanvas(object).optns.redraw=1;
 }
 
-function animating()
+function animating(canvasOptns)
 {
-	var limit=this.animateQueue.length,
-	progress=1;
-	for(var q=0;q<limit;q++)
+	var timeDiff=canvasOptns.timeDiff,
+		progress=1;
+	for(var q=0;q<this.animateQueue.length;q++)
 	{
-		var queue=this.animateQueue[q];
+		var queue=this.animateQueue[q],
+			duration=queue['duration'],
+			easing=queue['easing'],
+			step=queue.step,
+			onstep=queue['onstep'],
+			easingIn=easing['type']=='in' || (easing['type']=='inOut' && progress<0.5),
+			easingOut=easing['type']=='out' || (easing['type']=='inOut' && progress>0.5);
+			queue['step']+=timeDiff;
+			progress=step/duration;
 		for(var key in queue)
 		{
-			if(this[key]!==undefined)
+			if(this[key]!==undefined && queue[key])
 			{
-				if(queue[key])
+				var property=queue[key],
+					to=property['to'],
+					from=property['from'];
+				animateTransforms(key,this,queue);
+				if(easingIn)this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
+				if(easingOut)this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
+				if(onstep)onstep.fn.call(this,onstep);
+				if(step>=duration)
 				{
-					var property=queue[key];
-					var step=property['step'];
-					var duration=property['duration'];
-					var easing=property['easing'];
-					var to=property['to'];
-					var from=property['from'];
-					property['step']++;
-					progress=step/duration;
+					this[key]=to;
 					animateTransforms(key,this,queue);
-					if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
-					if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
-					if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
-					if(step>duration)
+					queue[key]=false;
+					queue.animateKeyCount--;
+					if(!queue.animateKeyCount)
 					{
-						this[key]=to;
-						animateTransforms(key,this,queue);
-						queue[key]=false;
-						queue.animateKeyCount--;
-					}
-				}
-				else
-				{
-					if(!queue.animateKeyCount){
 						if(queue.animateFn)queue.animateFn.apply(this);
 						this.animateQueue.splice(q,1);
 						q--;
@@ -62,8 +60,8 @@ function animating()
 			}
 		}
 	}
-	if (limit==0)this.optns.animated=false;
-	else redraw(this);
+	if (this.animateQueue.length)redraw(this);
+	else this.optns.animated=false;
 	return this;
 }
 function animateTransforms(key,object,queue)

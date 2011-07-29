@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.1
+ * jCanvaScript JavaScript Library v 1.5.3
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -206,6 +206,12 @@
 	}
 
 	
+function changeMatrix(object)
+{
+	var optns=object.optns;
+	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
+	redraw(object);
+}
 function checkDefaults(check,def)
 {
 	for(var key in def)
@@ -220,42 +226,40 @@ function redraw(object)
 	objectCanvas(object).optns.redraw=1;
 }
 
-function animating()
+function animating(canvasOptns)
 {
-	var limit=this.animateQueue.length,
-	progress=1;
-	for(var q=0;q<limit;q++)
+	var timeDiff=canvasOptns.timeDiff,
+		progress=1;
+	for(var q=0;q<this.animateQueue.length;q++)
 	{
-		var queue=this.animateQueue[q];
+		var queue=this.animateQueue[q],
+			duration=queue['duration'],
+			easing=queue['easing'],
+			step=queue.step,
+			onstep=queue['onstep'],
+			easingIn=easing['type']=='in' || (easing['type']=='inOut' && progress<0.5),
+			easingOut=easing['type']=='out' || (easing['type']=='inOut' && progress>0.5);
+			queue['step']+=timeDiff;
+			progress=step/duration;
 		for(var key in queue)
 		{
-			if(this[key]!==undefined)
+			if(this[key]!==undefined && queue[key])
 			{
-				if(queue[key])
+				var property=queue[key],
+					to=property['to'],
+					from=property['from'];
+				animateTransforms(key,this,queue);
+				if(easingIn)this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
+				if(easingOut)this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
+				if(onstep)onstep.fn.call(this,onstep);
+				if(step>=duration)
 				{
-					var property=queue[key];
-					var step=property['step'];
-					var duration=property['duration'];
-					var easing=property['easing'];
-					var to=property['to'];
-					var from=property['from'];
-					property['step']++;
-					progress=step/duration;
+					this[key]=to;
 					animateTransforms(key,this,queue);
-					if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
-					if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
-					if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
-					if(step>duration)
+					queue[key]=false;
+					queue.animateKeyCount--;
+					if(!queue.animateKeyCount)
 					{
-						this[key]=to;
-						animateTransforms(key,this,queue);
-						queue[key]=false;
-						queue.animateKeyCount--;
-					}
-				}
-				else
-				{
-					if(!queue.animateKeyCount){
 						if(queue.animateFn)queue.animateFn.apply(this);
 						this.animateQueue.splice(q,1);
 						q--;
@@ -264,8 +268,8 @@ function animating()
 			}
 		}
 	}
-	if (limit==0)this.optns.animated=false;
-	else redraw(this);
+	if (this.animateQueue.length)redraw(this);
+	else this.optns.animated=false;
 	return this;
 }
 function animateTransforms(key,object,queue)
@@ -282,6 +286,12 @@ function animateTransforms(key,object,queue)
 			break;
 		case '_translateY':
 			object.translate(0,val-prev);
+			break;
+		case '_translateToX':
+			object.translateTo(val,undefined);
+			break;
+		case '_translateToY':
+			object.translateTo(undefined,val);
 			break;
 		case '_scaleX':
 			if(!prev)prev=1;
@@ -650,16 +660,21 @@ function checkMouseEvents(object,optns)
 	}
 	if(point)
 	{
-		if(optns.mousemove.x!=false)
-			optns.mousemove.object=object;
-		if(optns.mousedown.x!=false)
-			optns.mousedown.object=object;
-		if(optns.click.x!=false || optns.dblclick.x!=false)
-			optns.click.object=object;
-		if(optns.dblclick.x!=false)
-            optns.dblclick.object=object;
-		if(optns.mouseup.x!=false)
-			optns.mouseup.object=object;
+		var mm=optns.mousemove,
+			md=optns.mousedown,
+			mu=optns.mouseup,
+			c=optns.click,
+			dc=optns.dblclick;
+		if(mm.x!=false)
+			mm.objects[mm.objects.length]=object;
+		if(md.x!=false)
+			md.objects[md.objects.length]=object;
+		if(c.x!=false || dc.x!=false)
+			c.objects[c.objects.length]=object;
+		if(dc.x!=false)
+            dc.objects[dc.objects.length]=object;
+		if(mu.x!=false)
+			mu.objects[mu.objects.length]=object;
 		optns.point=point;
 	}
 }
@@ -743,11 +758,13 @@ function canvas(idCanvas,object,array)
 	};
 	jCanvaScript.canvas(idCanvas);
 	for(var i=0;i<canvases.length;i++)
+	{
 		var canvasItem=canvases[i];
 		if(canvasItem.optns.id==idCanvas)
 		{
 			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
 			oldArray.splice(object.optns.number,1);
+			normalizeLevels(oldArray);
 			object._level=object.optns.number=newArray.length;
 			newArray[object._level]=object;
 			objectLayer.number=0;
@@ -755,6 +772,7 @@ function canvas(idCanvas,object,array)
 			objectCanvas.id=canvasItem.optns.id;
 			objectLayer.id=canvasItem.layers[0].optns.id;
 		}
+	}
 	redraw(object);
 	return object;
 }
@@ -860,6 +878,10 @@ proto.object=function()
 		proto[this._proto].prototype.base.call(clone);
 		take(clone,this);
 		clone.layer(objectLayer(this).optns.id);
+		take(clone.optns.transformMatrix,this.optns.transformMatrix);
+		take(clone.optns.translateMatrix,this.optns.translateMatrix);
+		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
+		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
 		if(params===undefined) return clone;
 		return clone.animate(params);
 	}
@@ -897,16 +919,6 @@ proto.object=function()
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
 		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
-		if(this.scaleMatrix)
-		{
-			this.matrix(multiplyM(this.matrix(),this.scaleMatrix));
-			this.scaleMatrix=false;
-		}
-		if(this.rotateMatrix)
-		{
-			this.matrix(multiplyM(this.matrix(),this.rotateMatrix));
-			this.rotateMatrix=false;
-		}
 		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
@@ -1115,7 +1127,6 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=duration/fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -1162,6 +1173,22 @@ proto.object=function()
 			}
 			options.translate=undefined;
 		}
+		if(options.translateTo!==undefined)
+		{
+			var point=this.position();
+			this._translateToX=point.x;
+			this._translateToY=point.y;
+			if(typeof options.translateTo!='object')
+			{
+				options.translateToX=options.translateToY=options.translateTo;
+			}
+			else
+			{
+				options.translateToX=options.translateTo.x||0;
+				options.translateToY=options.translateTo.y||0;
+			}
+			options.translateTo=undefined;
+		}
 		if(options.rotate!==undefined)
 		{
 			options.rotateAngle=options.rotate.angle;
@@ -1198,6 +1225,10 @@ proto.object=function()
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
 			queue.animateFn=fn||false;
 			this.optns.animated=true;
+			queue.duration=duration;
+			queue.step=0;
+			queue.easing=easing;
+			queue.onstep=onstep;
 		}
 		for(var key in options)
 		{
@@ -1222,10 +1253,6 @@ proto.object=function()
 						queue[privateKey]={
 							from:this[privateKey],
 							to:keyValue,
-							duration:duration,
-							step:1,
-							easing:easing,
-							onstep:onstep,
 							prev:0
 						}
 						queue.animateKeyCount++;
@@ -1239,6 +1266,8 @@ proto.object=function()
 				this.rotate(this._rotateAngle,this._rotateX,this._rotateY);
 			if(options['translateX']||options['translateY'])
 				this.translate(this._translateX,this._translateY);
+			if(options['translateToX']||options['translateToY'])
+				this.translate(this._translateToX,this._translateToY);
 			if(options['scaleX']||options['scaleY'])
 				this.scale(this._scaleX,this._scaleY);
 		}
@@ -1258,16 +1287,22 @@ proto.object=function()
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
+		if(duration!==undefined)
+			return this.animate({translateTo:{x:newX,y:newY}},duration,easing,onstep,fn);
 		var point=this.position(),
-			x=newX-point.x,y=newY-point.y;
-		return this.translate(x,y,duration,easing,onstep,fn);
+			x=0,y=0;
+		if(newX!==undefined)
+			x=newX-point.x;
+		if(newY!==undefined)
+			y=newY-point.y;
+		return this.translate(x,y);
 	}
 	this.translate=function(x,y,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
 			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		this.matrix(multiplyM(this.matrix(),[[1,0,x],[0,1,y]]));
-		redraw(this);
+		this.optns.translateMatrix=multiplyM(this.optns.translateMatrix,[[1,0,x],[0,1,y]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.scale=function(x,y,duration,easing,onstep,fn)
@@ -1275,27 +1310,20 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
-		if(this.scaleMatrix)
-			this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
-		else
-			this.scaleMatrix=[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]];
-		redraw(this);
+		this.optns.scaleMatrix=multiplyM(this.optns.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
-		redraw(this);
 		x=x/radian;
-		var cos=m_cos(x);
-		var sin=m_sin(x);
-		var matrix=[];
-		if(x1===undefined)
-		{
-			matrix=[[cos,-sin,0],[sin,cos,0]];
-		}
-		else
+		var cos=m_cos(x),
+			sin=m_sin(x),
+			translateX=0,
+			translateY=0;
+		if(x1!==undefined)
 		{
 			if(x1=='center')
 			{
@@ -1311,45 +1339,48 @@ proto.object=function()
 					y1=point.y+y1.y;
 				}
 			}
-			matrix=[[cos,-sin,-x1*(cos-1)+y1*sin],[sin,cos,-y1*(cos-1)-x1*sin]];
+			translateX=-x1*(cos-1)+y1*sin;
+			translateY=-y1*(cos-1)-x1*sin;
 		}
-		if(this.rotateMatrix)
-				this.rotateMatrix=multiplyM(this.rotateMatrix,matrix);
-			else
-				this.rotateMatrix=matrix;
+		this.optns.rotateMatrix=multiplyM(this.optns.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
 	{
 		if(m11===undefined)return this.matrix();
+		var optns=this.optns;
 		if(reset!==undefined)
 		{
-			this.matrix([[m11,m21,dx],[m12,m22,dy]]);
+			optns.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
+			optns.rotateMatrix=[];
+			optns.scaleMatrix=[];
+			optns.translateMatrix=[];
 		}
 		else
 		{
-			var m=multiplyM(this.matrix(),[[m11,m21,dx],[m12,m22,dy]]);
-			this.matrix(m);
+			optns.transformMatrix=multiplyM(optns.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
 		}
-		redraw(this);
+		changeMatrix(this);
 		return this;
 	}
-	this.beforeDraw=function(ctx)
+	this.beforeDraw=function(canvasOptns)
 	{
 		if(!this._visible)return false;
+		var ctx=canvasOptns.ctx;
 		ctx.save();
 		if(this.optns.clipObject)
 		{
 			var clipObject=this.optns.clipObject;
 			clipObject._visible=true;
-			if (clipObject.optns.animated)animating.call(clipObject);
+			if (clipObject.optns.animated)animating.call(clipObject,canvasOptns);
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
 		this.setOptns(ctx);
-		if (this.optns.animated)animating.call(this);
+		if (this.optns.animated)animating.call(this,canvasOptns);
 		ctx.beginPath();
 		return true;
 	}
@@ -1372,8 +1403,8 @@ proto.object=function()
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasOptns=objectCanvas(this).optns;
-		var ctx=canvasOptns.ctx;
+		var canvasOptns=objectCanvas(this).optns,
+			ctx=canvasOptns.ctx;
 		if(global!==undefined)
 		{
 			x-=canvasOptns.x;
@@ -1512,7 +1543,11 @@ proto.object=function()
 			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
 			focused:false,
-			buffer:{val:false}
+			buffer:{val:false},
+			rotateMatrix:[[1,0,0],[0,1,0]],
+			scaleMatrix:[[1,0,0],[0,1,0]],
+			translateMatrix:[[1,0,0],[0,1,0]],
+			transformMatrix:[[1,0,0],[0,1,0]]
 		}
 		this.animateQueue = [];
 		this._x=x;
@@ -1556,7 +1591,7 @@ proto.object=function()
 	this._transform22=1;
 	this._transformdx=0;
 	this._transformdy=0;
-	this.rotateMatrix=this.scaleMatrix=false;
+	this._matrixChanged=false;
 }
 proto.object.prototype=new proto.object();
 
@@ -2378,6 +2413,10 @@ proto.layer=function()
 	{
 		var clone=jCanvaScript.layer(idLayer);
 		take(clone,this);
+		take(clone.optns.transformMatrix,this.optns.transformMatrix);
+		take(clone.optns.translateMatrix,this.optns.translateMatrix);
+		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
+		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
 		clone.canvas(objectCanvas(this).optns.id);
 		if(params===undefined) return clone;
 		return clone.animate(params);
@@ -2405,9 +2444,11 @@ proto.layer=function()
 			objs[i].animate({opacity:val},duration,easing,onstep,fn);
 		return this;
 	}
-	this.draw=function(ctx)
+	this.draw=function(canvasOptns)
 	{
-		var bufOptns=this.optns.buffer;
+		var optns=this.optns,
+			bufOptns=optns.buffer,
+			ctx=canvasOptns.ctx;
 		if(bufOptns.val)
 		{
 			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
@@ -2415,24 +2456,24 @@ proto.layer=function()
 		}
 		for(var i=0;i<this.grdntsnptrns.length;i++)
 			this.grdntsnptrns[i].create(ctx);
-		if(this.optns.anyObjLevelChanged)
+		if(optns.anyObjLevelChanged)
 		{
 			levelChanger(this.objs);
-			this.optns.anyObjLevelChanged = false;
+			optns.anyObjLevelChanged = false;
 		}
-		if(this.optns.anyObjDeleted)
+		if(optns.anyObjDeleted)
 		{
 			objDeleter(this.objs);
-			this.optns.anyObjDeleted = false;
+			optns.anyObjDeleted = false;
 		}
-		ctx.globalCompositeOperation = this.optns.gCO;
+		ctx.globalCompositeOperation = optns.gCO;
 		for(i=0;i<this.objs.length;i++)
 		{
 			var object=this.objs[i];
 			if(typeof (object.draw)=='function')
 			{
 				this.setOptns(ctx);
-				if(object.beforeDraw(ctx))
+				if(object.beforeDraw(canvasOptns))
 				{
 					if(typeof (object.draw)=='function')
 					{
@@ -2444,7 +2485,7 @@ proto.layer=function()
 						if(bufOptns.optns)
 							object.afterDraw(bufOptns.optns);
 						else
-							object.afterDraw(objectCanvas(this).optns);
+							object.afterDraw(canvasOptns);
 					}
 				}
 			}
@@ -2489,6 +2530,11 @@ proto.imageData=function()
 		filter.fn.call(this,this._width,this._height,filter.matrix,filterType);
 		return this;
 	};
+	this.getRect=function(type)
+	{
+		var points={x:this._x,y:this._y,width:this._width,height:this._height};
+		return getRect(this,points,type);
+	}
 	this.setPixel=function(x,y,color)
 	{
 		var colorKeeper,index=(x + y * this._width) * 4;
@@ -2854,11 +2900,11 @@ jCanvaScript.canvas = function(idCanvas)
 		keyDown:{val:false,code:false},
 		keyUp:{val:false,code:false},
 		keyPress:{val:false,code:false},
-		mousemove:{val:false,x:false,y:false,object:false},
-		click:{val:false,x:false,y:false,object:false},
-		dblclick:{val:false,x:false,y:false,object:false},
-		mouseup:{val:false,x:false,y:false,object:false},
-		mousedown:{val:false,x:false,y:false,object:false},
+		mousemove:{val:false,x:false,y:false,objects:[]},
+		click:{val:false,x:false,y:false,objects:[]},
+		dblclick:{val:false,x:false,y:false,objects:[]},
+		mouseup:{val:false,x:false,y:false,objects:[]},
+		mousedown:{val:false,x:false,y:false,objects:[]},
 		drag:{object:false,x:0,y:0},
 		gCO: 'source-over',
 		redraw:1
@@ -2875,52 +2921,46 @@ jCanvaScript.canvas = function(idCanvas)
 			if(this.interval)return this;
 			this.isAnimated=isAnimated;
 			var offset=getOffset(this.cnv);
-			this.optns.x=offset.left;
-			this.optns.y=offset.top;
-			var canvas=canvases[this.optns.number];
+			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
+			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
+			var canvas=canvases[this.optns.number],
+			optns=canvas.optns;
 			this.cnv.onclick=function(e){
 				if(!canvas.optns.click.val)return;
-				mouseEvent(e,'click',canvas.optns);
+				mouseEvent(e,'click',optns);
 			}
 			this.cnv.ondblclick=function(e){
 				if(!canvas.optns.dblclick.val)return;
-				mouseEvent(e,'dblclick',canvas.optns);
+				mouseEvent(e,'dblclick',optns);
 			}
 			this.cnv.onmousedown=function(e){
 				if(!canvas.optns.mousedown.val)return;
-				mouseEvent(e,'mousedown',canvas.optns);
+				mouseEvent(e,'mousedown',optns);
 			}
 			this.cnv.onmouseup=function(e){
 				if(!canvas.optns.mouseup.val)return;
-				mouseEvent(e,'mouseup',canvas.optns);
+				mouseEvent(e,'mouseup',optns);
 			}
 			this.cnv.onkeyup=function(e){
-				keyEvent(e,'keyUp',canvas.optns);
+				keyEvent(e,'keyUp',optns);
 			}
 			this.cnv.onkeydown=function(e)
 			{
-				keyEvent(e,'keyDown',canvas.optns);
+				keyEvent(e,'keyDown',optns);
 			}
 			this.cnv.onkeypress=function(e)
 			{
-				keyEvent(e,'keyPress',canvas.optns);
+				keyEvent(e,'keyPress',optns);
 			}
 			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
-				if(!canvas.optns.mousemove.val)return;
-				mouseEvent(e,'mousemove',canvas.optns);
-				if(canvas.optns.drag.object!=false)
-				{
-					var drag=canvas.optns.drag;
-					var mousemove=canvas.optns.mousemove;
-					var point=transformPoint(mousemove.x,mousemove.y,drag.object.matrix());
-					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
-				}
+				if(!optns.mousemove.val)return;
+				mouseEvent(e,'mousemove',optns);
 			};
-			this.interval=requestAnimFrame(function(){
+			optns.timeLast=new Date();
+			this.interval=requestAnimFrame(function(time){
 					canvas.interval=canvas.interval||1;
-					canvas.frame();},
+					canvas.frame(time);},
 				this.cnv);
 		}
 		else return this.frame();
@@ -2964,12 +3004,15 @@ jCanvaScript.canvas = function(idCanvas)
 		this.optns.redraw++;
 		return this;
 	}
-	canvas.frame=function()
+	canvas.frame=function(time)
 	{
 		var optns=this.optns,thisCanvas=this;
+		time=time||(new Date());
+		optns.timeDiff=time-optns.timeLast;
+		optns.timeLast=time;
 		if(this.interval)
 		{
-			this.interval=requestAnimFrame(function(){thisCanvas.frame();},this.cnv);
+			this.interval=requestAnimFrame(function(time){thisCanvas.frame(time);},thisCanvas.cnv);
 			this.interval=this.interval||1;
 		}
 		if(!optns.redraw)return this;
@@ -2995,41 +3038,47 @@ jCanvaScript.canvas = function(idCanvas)
 		{
 			var object=this.layers[i];
 			if(typeof (object.draw)=='function')
-				if(object.beforeDraw(optns.ctx))
+				if(object.beforeDraw(optns))
 				{
 					if(typeof (object.draw)=='function')
 					{
-						object.draw(optns.ctx);
+						object.draw(optns);
 						object.afterDraw(optns);
 					}
 				}
 		}
 		if(optns.mousemove.x!=false)
 		{
-			var point = this.optns.point||{};
-			point.event=optns.mousemove.event;
-			if(optns.mousemove.object!=false)
+			var mm=optns.mousemove;
+			if(optns.drag.object!=false)
 			{
-				var mousemoveObject=optns.mousemove.object;
-				if(underMouse===mousemoveObject)
+				var drag=optns.drag,
+					dobject=drag.object;
+				dobject.translate(mm.x-drag.x,mm.y-drag.y);
+				drag.x=mm.x;
+				drag.y=mm.y;
+				if(drag.fn)drag.fn.call(dobject,{x:mm.x,y:mm.y});
+			}
+			if(mm.objects!=false)
+			{
+				var point = this.optns.point||{};
+				point.event=mm.event;
+				for(i=mm.objects.length-1;i>-1;i--)
 				{
-					if(typeof mousemoveObject.onmousemove=='function')
+					var mousemoveObject=mm.objects[i];
+					if(underMouse===mousemoveObject)
 					{
-						mousemoveObject.onmousemove(point);
-					}
-				}
-				else
-				{
-					if(underMouse==false)
-					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
+						if(typeof mousemoveObject.onmousemove=='function')
+							if(mousemoveObject.onmousemove(point)===false)break;
 					}
 					else
 					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
+						if(underMouse!=false)
+							if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
+						if(typeof mousemoveObject.onmouseover=='function')
+							if(mousemoveObject.onmouseover(point)===false)break;
+						if(!underMouse)underMouse=mousemoveObject;
 					}
-					underMouse=mousemoveObject;
 				}
 			}
 			else
@@ -3043,91 +3092,111 @@ jCanvaScript.canvas = function(idCanvas)
 					underMouse=false;
 				}
 			}
+			optns.mousemove.objects=[];
 		}
-		if(optns.mousedown.object!=false)
+		if(optns.mousedown.objects.length)
 		{
 			var mouseDown=this.optns.mousedown;
-			var mouseDownObjects=[mouseDown.object,objectLayer(mouseDown.object)];
-			for(i=0;i<2;i++)
+			mdCicle:
+			for(i=mouseDown.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseDownObjects[i].onmousedown=='function')mouseDownObjects[i].onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event});
-				if(mouseDownObjects[i].optns.drag.val==true)
+				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])];
+				for(var j=0;j<2;j++)
 				{
-					var drag=optns.drag;
-					drag.object=mouseDownObjects[i].optns.drag.object.visible(true);
-					drag.fn=mouseDownObjects[i].optns.drag.fn;
-					drag.init=mouseDownObjects[i];
-					if(drag.init.optns.drag.params!==undefined)drag.object.animate(drag.init.optns.drag.params);
-					point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
-					drag.x=point.x;
-					drag.y=point.y;
-					if(drag.object!=drag.init && drag.init.optns.drag.type!='clone')
+					if(mouseDownObjects[j].optns.drag.val==true)
 					{
-						point.x=-drag.object._x+point.x;
-						point.y=-drag.object._y+point.y;
-						drag.x-=point.x;
-						drag.y-=point.y;
-						drag.object.transform(1,0,0,1,point.x,point.y);
+						drag=optns.drag;
+						dobject=drag.object=mouseDownObjects[j].optns.drag.object.visible(true);
+						drag.fn=mouseDownObjects[j].optns.drag.fn;
+						drag.init=mouseDownObjects[j];
+						var initoptns=drag.init.optns;
+						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
+						drag.x=mouseDown.x;
+						drag.y=mouseDown.y;
+						if(dobject!=drag.init && initoptns.drag.type!='clone')
+						{
+							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
+							dobject.translate(point.x-dobject._x,point.y-dobject._y);
+						}
+						dobject.translate(initoptns.drag.shiftX,initoptns.drag.shiftY);
 					}
-					drag.object._transformdx+=drag.init.optns.drag.shiftX;
-					drag.object._transformdy+=drag.init.optns.drag.shiftY;
+					if(typeof mouseDownObjects[j].onmousedown=='function')
+						if(mouseDownObjects[j].onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event})===false)
+							break mdCicle;
 				}
 			}
-			mouseDown.object=false;
+			mouseDown.objects=[];
 		}
-		if(optns.mouseup.object!=false)
+		if(optns.mouseup.objects.length)
 		{
 			var mouseUp=optns.mouseup;
-			var mouseUpObjects=[mouseUp.object,objectLayer(mouseUp.object)];
-			drag=optns.drag;
-			for(i=0;i<2;i++)
+			muCicle:
+			for(i=mouseUp.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseUpObjects[i].onmouseup=='function')mouseUpObjects[i].onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event});
-				if(mouseUpObjects[i].optns.drop.val==true && optns.drag.init!==undefined)
+				var mouseUpObjects=[mouseUp.objects[i],objectLayer(mouseUp.objects[i])];
+				drag=optns.drag;
+				for(j=0;j<2;j++)
 				{
-					if(drag.init==drag.object)
-						drag.init.visible(true);
-					if(typeof mouseUpObjects[i].optns.drop.fn=='function')mouseUpObjects[i].optns.drop.fn.call(mouseUpObjects[i],drag.init);
-					this.optns.drag={object:false,x:0,y:0};
-				}
-				else
-				{
-					if(drag.init!==undefined)
+					if(mouseUpObjects[j].optns.drop.val==true && optns.drag.init!==undefined)
 					{
-						drag.object.visible(false);
-						drag.init.visible(true);
-						drag.init._transformdx=drag.object._transformdx;
-						drag.init._transformdy=drag.object._transformdy;
-						if(drag.object!=drag.init)drag.object.visible(false);
-						this.optns.drag={object:false,x:0,y:0};
+						if(drag.init==drag.object)
+							drag.init.visible(true);
+						if(typeof mouseUpObjects[j].optns.drop.fn=='function')
+							mouseUpObjects[j].optns.drop.fn.call(mouseUpObjects[j],drag.init);
 					}
+					else
+					{
+						if(drag.init!==undefined)
+						{
+							drag.object.visible(false);
+							drag.init.visible(true);
+							drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
+							drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
+							changeMatrix(drag.init);
+							if(drag.object!=drag.init)drag.object.visible(false);
+						}
+					}
+					if(typeof mouseUpObjects[j].onmouseup=='function')
+						if(mouseUpObjects[j].onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
+							break muCicle;
 				}
 			}
-			mouseUp.object=false;
+			this.optns.drag={object:false,x:0,y:0};
+			mouseUp.objects=[];
 		}
-		if(this.optns.click.object!=false)
+		if(optns.click.objects.length)
 		{
-			var mouseClick=this.optns.click;
-			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
-			for(i=0;i<2;i++)
+			var click=this.optns.click;
+			cCicle:
+			for(i=click.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseClickObjects[i].onclick == 'function')
-					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y,event:mouseClick.event});
+				var mouseClickObjects=[click.objects[i],objectLayer(click.objects[i])];
+				for(j=0;j<2;j++)
+				{
+					if(typeof mouseClickObjects[j].onclick == 'function')
+						if(mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event})===false)
+							break cCicle;
+				}
 			}
-			mouseClick.object=false;
+			click.objects=[];
 		}
-		if(this.optns.dblclick.object!=false)
+		if(optns.dblclick.objects.length)
         {
-            var mouseDblClick=this.optns.dblclick;
-            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
-            for(i=0;i<2;i++)
-            {
-                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
-                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y, event:mouseDblClick.event});
-            }
-            mouseDblClick.object=false;
+            var dblClick=this.optns.dblclick;
+			dcCicle:
+			for(i=dblClick.objects.length-1;i>-1;i--)
+			{
+				var mouseDblClickObjects=[dblClick.objects[i],objectLayer(dblClick.objects[i])];
+				for(j=0;j<2;j++)
+				{
+					if(typeof mouseDblClickObjects[j].ondblclick == 'function')
+						if(mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event})===false)
+							break dcCicle;
+				}
+			}
+            dblClick.objects=[];
         }
-		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
+		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=optns.click.x=optns.dblclick.x=optns.mouseup.x=optns.mousedown.x=optns.mousemove.x=false;
 		return this;
 	}
 	return canvas;
