@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.3
+ * jCanvaScript JavaScript Library v 1.5.4
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -1047,7 +1047,7 @@ proto.object=function()
 		return this.animate(parameters);
 	}
 	this.queue=function(){
-		var animateQueueLength=this.animateQueue.length, queue,i,j,key,duration=0,longFn=0,fn,args=arguments;
+		var animateQueueLength=this.animateQueue.length, queue,i,j,duration=0,longFn=0,fn,args=arguments;
 		for (i=0;i<args.length;i++)
 		{
 			if(typeof args[i]=='function'){
@@ -1059,16 +1059,13 @@ proto.object=function()
 					for (j=animateQueueLength;j<this.animateQueue.length;j++)
 					{
 						queue=this.animateQueue[j];
-						for(key in queue)
-						{
-							if(queue[key].duration!==undefined){
-								if(queue[key].duration>duration)
-								{
-									duration=queue[key].duration;
-									longFn=j;
-								}
-								break;
+						if(queue.duration!==undefined){
+							if(queue.duration>duration)
+							{
+								duration=queue.duration;
+								longFn=j;
 							}
+							break;
 						}
 					}
 					if(duration){
