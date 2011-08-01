@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.4
+ * jCanvaScript JavaScript Library v 1.5.5
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -2236,10 +2236,10 @@ proto.lGradient=function()
 proto.lGradient.prototype=new proto.gradients;
 proto.rGradient=function()
 {
-	this.create = function(ctx)
+	this.create = function(canvasOptns)
 	{
 		if(this.optns.animated)animating.call(this);
-		this.val=ctx.createRadialGradient(this._x1,this._y1,this._r1,this._x2,this._y2,this._r2);
+		this.val=canvasOptns.ctx.createRadialGradient(this._x1,this._y1,this._r1,this._x2,this._y2,this._r2);
 		for(var i=0;i<this.colorStopsCount;i++)
 		{
 			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
