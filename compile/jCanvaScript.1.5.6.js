@@ -666,7 +666,7 @@ function checkMouseEvents(object,optns)
 			c=optns.click,
 			dc=optns.dblclick;
 		if(mm.x!=false)
-			mm.objects[mm.objects.length]=object;
+			mm.object=object;
 		if(md.x!=false)
 			md.objects[md.objects.length]=object;
 		if(c.x!=false || dc.x!=false)
@@ -2897,7 +2897,7 @@ jCanvaScript.canvas = function(idCanvas)
 		keyDown:{val:false,code:false},
 		keyUp:{val:false,code:false},
 		keyPress:{val:false,code:false},
-		mousemove:{val:false,x:false,y:false,objects:[]},
+		mousemove:{val:false,x:false,y:false,object:false},
 		click:{val:false,x:false,y:false,objects:[]},
 		dblclick:{val:false,x:false,y:false,objects:[]},
 		mouseup:{val:false,x:false,y:false,objects:[]},
@@ -3056,11 +3056,11 @@ jCanvaScript.canvas = function(idCanvas)
 				drag.y=mm.y;
 				if(drag.fn)drag.fn.call(dobject,{x:mm.x,y:mm.y});
 			}
-			if(mm.objects!=false)
+			var point = this.optns.point||{};
+			point.event=mm.event;
+			if(mm.object!=false)
 			{
-				var point = this.optns.point||{};
-				point.event=mm.event;
-				var mousemoveObject=mm.objects[mm.objects.length-1];
+				var mousemoveObject=mm.object;
 				if(underMouse===mousemoveObject)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
@@ -3087,7 +3087,7 @@ jCanvaScript.canvas = function(idCanvas)
 					underMouse=false;
 				}
 			}
-			optns.mousemove.objects=[];
+			optns.mousemove.object=false;
 		}
 		if(optns.mousedown.objects.length)
 		{

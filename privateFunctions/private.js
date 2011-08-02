@@ -458,7 +458,7 @@ function checkMouseEvents(object,optns)
 			c=optns.click,
 			dc=optns.dblclick;
 		if(mm.x!=false)
-			mm.objects[mm.objects.length]=object;
+			mm.object=object;
 		if(md.x!=false)
 			md.objects[md.objects.length]=object;
 		if(c.x!=false || dc.x!=false)
