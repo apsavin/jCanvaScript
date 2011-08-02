@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.5
+ * jCanvaScript JavaScript Library v 1.5.6
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -3060,22 +3060,20 @@ jCanvaScript.canvas = function(idCanvas)
 			{
 				var point = this.optns.point||{};
 				point.event=mm.event;
-				for(i=mm.objects.length-1;i>-1;i--)
+				var mousemoveObject=mm.objects[mm.objects.length-1];
+				if(underMouse===mousemoveObject)
 				{
-					var mousemoveObject=mm.objects[i];
-					if(underMouse===mousemoveObject)
-					{
-						if(typeof mousemoveObject.onmousemove=='function')
-							if(mousemoveObject.onmousemove(point)===false)break;
-					}
-					else
-					{
-						if(underMouse!=false)
-							if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
-						if(typeof mousemoveObject.onmouseover=='function')
-							if(mousemoveObject.onmouseover(point)===false)break;
-						if(!underMouse)underMouse=mousemoveObject;
-					}
+					if(typeof mousemoveObject.onmousemove=='function')
+						mousemoveObject.onmousemove(point);
+				}
+				else
+				{
+					if(underMouse!=false)
+						if(typeof underMouse.onmouseout=='function')
+							underMouse.onmouseout(point);
+					if(typeof mousemoveObject.onmouseover=='function')
+						mousemoveObject.onmouseover(point);
+					underMouse=mousemoveObject;
 				}
 			}
 			else
