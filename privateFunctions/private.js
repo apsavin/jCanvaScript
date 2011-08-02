@@ -271,42 +271,10 @@ function getRect(object,rect,type)
 	}
 	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
 }
-function getObjectCenter(object)
+function getCenter(object,point,type)
 {
-	var point={};
-	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
-	{
-		var rect=object.getRect('poor');
-		point.x=(rect.x*2+rect.width)/2;
-		point.y=(rect.y*2+rect.height)/2;
-		return point;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		point.x=(object._x*2+object._width)/2;
-		point.y=(object._y*2+object._height)/2;
-		return point;
-	}
-	if(object._radius!==undefined)
-	{
-		point.x=object._x;
-		point.y=object._y;
-		return point;
-	}
-	if(object.shapesCount!==undefined)
-	{
-		point.x=object._x0;
-		point.y=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			point.x+=object['_x'+i];
-			point.y+=object['_y'+i];
-		}
-		point.x=point.x/object.shapesCount;
-		point.y=point.y/object.shapesCount;
-		return point;
-	}
-	return false;
+	if(type=='poor')return point;
+	return multiplyPointM(point.x,point.y,multiplyM(object.matrix(),objectLayer(object).matrix()));
 }
 function parseColor(color)
 {

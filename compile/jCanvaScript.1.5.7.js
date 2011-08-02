@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.6
+ * jCanvaScript JavaScript Library v 1.5.7
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -479,42 +479,10 @@ function getRect(object,rect,type)
 	}
 	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
 }
-function getObjectCenter(object)
+function getCenter(object,point,type)
 {
-	var point={};
-	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
-	{
-		var rect=object.getRect('poor');
-		point.x=(rect.x*2+rect.width)/2;
-		point.y=(rect.y*2+rect.height)/2;
-		return point;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		point.x=(object._x*2+object._width)/2;
-		point.y=(object._y*2+object._height)/2;
-		return point;
-	}
-	if(object._radius!==undefined)
-	{
-		point.x=object._x;
-		point.y=object._y;
-		return point;
-	}
-	if(object.shapesCount!==undefined)
-	{
-		point.x=object._x0;
-		point.y=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			point.x+=object['_x'+i];
-			point.y+=object['_y'+i];
-		}
-		point.x=point.x/object.shapesCount;
-		point.y=point.y/object.shapesCount;
-		return point;
-	}
-	return false;
+	if(type=='poor')return point;
+	return multiplyPointM(point.x,point.y,multiplyM(object.matrix(),objectLayer(object).matrix()));
 }
 function parseColor(color)
 {
@@ -831,6 +799,14 @@ var proto={};
 	
 proto.object=function()
 {
+	this.getCenter=function(type){
+		var rect=this.getRect('poor'),
+		point = {
+					x:(rect.x*2+rect.width)/2,
+					y:(rect.y*2+rect.height)/2
+				};
+		return getCenter(this,point,type);
+	}
 	this.position=function(){
 		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
@@ -1322,7 +1298,7 @@ proto.object=function()
 		{
 			if(x1=='center')
 			{
-				var point=getObjectCenter(this);
+				var point=this.getCenter('poor');
 				if(y1===undefined)
 				{
 					x1=point.x;
@@ -1659,6 +1635,21 @@ proto.shape.prototype=new proto.object;
 
 proto.lines=function()
 {
+	this.getCenter=function(type)
+	{
+		var point={
+			x:this._x0,
+			y:this._y0
+		};
+		for(var i=1;i<this.shapesCount;i++)
+		{
+			point.x+=this['_x'+i];
+			point.y+=this['_y'+i];
+		}
+		point.x=point.x/this.shapesCount;
+		point.y=point.y/this.shapesCount;
+		return getCenter(this,point,type);
+	}
 	this.position=function(){
 		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
@@ -1803,6 +1794,10 @@ proto.bCurve=function(){
 proto.bCurve.prototype=new proto.lines;
 
 proto.circle=function(){
+	this.getCenter=function(type)
+	{
+		return getCenter(this,{x:this._x,y:this._y},type);
+	}
 	this.getRect=function(type)
 	{
 		var points={x:this._x-this._radius,y:this._y-this._radius};

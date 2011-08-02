@@ -1,4 +1,8 @@
 proto.circle=function(){
+	this.getCenter=function(type)
+	{
+		return getCenter(this,{x:this._x,y:this._y},type);
+	}
 	this.getRect=function(type)
 	{
 		var points={x:this._x-this._radius,y:this._y-this._radius};

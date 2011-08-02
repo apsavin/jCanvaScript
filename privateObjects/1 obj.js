@@ -1,5 +1,13 @@
 proto.object=function()
 {
+	this.getCenter=function(type){
+		var rect=this.getRect('poor'),
+		point = {
+					x:(rect.x*2+rect.width)/2,
+					y:(rect.y*2+rect.height)/2
+				};
+		return getCenter(this,point,type);
+	}
 	this.position=function(){
 		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
@@ -491,7 +499,7 @@ proto.object=function()
 		{
 			if(x1=='center')
 			{
-				var point=getObjectCenter(this);
+				var point=this.getCenter('poor');
 				if(y1===undefined)
 				{
 					x1=point.x;
