@@ -1,5 +1,5 @@
 <body onload="start()">
-<script src="jCanvaScript.1.5.3.js" type="text/javascript"></script>
+<script src="jCanvaScript.1.5.7.js" type="text/javascript"></script>
 <script type="text/javascript">
 	function start()
 	{
@@ -37,9 +37,10 @@
 	}
 	function left()
 	{
-		jc('#myRect')
-			.clone()
-			.translate(50,0);
+		jc({canvas:'myCanvas',attrs:{
+			proto: 'rect',
+			fill:1
+		}}).translate(100,100);
 	}
 </script>
 <style>

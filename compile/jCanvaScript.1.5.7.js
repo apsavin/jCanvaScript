@@ -90,7 +90,7 @@
 			map=stroke;
 			stroke=undefined;
 		}
-		var canvasNumber=-1,layerNumber=-1,limitC=canvases.length,limit=0,myGroup=group(),i,j,canvas,layer,layers,element,limitL;
+		var canvasNumber=-1,layerNumber=-1,limitC=canvases.length,myGroup=group(),i,j,canvas,layer,layers,element,limitL;
 		if (map===undefined)
 		{
 			if(stroke.charAt(0)=='#')
@@ -113,7 +113,6 @@
 					for (j=0;j<limitL;j++)
 						myGroup=findByName(i,j,myGroup,stroke);
 				}
-				return myGroup;
 			}
 		}
 		else
@@ -170,9 +169,8 @@
 				{
 					for (j=0;j<limitL;j++)
 						myGroup=findByCanvasAndLayer(canvasNumber,j,myGroup);
-					return myGroup;
 				}
-				if(stroke.charAt(0)=='#')
+				else if(stroke.charAt(0)=='#')
 				{
 					for (j=0;j<limitL;j++)
 					{
@@ -180,18 +178,17 @@
 						if(element)return element;
 					}
 				}
-				if(stroke.charAt(0)=='.')
+				else if(stroke.charAt(0)=='.')
 				{
 					for (j=0;j<limitL;j++)
 						myGroup=findByName(canvasNumber,j,myGroup,stroke);
-					return myGroup;
 				}
 			}
 			else
 			{
 				if(stroke===undefined)
 				{
-					return findByCanvasAndLayer(canvasNumber,layerNumber,myGroup);
+					myGroup = findByCanvasAndLayer(canvasNumber,layerNumber,myGroup);
 				}
 				if(stroke.charAt(0)=='#')
 				{
@@ -199,10 +196,31 @@
 				}
 				if(stroke.charAt(0)=='.')
 				{
-					return findByName(canvasNumber,layerNumber,myGroup,stroke)
+					myGroup = findByName(canvasNumber,layerNumber,myGroup,stroke)
 				}
 			}
 		}
+		if (map===undefined)return myGroup;
+		if (map.attrs===undefined) return myGroup;
+		var attrs=map.attrs;
+		for(i=0;i<myGroup.elements.length;i++)
+		{
+			element=myGroup.elements[i];
+			for(j in attrs)
+			{
+				if(attrs.hasOwnProperty(j))
+				{
+					if(element.attr(j)!=attrs[j])
+					{
+						myGroup.elements.splice(i,1);
+						i--;
+						break;
+					}
+				}
+			}
+		}
+		if(myGroup.elements.length)return myGroup;
+		return false;
 	}
 
 	
