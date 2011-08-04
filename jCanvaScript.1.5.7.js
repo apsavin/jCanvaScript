@@ -160,7 +160,7 @@
 					}
 				}
 			}
-			if(layerNumber<0 && canvasNumber<0)return false;
+			if(layerNumber<0 && canvasNumber<0)return null;
 			if (layerNumber<0)
 			{
 				layers=canvas.layers;
@@ -200,27 +200,12 @@
 				}
 			}
 		}
-		if (map===undefined)return myGroup;
-		if (map.attrs===undefined) return myGroup;
-		var attrs=map.attrs;
-		for(i=0;i<myGroup.elements.length;i++)
-		{
-			element=myGroup.elements[i];
-			for(j in attrs)
-			{
-				if(attrs.hasOwnProperty(j))
-				{
-					if(element.attr(j)!=attrs[j])
-					{
-						myGroup.elements.splice(i,1);
-						i--;
-						break;
-					}
-				}
-			}
-		}
+		if (map!==undefined)
+			if (map.attrs!==undefined || map.fns!==undefined)
+				return myGroup.subgroup(map);
+		if(myGroup.elements.length==1)return myGroup.elements[0];
 		if(myGroup.elements.length)return myGroup;
-		return false;
+		return null;
 	}
 
 	<include src="privateFunctions"/>

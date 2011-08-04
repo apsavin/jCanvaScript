@@ -31,6 +31,86 @@ proto.groups=function()
 			}
 		}
 	}
+	this.subgroup=function(map){
+		var subgroup=group(),
+			attrs=map.attrs,
+			fns=map.fns||[],
+			i,j,
+			element,rel,fn,value1,value2;
+		for(i=0;i<this.elements.length;i++)
+		{
+			subgroup.elements[i]=this.elements[i];
+		}
+		if(attrs!==undefined)
+		{
+			for(j in attrs)
+			{
+				if(attrs.hasOwnProperty(j))
+				{
+					if(typeof attrs[j]!='object')
+					{
+						attrs[j]={val:attrs[j],rel:'=='};
+					}
+					fns[fns.length]={
+						fn:'attr',
+						args:[j],
+						val:attrs[j].val,
+						rel:attrs[j].rel
+					};
+				}
+			}
+		}
+		if(fns.length)
+		{
+			for(i=0;i<subgroup.elements.length;i++)
+			{
+				element=subgroup.elements[i];
+				for(j=0;j<fns.length;j++)
+				{
+					fn=fns[j];
+					value1=element[fn.fn].apply(element,fn.args);
+					value2=fn.val;
+					rel=fn.rel;
+					switch(rel)
+					{
+						case '!=':
+							if(!(value1!=value2))rel='del';
+							break;
+						case '!==':
+							if(!(value1!==value2))rel='del';
+							break;
+						case '==':
+							if(!(value1==value2))rel='del';
+							break;
+						case '===':
+							if(!(value1===value2))rel='del';
+							break;
+						case '>=':
+							if(!(value1>=value2))rel='del';
+							break;
+						case '<=':
+							if(!(value1<=value2))rel='del';
+							break;
+						case '>':
+							if(!(value1>value2))rel='del';
+							break;
+						case '<':
+							if(!(value1<value2))rel='del';
+							break;							
+					}
+					if(rel=='del')
+					{
+						subgroup.elements.splice(i,1);
+						i--;
+						break;
+					}
+				}
+			}
+		}
+		if(subgroup.elements.length==1)return subgroup.elements[0];
+		if(subgroup.elements.length)return subgroup;
+		return null;
+	}
 	this.base=function(){
 		this.elements=[];
 		return this;

@@ -15,25 +15,34 @@
 	}
 	function up()
 	{
-		jc('#myRect')
-			.scale(0.5,0.5,1000);
+		jc({canvas:'myCanvas',attrs:{
+				proto:'rect'
+			},
+			fns:[{
+					fn:'isPointIn',
+					rel:'==',
+					val:true,
+					args:[49,50]
+				},
+				{
+					fn:'attr',
+					rel:'>',
+					val:-10,
+					args:['x']
+				},
+			]}).translate(100,100);
 	}
 	function top()
 	{
-		jc('#myRect')
-			.scale(0.5,0.5,1000)
-			.translateTo(100,80,1000);
+		jc({canvas:'myCanvas',attrs:{
+			fill: {val:0,rel:'>'}
+		}}).translate(100,100);
 	}
 	function bottom()
 	{
-		var rect=jc('#myRect');
-		var start=new Date();
-		rect
-			.scale(0.5,0.5,5000)
-			.translateTo(100,80,5000)
-			.rotate(30,'center',{x:0,y:0},5000,function(){
-				console.log((new Date())-start);
-			});
+		jc({canvas:'myCanvas',attrs:{
+			proto: 'rect'
+		}}).translate(100,100);
 	}
 	function left()
 	{
@@ -41,6 +50,34 @@
 			proto: 'rect',
 			fill:1
 		}}).translate(100,100);
+	}
+	function next()
+	{
+		//takes all objects on myCanvas
+		var myGroup=jc({canvas:'myCanvas'});
+		//first subgroup
+		myGroup.subgroup({attrs:{
+				proto:'rect'
+			},
+			fns:[{
+					fn:'isPointIn',
+					rel:'==',
+					val:true,
+					args:[50,50]
+				},
+				{
+					fn:'attr',
+					rel:'>',
+					val:0,
+					args:['x']
+				},
+			]}).translate(100,100);
+		//second subgroup
+		myGroup.subgroup({
+			attrs:{
+				proto:'circle'
+			}
+		}).translate(100,0);
 	}
 </script>
 <style>
@@ -55,4 +92,5 @@
 <input type="button" onclick="top()" value="2"/>
 <input type="button" onclick="bottom()" value="3"/>
 <input type="button" onclick="left()" value="4"/>
+<input type="button" onclick="next()" value="5"/>
 </body>
