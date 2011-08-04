@@ -31,12 +31,22 @@ proto.groups=function()
 			}
 		}
 	}
-	this.subgroup=function(map){
+	this.reverse=function(){
+		var tmpArray=this.elements;
+		this.elements=this.unmatchedElements;
+		this.unmatchedElements=tmpArray;
+		return this;
+	}
+	this.end=function(){
+		return this.previousGroup||this;
+	}
+	this.find=function(map){
 		var subgroup=group(),
 			attrs=map.attrs,
 			fns=map.fns||[],
 			i,j,
 			element,rel,fn,value1,value2;
+		subgroup.previousGroup=this;
 		for(i=0;i<this.elements.length;i++)
 		{
 			subgroup.elements[i]=this.elements[i];
@@ -96,10 +106,14 @@ proto.groups=function()
 							break;
 						case '<':
 							if(!(value1<value2))rel='del';
-							break;							
+							break;
+						case 'typeof':
+							if(!(typeof value1==value2))rel='del';
+							break;
 					}
 					if(rel=='del')
 					{
+						subgroup.unmatchedElements[subgroup.unmatchedElements.length]=element;
 						subgroup.elements.splice(i,1);
 						i--;
 						break;
@@ -107,12 +121,12 @@ proto.groups=function()
 				}
 			}
 		}
-		if(subgroup.elements.length==1)return subgroup.elements[0];
 		if(subgroup.elements.length)return subgroup;
 		return null;
 	}
 	this.base=function(){
 		this.elements=[];
+		this.unmatchedElements=[];
 		return this;
 	}
 }

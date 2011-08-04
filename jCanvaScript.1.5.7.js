@@ -202,8 +202,7 @@
 		}
 		if (map!==undefined)
 			if (map.attrs!==undefined || map.fns!==undefined)
-				return myGroup.subgroup(map);
-		if(myGroup.elements.length==1)return myGroup.elements[0];
+				return myGroup.find(map);
 		if(myGroup.elements.length)return myGroup;
 		return null;
 	}

@@ -55,29 +55,34 @@
 	{
 		//takes all objects on myCanvas
 		var myGroup=jc({canvas:'myCanvas'});
-		//first subgroup
-		myGroup.subgroup({attrs:{
-				proto:'rect'
-			},
-			fns:[{
-					fn:'isPointIn',
-					rel:'==',
-					val:true,
-					args:[50,50]
+		//first find
+		myGroup
+			.find({attrs:{
+					proto:'rect'
 				},
-				{
-					fn:'attr',
-					rel:'>',
-					val:0,
-					args:['x']
-				},
-			]}).translate(100,100);
-		//second subgroup
-		myGroup.subgroup({
+				fns:[{
+						fn:'isPointIn',
+						rel:'==',
+						val:true,
+						args:[50,50]
+					},
+					{
+						fn:'attr',
+						rel:'>',
+						val:0,
+						args:['x']
+					},
+				]}).translate(100,100)
+			//all unmatched - unfilled rect
+			.reverse().translate(-50,0)
+			//before finds - all rects
+			.end().translate(0,50);
+		//second find
+		myGroup.find({
 			attrs:{
 				proto:'circle'
 			}
-		}).translate(100,0);
+		}).translate(100,50);
 	}
 </script>
 <style>
