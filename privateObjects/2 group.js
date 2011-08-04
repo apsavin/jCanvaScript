@@ -37,8 +37,10 @@ proto.groups=function()
 		this.unmatchedElements=tmpArray;
 		return this;
 	}
-	this.end=function(){
-		return this.previousGroup||this;
+	this.end=function(n){
+		if(this.previousGroup===undefined || n===0)return this;
+		if(n===undefined)n=Number.POSITIVE_INFINITY;
+		return this.previousGroup.end(n-1);
 	}
 	this.find=function(map){
 		var subgroup=group(),

@@ -65,18 +65,22 @@
 						rel:'==',
 						val:true,
 						args:[50,50]
-					},
+					}]
+			})
+			.find({fns:[
 					{
 						fn:'attr',
 						rel:'>',
 						val:0,
 						args:['x']
-					},
+					}
 				]}).translate(100,100)
 			//all unmatched - unfilled rect
 			.reverse().translate(-50,0)
-			//before finds - all rects
-			.end().translate(0,50);
+			//before all finds - all objects
+	/**/	.end().translate(0,50);
+			//or before last find - all rects (you can use not only 1, but any positive number)
+	/*		.end(1).translate(0,50);	*/
 		//second find
 		myGroup.find({
 			attrs:{
