@@ -1377,18 +1377,37 @@ proto.object=function()
 	this.isPointIn=function(x,y,global)
 	{
 		var canvasOptns=objectCanvas(this).optns,
-			ctx=canvasOptns.ctx;
+			ctx=canvasOptns.ctx,
+			thisAnimated=false,
+			optns=this.optns,
+			clipAnimated=false;
 		if(global!==undefined)
 		{
 			x-=canvasOptns.x;
 			y-=canvasOptns.y;
 		}
-		ctx.save();
-		ctx.beginPath();
+		if(optns.animated)thisAnimated=true;
+		optns.animated=false;
+		if(optns.clipObject)
+		{
+			var clipObject=optns.clipObject,
+				clipOptns=clipObject.optns;
+			if(clipOptns.animated)
+			{
+				clipAnimated=true;
+				clipOptns.animated=false;
+			}
+		}
+		this.beforeDraw(canvasOptns);
 		this.draw(ctx);
 		var point=isPointInPath(this,x,y);
 		ctx.closePath();
 		ctx.restore();
+		optns.animated=thisAnimated;
+		if(clipAnimated)
+		{
+			clipOptns.animated=clipAnimated;
+		}
 		if(point)return true;
 		return false;
 	}
@@ -2710,8 +2729,8 @@ proto.groups=function()
 	}
 	this.end=function(n){
 		if(this.previousGroup===undefined || n===0)return this;
-		if(n===undefined)this.previousGroup.end();
-		return this.previousGroup.end(n-1);
+		if(n!==undefined)n--;
+		return this.previousGroup.end(n);
 	}
 	this.find=function(map){
 		var subgroup=group(),

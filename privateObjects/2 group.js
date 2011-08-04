@@ -39,8 +39,8 @@ proto.groups=function()
 	}
 	this.end=function(n){
 		if(this.previousGroup===undefined || n===0)return this;
-		if(n===undefined)this.previousGroup.end();
-		return this.previousGroup.end(n-1);
+		if(n!==undefined)n--;
+		return this.previousGroup.end(n);
 	}
 	this.find=function(map){
 		var subgroup=group(),

@@ -576,18 +576,37 @@ proto.object=function()
 	this.isPointIn=function(x,y,global)
 	{
 		var canvasOptns=objectCanvas(this).optns,
-			ctx=canvasOptns.ctx;
+			ctx=canvasOptns.ctx,
+			thisAnimated=false,
+			optns=this.optns,
+			clipAnimated=false;
 		if(global!==undefined)
 		{
 			x-=canvasOptns.x;
 			y-=canvasOptns.y;
 		}
-		ctx.save();
-		ctx.beginPath();
+		if(optns.animated)thisAnimated=true;
+		optns.animated=false;
+		if(optns.clipObject)
+		{
+			var clipObject=optns.clipObject,
+				clipOptns=clipObject.optns;
+			if(clipOptns.animated)
+			{
+				clipAnimated=true;
+				clipOptns.animated=false;
+			}
+		}
+		this.beforeDraw(canvasOptns);
 		this.draw(ctx);
 		var point=isPointInPath(this,x,y);
 		ctx.closePath();
 		ctx.restore();
+		optns.animated=thisAnimated;
+		if(clipAnimated)
+		{
+			clipOptns.animated=clipAnimated;
+		}
 		if(point)return true;
 		return false;
 	}
