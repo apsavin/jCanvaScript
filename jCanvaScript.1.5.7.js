@@ -160,7 +160,7 @@
 					}
 				}
 			}
-			if(layerNumber<0 && canvasNumber<0)return null;
+			if(layerNumber<0 && canvasNumber<0)return group();
 			if (layerNumber<0)
 			{
 				layers=canvas.layers;
@@ -204,7 +204,7 @@
 			if (map.attrs!==undefined || map.fns!==undefined)
 				return myGroup.find(map);
 		if(myGroup.elements.length)return myGroup;
-		return null;
+		return group();
 	}
 
 	<include src="privateFunctions"/>

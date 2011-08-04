@@ -160,7 +160,7 @@
 					}
 				}
 			}
-			if(layerNumber<0 && canvasNumber<0)return null;
+			if(layerNumber<0 && canvasNumber<0)return group();
 			if (layerNumber<0)
 			{
 				layers=canvas.layers;
@@ -204,7 +204,7 @@
 			if (map.attrs!==undefined || map.fns!==undefined)
 				return myGroup.find(map);
 		if(myGroup.elements.length)return myGroup;
-		return null;
+		return group();
 	}
 
 	
@@ -2710,7 +2710,7 @@ proto.groups=function()
 	}
 	this.end=function(n){
 		if(this.previousGroup===undefined || n===0)return this;
-		if(n===undefined)n=Number.POSITIVE_INFINITY;
+		if(n===undefined)this.previousGroup.end();
 		return this.previousGroup.end(n-1);
 	}
 	this.find=function(map){
@@ -2794,8 +2794,7 @@ proto.groups=function()
 				}
 			}
 		}
-		if(subgroup.elements.length)return subgroup;
-		return null;
+		return subgroup;
 	}
 	this.base=function(){
 		this.elements=[];
