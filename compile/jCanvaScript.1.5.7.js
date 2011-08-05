@@ -2505,6 +2505,15 @@ proto.layer=function()
 		}
 		return this;
 	}
+	this.objects=function(map)
+	{
+		var myGroup=group(),i=0;
+		while(this.objs[i]!==undefined)
+				myGroup.elements[i]=this.objs[i++];
+		if(map!==undefined)
+			return myGroup.find(map);
+		return myGroup;
+	}
 	this.base=function(idLayer)
 	{
 		var canvas=canvases[lastCanvas],

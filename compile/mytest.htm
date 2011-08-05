@@ -6,9 +6,9 @@
 		jc.start('myCanvas',true);
 		jc.rect(50,50,100,100,1)
 				.click(function(){alert(3);}).draggable()
-				.id('myRect');
+				.id('myRect').layer('1');
 		jc.rect(0,0,100,80,0)
-				.id('myRect2')
+				.id('myRect2').layer('1')
 				.click(function(){alert(2);return false;});
 		jc.circle(30,30,20,'#ff0000',0)
 				.click(function(){alert(1);});
@@ -35,9 +35,11 @@
 	}
 	function top()
 	{
+		jc.layer('1').objects().find({attrs:{fill:1}}).rotate(30,'center');
+		/*
 		jc({canvas:'myCanvas',attrs:{
 			fill: {val:0,rel:'>'}
-		}}).translate(100,100);
+		}}).translate(100,100);*/
 	}
 	function bottom()
 	{
