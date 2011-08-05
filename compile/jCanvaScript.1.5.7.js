@@ -2770,9 +2770,11 @@ proto.groups=function()
 				for(j=0;j<fns.length;j++)
 				{
 					fn=fns[j];
-					value1=element[fn.fn].apply(element,fn.args);
 					value2=fn.val;
 					rel=fn.rel;
+					if(typeof element[fn.fn]=='function')
+						value1=element[fn.fn].apply(element,fn.args);
+					else rel='del';
 					switch(rel)
 					{
 						case '!=':
