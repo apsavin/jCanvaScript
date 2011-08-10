@@ -618,18 +618,27 @@ proto.object=function()
 	{
 		return canvas(idCanvas,this,'objs');
 	}
-	this.draggable=function(object,params,fn)
+	this.draggable=function(object,params,drag)
 	{
+		if(params===undefined && typeof object=='object' && object.optns===undefined)
+		{
+			params=object.params;
+			drag=object.drag;
+			var start=object.start,
+				stop=object.stop,
+				disabled=object.disabled;
+			object=object.object;
+		}
 		var dragObj=this;
 		var dragOptns=this.optns.drag;
 		if(typeof params==='function')
 		{
-			fn=params;
+			drag=params;
 			params=undefined;
 		}
 		if(typeof object=='function')
 		{
-			fn=object;
+			drag=object;
 			object=undefined;
 		}
 		dragOptns.shiftX=0;
@@ -655,7 +664,10 @@ proto.object=function()
 		dragOptns.dy=this._transformdy;
 		dragOptns.object=dragObj;
 		dragOptns.params=params;
-		dragOptns.fn=fn||false;
+		dragOptns.drag=drag||false;
+		dragOptns.start=start||false;
+		dragOptns.stop=stop||false;
+		dragOptns.disabled=disabled||false;
 		var optns=objectCanvas(this).optns;
 		optns.mousemove.val=true;
 		optns.mousedown.val=true;
