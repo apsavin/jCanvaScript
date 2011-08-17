@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.7
+ * jCanvaScript JavaScript Library v 1.5.8
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -568,7 +568,7 @@ function getOffsetSum(elem) {
 
 function getOffsetRect(elem) {
 	var box = elem.getBoundingClientRect()
-	var body = document.body
+	var body = document.body||{};
 	var docElem = document.documentElement
 	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop
 	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft
@@ -2681,7 +2681,7 @@ proto.image=function()
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		if(typeof image!='object' || typeof image.onload=='function' || image.onload==null)
+		if(typeof image!='object' || image.src!==undefined)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
 		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
 		if(image.width===false)
@@ -3024,8 +3024,8 @@ jCanvaScript.canvas = function(idCanvas)
 		id:idCanvas,
 		number:lastCanvas,
 		ctx: canvas.cnv.getContext('2d'),
-		width: canvas.cnv.offsetWidth,
-		height: canvas.cnv.offsetHeight,
+		width: canvas.cnv.offsetWidth||canvas.cnv.width,
+		height: canvas.cnv.offsetHeight||canvas.cnv.height,
 		anyLayerDeleted: false,
 		anyLayerLevelChanged:false,
 		keyDown:{val:false,code:false},

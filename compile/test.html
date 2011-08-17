@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<script src="jCanvaScript.1.5.8.js" type="text/javascript"></script>
 		<style>
 			canvas {
 				border: 1px solid;
@@ -8,22 +9,11 @@
 		<script type="text/javascript">
 			function start1(a)
 			{
-				var array=[];
-				for (var i=0;i<15;i++)
-				{
-					array[i]=i;
-				}
-				delete array[3];
-				delete array[4];
-				delete array[5];
-				array[18]=18;
-				array[4]=4;
-				array[-2]=-2;
-				array[-1]=-1;
-				for (i in array)
-				{
-					if(!array.hasOwnProperty(i))continue;
-					document.write(array[i]);
+				jc.start(a,true);
+				var img=new Image();
+				img.src="1.png";
+				img.onload=function(){
+					jc.image({image:img,width:20,height:20,x:20,y:20}).shadow({x:5,y:5,blur:15,color:'#ff0000'});
 				}
 			}
 		</script>

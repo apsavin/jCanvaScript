@@ -123,7 +123,7 @@ proto.image=function()
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		if(typeof image!='object' || typeof image.onload=='function' || image.onload==null)
+		if(typeof image!='object' || image.src!==undefined)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
 		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
 		if(image.width===false)

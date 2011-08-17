@@ -358,7 +358,7 @@ function getOffsetSum(elem) {
 
 function getOffsetRect(elem) {
 	var box = elem.getBoundingClientRect()
-	var body = document.body
+	var body = document.body||{};
 	var docElem = document.documentElement
 	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop
 	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft
