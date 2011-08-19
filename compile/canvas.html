@@ -40,18 +40,22 @@
 	}*//**/
 	
 	function start(idCanvas){
-		jc.start(idCanvas,25);
-		var testImg = new Image(),regNums = / \d.\w\w /,string='bold 11px Eiel',
-		result=string.match(regNums);
-		string='df sfd sdf 12pt dfsd ';
-		result=string.match(regNums);
-		result=parseInt(result);
-		testImg.src = 'http://jcscript.com/data/images/logo.png'; 
+		//jc.start(idCanvas,25);
+		var testImg = new Image();
+		testImg.src = '1.jpg';
 		testImg.onload=function(){
-		jc.image(testImg, 0, 0).id('test-img'); 
+		/*jc.image(testImg, 0, 0).id('test-img').shadow({color:'#000000',blur:0.5,x:5,y:5});
 		var imgRect = jc('#test-img').getRect(); 
 		var imgCenter = {x: imgRect.x + imgRect.width / 2, y: imgRect.y + imgRect.height / 2}; 
-		jc.circle(imgCenter.x, imgCenter.y, 3, '#ff0000');}
+		jc.circle(imgCenter.x, imgCenter.y, 3, '#ff0000');*/
+			var canvas = document.getElementById(idCanvas);
+			var ctx = canvas.getContext("2d");
+			ctx.shadowOffsetX = 2;
+			ctx.shadowOffsetY = 2;
+			ctx.shadowColor = "#CCCCCC";
+			ctx.shadowBlur = 5;
+			ctx.drawImage(testImg, 0, 0);
+		}
 	}
 	/*
 	function test(){
@@ -67,5 +71,13 @@
 <body onload="start('cnv');" style="margin: 0;padding: 0;">
 	<canvas id="cnv" width="200" height="200" tabIndex="0"></canvas>
 	<input type="button" onclick="test()"/>
+	<canvas id="car"  width="200" height="200"></canvas>
+
+
+	<script type="text/javascript">
+		 jc.start('car');
+		 jc.circle(100,100,50,'rgb(255,0,0)');
+		 jc.start('car');
+	</script>
 </body>
 </html>
