@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.8
+ * jCanvaScript JavaScript Library v 1.5.9
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -315,10 +315,10 @@ function keyEvent(e,key,optns)
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
 	optns.redraw=1;
-	return false;
 }
 function mouseEvent(e,key,optns)
 {
+	if(!optns[key].val)return;
 	e=e||window.event;
 	var point= {
 		pageX:e.pageX||e.clientX,
@@ -327,8 +327,7 @@ function mouseEvent(e,key,optns)
 	optns[key].event=e;
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
-	if(optns[key].val)optns.redraw=1;
-	return false;
+	optns.redraw=1;
 }
 function setMouseEvent(fn,eventName)
 {
@@ -621,25 +620,26 @@ function isPointInPath(object,x,y)
 }
 function checkMouseEvents(object,optns)
 {
-	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.dblclick.x||optns.click.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.dblclick.y||optns.click.y;
+	var point=false,
+		mm=optns.mousemove,
+		md=optns.mousedown,
+		mu=optns.mouseup,
+		c=optns.click,
+		dc=optns.dblclick,
+		x=mm.x||md.x||mu.x||dc.x||c.x,
+		y=mm.y||md.y||mu.y||dc.y||c.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
 	}
 	if(point)
 	{
-		var mm=optns.mousemove,
-			md=optns.mousedown,
-			mu=optns.mouseup,
-			c=optns.click,
-			dc=optns.dblclick;
+		
 		if(mm.x!=false)
 			mm.object=object;
 		if(md.x!=false)
 			md.objects[md.objects.length]=object;
-		if(c.x!=false || dc.x!=false)
+		if(c.x!=false)
 			c.objects[c.objects.length]=object;
 		if(dc.x!=false)
             dc.objects[dc.objects.length]=object;
@@ -3057,19 +3057,15 @@ jCanvaScript.canvas = function(idCanvas)
 			var canvas=canvases[this.optns.number],
 			optns=canvas.optns;
 			this.cnv.onclick=function(e){
-				if(!canvas.optns.click.val)return;
 				mouseEvent(e,'click',optns);
 			}
 			this.cnv.ondblclick=function(e){
-				if(!canvas.optns.dblclick.val)return;
 				mouseEvent(e,'dblclick',optns);
 			}
 			this.cnv.onmousedown=function(e){
-				if(!canvas.optns.mousedown.val)return;
 				mouseEvent(e,'mousedown',optns);
 			}
 			this.cnv.onmouseup=function(e){
-				if(!canvas.optns.mouseup.val)return;
 				mouseEvent(e,'mouseup',optns);
 			}
 			this.cnv.onkeyup=function(e){
@@ -3085,7 +3081,6 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
-				if(!optns.mousemove.val)return;
 				mouseEvent(e,'mousemove',optns);
 			};
 			optns.timeLast=new Date();
@@ -3178,9 +3173,13 @@ jCanvaScript.canvas = function(idCanvas)
 					}
 				}
 		}
-		if(optns.mousemove.x!=false)
+		var mm=optns.mousemove;
+		var mouseDown=optns.mousedown;
+		var mouseUp=optns.mouseup;
+		var click=this.optns.click;
+		var dblClick=this.optns.dblclick;
+		if(mm.x!=false)
 		{
-			var mm=optns.mousemove;
 			if(optns.drag.object!=false)
 			{
 				var drag=optns.drag,
@@ -3223,9 +3222,8 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			optns.mousemove.object=false;
 		}
-		if(optns.mousedown.objects.length)
+		if(mouseDown.objects.length)
 		{
-			var mouseDown=this.optns.mousedown;
 			mdCicle:
 			for(i=mouseDown.objects.length-1;i>-1;i--)
 			{
@@ -3241,8 +3239,8 @@ jCanvaScript.canvas = function(idCanvas)
 						drag.init=mdObject;
 						var initoptns=drag.init.optns;
 						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
-						drag.x=mouseDown.x;
-						drag.y=mouseDown.y;
+						drag.x=drag.startX=mouseDown.x;
+						drag.y=drag.startY=mouseDown.y;
 						if(dobject!=drag.init && initoptns.drag.type!='clone')
 						{
 							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
@@ -3259,9 +3257,8 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			mouseDown.objects=[];
 		}
-		if(optns.mouseup.objects.length)
+		if(mouseUp.objects.length)
 		{
-			var mouseUp=optns.mouseup;
 			muCicle:
 			for(i=mouseUp.objects.length-1;i>-1;i--)
 			{
@@ -3270,16 +3267,17 @@ jCanvaScript.canvas = function(idCanvas)
 				for(j=0;j<2;j++)
 				{
 					muObject=mouseUpObjects[j];
-					if(muObject.optns.drop.val==true && optns.drag.init!==undefined)
+					if(optns.drag.init!==undefined)
 					{
-						if(drag.init==drag.object)
-							drag.init.visible(true);
-						if(typeof muObject.optns.drop.fn=='function')
-							muObject.optns.drop.fn.call(muObject,drag.init);
-					}
-					else
-					{
-						if(drag.init!==undefined)
+						if(muObject.optns.drop.val==true)
+						{
+
+							if(drag.init==drag.object)
+								drag.init.visible(true);
+							if(typeof muObject.optns.drop.fn=='function')
+								muObject.optns.drop.fn.call(muObject,drag.init);
+						}
+						else
 						{
 							drag.object.visible(false);
 							drag.init.visible(true);
@@ -3290,6 +3288,7 @@ jCanvaScript.canvas = function(idCanvas)
 							if(typeof drag.init.optns.drag.stop=='function')
 								drag.init.optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
 						}
+						if(drag.x!=drag.startX || drag.y!==drag.startY)click.objects=[];
 					}
 					if(typeof muObject.onmouseup=='function')
 						if(muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
@@ -3299,9 +3298,8 @@ jCanvaScript.canvas = function(idCanvas)
 			this.optns.drag={object:false,x:0,y:0};
 			mouseUp.objects=[];
 		}
-		if(optns.click.objects.length)
+		if(click.objects.length)
 		{
-			var click=this.optns.click;
 			cCicle:
 			for(i=click.objects.length-1;i>-1;i--)
 			{
@@ -3315,9 +3313,8 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			click.objects=[];
 		}
-		if(optns.dblclick.objects.length)
+		if(dblClick.objects.length)
         {
-            var dblClick=this.optns.dblclick;
 			dcCicle:
 			for(i=dblClick.objects.length-1;i>-1;i--)
 			{
@@ -3331,7 +3328,7 @@ jCanvaScript.canvas = function(idCanvas)
 			}
             dblClick.objects=[];
         }
-		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=optns.click.x=optns.dblclick.x=optns.mouseup.x=optns.mousedown.x=optns.mousemove.x=false;
+		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=click.x=dblClick.x=mouseUp.x=mouseDown.x=mm.x=false;
 		return this;
 	}
 	return canvas;
