@@ -392,7 +392,8 @@ function isPointInPath(object,x,y)
 	point.y=y;
 	if(FireFox)
 	{
-		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
+		point=transformPoint(x,y,layer.matrix());
+		point=transformPoint(point.x,point.y,object.matrix());
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
