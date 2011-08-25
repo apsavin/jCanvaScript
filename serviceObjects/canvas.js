@@ -65,6 +65,9 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			this.cnv.ondblclick=function(e){
 				mouseEvent(e,'dblclick',optns);
+				var tmp=optns.mousemove.val;
+				optns.mousemove.val=true;
+				setTimeout(function(){optns.mousemove.val=tmp;},3000);
 			}
 			this.cnv.onmousedown=function(e){
 				mouseEvent(e,'mousedown',optns);

@@ -1,17 +1,23 @@
 <body onload="start()">
-<script src="jCanvaScript.1.5.7.js" type="text/javascript"></script>
+<script src="jCanvaScript.1.5.9.js" type="text/javascript"></script>
 <script type="text/javascript">
 	function start()
 	{
 		jc.start('myCanvas',true);
-		jc.rect(50,50,100,100,1)
-				.click(function(){alert(3);}).draggable()
-				.id('myRect').layer('1');
-		jc.rect(0,0,100,80,0)
-				.id('myRect2').layer('1')
-				.click(function(){alert(2);return false;});
-		jc.circle(30,30,20,'#ff0000',0)
-				.click(function(){alert(1);});
+
+		jc.rect(0, 0, 400, 400, '#000', true);
+
+		var objects = [[200, 200], [150, 300]];
+
+		objects.forEach(function(item, index) {
+			var circle_obj = jc.circle(item[0], item[1], 25,'#ffffff', true);
+			circle_obj.click(function(point){
+				this.color('#ff0000');
+			});
+			circle_obj.dblclick(function(point){
+				this.color('#00ff00');
+			});
+		});
 
 	}
 	function up()

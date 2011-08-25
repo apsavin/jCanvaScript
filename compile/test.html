@@ -10,17 +10,12 @@
 			function start1(a)
 			{
 				jc.start(a,true);
-				var img=new Image();
-				img.src="1.png";
-				img.onload=function(){
-					jc.image({image:img,width:20,height:20,x:20,y:20}).shadow({x:5,y:5,blur:15,color:'#ff0000'});
-				}
+				jc.line([[0,0],[100,100],[0,50]]).draggable();
 			}
 		</script>
 	</head>
 	<body>
-		<input type=button value="start" onclick=start1('canvas'); />
-		<input type=button value="stop" onclick=stop1('canvas'); />
+		<input type=button value="start" onclick="start1('canvas')" />
 		<br />
 		<canvas id="canvas" width="500px" height="500px" border="1">
 		</canvas>
