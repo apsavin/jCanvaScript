@@ -1,7 +1,7 @@
-jCanvaScript.circle=function(x,y,radius,color,fill)
+jCanvaScript.ellipse=function(x,y,width,height,color,fill)
 {
-	var circle=new proto.circle;
-	return circle.base(x,y,radius,color,fill);
+	var ellipse = new proto.ellipse;
+	return ellipse.base(x,y,width,height,color,fill);
 }
 jCanvaScript.rect=function(x,y,width,height,color,fill)
 {

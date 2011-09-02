@@ -75,12 +75,7 @@ proto.object=function()
 				this._shadowBlur=options.blur;
 				break;
 			case 'color':
-				var colorKeeper = parseColor(options.color);
-				this._shadowColor = options.color.val;
-				this._shadowColorR = colorKeeper.r;
-				this._shadowColorG = colorKeeper.g;
-				this._shadowColorB = colorKeeper.b;
-				this._shadowColorA = colorKeeper.a;
+				this.attr('shadowColor',options.color);
 				break;
 		}
 		redraw(this);
@@ -722,6 +717,10 @@ proto.object=function()
 		else
 			this.fadeIn(duration,easing,onstep,fn);
 		return this;
+	}
+	this.proto = function()
+	{
+		return proto[this._proto];
 	}
 	this.instanceOf=function(name)
 	{

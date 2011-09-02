@@ -604,7 +604,6 @@ function isPointInPath(object,x,y)
 	{
 		point=transformPoint(x,y,layer.matrix());
 		point=transformPoint(point.x,point.y,object.matrix());
-		//point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
@@ -1526,6 +1525,10 @@ proto.object=function()
 			this.fadeIn(duration,easing,onstep,fn);
 		return this;
 	}
+	this.proto = function()
+	{
+		return proto[this._proto];
+	}
 	this.instanceOf=function(name)
 	{
 		if(name===undefined)return this._proto;
@@ -1633,10 +1636,12 @@ proto.shape=function()
 	}
 	this.afterDraw=function(optns)
 	{
-		if(this._fill)
+		//if(this._fill)
+		//ctx.fillStyle='#ffffff';
 			optns.ctx.fill();
-		else
-			optns.ctx.stroke();
+		//else
+		optns.ctx.strokeStyle='#ff0000';
+		optns.ctx.stroke();
 		proto.shape.prototype.afterDraw.call(this,optns);
 	}
 	this.base=function(x)
@@ -1828,33 +1833,25 @@ proto.bCurve=function(){
 }
 proto.bCurve.prototype=new proto.lines;
 
-proto.circle=function(){
-	this.getCenter=function(type)
-	{
-		return getCenter(this,{x:this._x,y:this._y},type);
-	}
-	this.getRect=function(type)
-	{
-		var points={x:this._x-this._radius,y:this._y-this._radius};
-		points.width=points.height=this._radius*2;
-		return getRect(this,points,type);
-	}
+proto.ellipse=function(){
 	this.draw=function(ctx)
 	{
-		ctx.arc(this._x, this._y, this._radius, 0,pi2,true);
+		 var kappa = .5522848,
+		 ox = width / 2 * kappa, // control point offset horiz
+		 oy = height / 2 * kappa, // control point offset vert
+		 xe = x + width, // x end
+		 ye = y + height, // y end
+		 xm = x + width / 2, // x middle
+		 ym = y + height / 2; // y middle
+		 ctx.moveTo(this._x0,this._y0);
+		 ctx.push([xm, y, x, ym - oy, xm - ox, y]);
+		 points.push([xe, ym, xm + ox, y, xe, ym - oy]);
+		 points.push([xm, ye, xe, ym + oy, xm + ox, ye]);
+		 points.push([x, ym, xm - ox, ye, x, ym + oy]);
+		 points.push([xm, y, x, ym - oy, xm - ox, y]);
+		 ellipse.base(points,color,fill);
 	}
-	this.base=function(x,y,radius,color,fill)
-	{
-		if(typeof x != 'object')
-			x={x:x,y:y,radius:radius,color:color,fill:fill};
-		x=checkDefaults(x,{radius:0});
-		proto.circle.prototype.base.call(this,x);
-		this._radius=x.radius;
-		return this;
-	}
-	this._proto='circle';
 }
-proto.circle.prototype=new proto.shape;
 proto.rect=function(){
 	this.getRect=function(type)
 	{
@@ -2861,45 +2858,28 @@ function group()
 jCanvaScript.addFunction=function(name,fn,prototype)
 {
 	proto[prototype||'object'].prototype[name]=fn;
-	return jCanvaScript;
+	return this;
 }
-jCanvaScript.addObject=function(name,parameters,drawfn,parent)
+jCanvaScript.addObject=function(name,constructor,parent)
 {
-	proto[name]=function(name){
-		this.draw=proto[name].draw;
-		this.base=proto[name].base;
-		this._proto=name;
-	};
+	proto[name]=constructor;
 	var protoItem=proto[name];
 	if(parent===undefined)parent='shape';
 	protoItem.prototype=new proto[parent];
-	protoItem.draw=drawfn;
-	protoItem.base=function(name,parameters,args)
-	{
-		protoItem.prototype.base.call(this,parameters);
-		var i=0;
-		for(var key in parameters)
-		{
-			this['_'+key]=args[i]||parameters[key];
-			if(key=='color')this.color(args[i]||parameters[key]);
-			i++;
-		}
-		return this;
-	};
-	(function(name,parameters)
+	(function(name)
 	{
 		jCanvaScript[name]=function()
 		{
-			var object=new proto[name](name);
-			return object.base(name,parameters,arguments);
+			var object=new proto[name];
+			return object.base.apply(object,arguments);
 		}
-	})(name,parameters);
-	return jCanvaScript;
+	})(name);
+	return this;
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
 {
 	animateFunctions[name]=fn;
-	return jCanvaScript;
+	return this;
 }
 jCanvaScript.addImageDataFilter=function(name,properties)
 {
@@ -2908,6 +2888,12 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 	if(properties.matrix!==undefined && properties.type===undefined)imageDataFilters[name].matrix=properties.matrix;
 	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
 	return jCanvaScript;
+}
+jCanvaScript.getCenter = getCenter;
+jCanvaScript.getRect = getRect;
+jCanvaScript.checkDefaults = checkDefaults;
+jCanvaScript.constants={
+	PIx2:pi2
 }
 jCanvaScript.clear=function(idCanvas)
 {
@@ -2974,10 +2960,10 @@ jCanvaScript.image=function(img,x,y,width,height,sx,sy,swidth,sheight)
 	return image.base(img,x,y,width,height,sx,sy,swidth,sheight);
 }
 
-jCanvaScript.circle=function(x,y,radius,color,fill)
+jCanvaScript.ellipse=function(x,y,width,height,color,fill)
 {
-	var circle=new proto.circle;
-	return circle.base(x,y,radius,color,fill);
+	var ellipse = new proto.ellipse;
+	return ellipse.base(x,y,width,height,color,fill);
 }
 jCanvaScript.rect=function(x,y,width,height,color,fill)
 {
@@ -3353,3 +3339,30 @@ jCanvaScript.layer=function(idLayer)
 }
 
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
+
+
+jCanvaScript.addObject('circle',function(){
+	this.base=function(x,y,radius,color,fill){
+		var options=x;
+		if(typeof options != 'object')
+			options={x:x,y:y,radius:radius,color:color,fill:fill};
+		options=jCanvaScript.checkDefaults(options,{radius:0});
+		this.proto().prototype.base.call(this,options);
+		this._radius=options.radius;
+		return this;
+	}
+	this.draw=function(ctx){
+		ctx.arc(this._x, this._y, this._radius, 0,jCanvaScript.constants.PIx2,true);
+	}
+	this.getRect=function(type){
+		var points={x:this._x-this._radius,y:this._y-this._radius};
+		points.width=points.height=this._radius*2;
+		return jCanvaScript.getRect(this,points,type);
+	}
+	this._proto='circle';
+});
+
+jCanvaScript.addFunction('getCenter',function(type){
+	return jCanvaScript.getCenter(this,{x:this._x,y:this._y},type);
+},'circle');
+

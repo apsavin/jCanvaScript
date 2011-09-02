@@ -1,9 +1,14 @@
 proto.shape=function()
 {
-	this.color = function(color)
+	this.fillColor = function(color)
 	{
-		if (color===undefined)return [this._colorR,this._colorG,this._colorB,this._alpha];
-		return this.attr('color',color);
+		if (color===undefined)return [this._fillColorR,this._fillColorG,this._fillColorB,this._fillAlpha];
+		return this.attr('fillColor',color);
+	}
+	this.lineColor = function(color)
+	{
+		if (color===undefined)return [this._lineColorR,this._lineColorG,this._lineColorB,this._lineAlpha];
+		return this.attr('lineColor',color);
 	}
 	this.lineStyle = function(options)
 	{
@@ -16,24 +21,15 @@ proto.shape=function()
 		ctx.lineCap = this._cap;
 		ctx.lineJoin = this._join;
 		ctx.miterLimit = this._miterLimit;
-		var color=this.optns.color;
-		if(color.notColor===undefined)
-			color.val='rgba('+parseInt(this._colorR)+','+parseInt(this._colorG)+','+parseInt(this._colorB)+','+parseInt(this._alpha*100)/100+')';
-		else
-		{
-			var notColor=color.notColor;
-			var notColorLayer=canvases[notColor.canvas].layers[notColor.layer];
-			if(notColorLayer.grdntsnptrns[notColor.level]!==undefined){color.val=notColorLayer.grdntsnptrns[notColor.level].val;}
-		}
-		if(this._fill) ctx.fillStyle = color.val;
-		else ctx.strokeStyle = color.val;
+		var fillColor=updateColor(this.optns.fillColor,'fill');
+		var lineColor=updateColor(this.optns.lineColor,'line');
+		ctx.fillStyle = fillColor.val;
+		ctx.strokeStyle = lineColor.val;
 	}
 	this.afterDraw=function(optns)
 	{
-		if(this._fill)
-			optns.ctx.fill();
-		else
-			optns.ctx.stroke();
+		optns.ctx.fill();
+		optns.ctx.stroke();
 		proto.shape.prototype.afterDraw.call(this,optns);
 	}
 	this.base=function(x)

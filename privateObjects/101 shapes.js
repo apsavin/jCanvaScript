@@ -1,30 +1,22 @@
-proto.circle=function(){
-	this.getCenter=function(type)
-	{
-		return getCenter(this,{x:this._x,y:this._y},type);
-	}
-	this.getRect=function(type)
-	{
-		var points={x:this._x-this._radius,y:this._y-this._radius};
-		points.width=points.height=this._radius*2;
-		return getRect(this,points,type);
-	}
+proto.ellipse=function(){
 	this.draw=function(ctx)
 	{
-		ctx.arc(this._x, this._y, this._radius, 0,pi2,true);
+		 var kappa = .5522848,
+		 ox = width / 2 * kappa, // control point offset horiz
+		 oy = height / 2 * kappa, // control point offset vert
+		 xe = x + width, // x end
+		 ye = y + height, // y end
+		 xm = x + width / 2, // x middle
+		 ym = y + height / 2; // y middle
+		 ctx.moveTo(this._x0,this._y0);
+		 ctx.push([xm, y, x, ym - oy, xm - ox, y]);
+		 points.push([xe, ym, xm + ox, y, xe, ym - oy]);
+		 points.push([xm, ye, xe, ym + oy, xm + ox, ye]);
+		 points.push([x, ym, xm - ox, ye, x, ym + oy]);
+		 points.push([xm, y, x, ym - oy, xm - ox, y]);
+		 ellipse.base(points,color,fill);
 	}
-	this.base=function(x,y,radius,color,fill)
-	{
-		if(typeof x != 'object')
-			x={x:x,y:y,radius:radius,color:color,fill:fill};
-		x=checkDefaults(x,{radius:0});
-		proto.circle.prototype.base.call(this,x);
-		this._radius=x.radius;
-		return this;
-	}
-	this._proto='circle';
 }
-proto.circle.prototype=new proto.shape;
 proto.rect=function(){
 	this.getRect=function(type)
 	{

@@ -1,45 +1,28 @@
 jCanvaScript.addFunction=function(name,fn,prototype)
 {
 	proto[prototype||'object'].prototype[name]=fn;
-	return jCanvaScript;
+	return this;
 }
-jCanvaScript.addObject=function(name,parameters,drawfn,parent)
+jCanvaScript.addObject=function(name,constructor,parent)
 {
-	proto[name]=function(name){
-		this.draw=proto[name].draw;
-		this.base=proto[name].base;
-		this._proto=name;
-	};
+	proto[name]=constructor;
 	var protoItem=proto[name];
 	if(parent===undefined)parent='shape';
 	protoItem.prototype=new proto[parent];
-	protoItem.draw=drawfn;
-	protoItem.base=function(name,parameters,args)
-	{
-		protoItem.prototype.base.call(this,parameters);
-		var i=0;
-		for(var key in parameters)
-		{
-			this['_'+key]=args[i]||parameters[key];
-			if(key=='color')this.color(args[i]||parameters[key]);
-			i++;
-		}
-		return this;
-	};
-	(function(name,parameters)
+	(function(name)
 	{
 		jCanvaScript[name]=function()
 		{
-			var object=new proto[name](name);
-			return object.base(name,parameters,arguments);
+			var object=new proto[name];
+			return object.base.apply(object,arguments);
 		}
-	})(name,parameters);
-	return jCanvaScript;
+	})(name);
+	return this;
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
 {
 	animateFunctions[name]=fn;
-	return jCanvaScript;
+	return this;
 }
 jCanvaScript.addImageDataFilter=function(name,properties)
 {
@@ -48,6 +31,12 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 	if(properties.matrix!==undefined && properties.type===undefined)imageDataFilters[name].matrix=properties.matrix;
 	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
 	return jCanvaScript;
+}
+jCanvaScript.getCenter = getCenter;
+jCanvaScript.getRect = getRect;
+jCanvaScript.checkDefaults = checkDefaults;
+jCanvaScript.constants={
+	PIx2:pi2
 }
 jCanvaScript.clear=function(idCanvas)
 {

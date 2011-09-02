@@ -1,3 +1,15 @@
+function updateColor(color,prefix)
+{
+	if(color.notColor===undefined)
+		color.val='rgba('+parseInt(this['_'+prefix+'ColorR'])+','+parseInt(this['_'+prefix+'ColorG'])+','+parseInt(['_'+prefix+'ColorB'])+','+parseInt(this['_'+prefix+'Alpha']*100)/100+')';
+	else
+	{
+		var notColor=color.notColor;
+		var notColorLayer=canvases[notColor.canvas].layers[notColor.layer];
+		if(notColorLayer.grdntsnptrns[notColor.level]!==undefined){color.val=notColorLayer.grdntsnptrns[notColor.level].val;}
+	}
+	return color;
+}
 function changeMatrix(object)
 {
 	var optns=object.optns;

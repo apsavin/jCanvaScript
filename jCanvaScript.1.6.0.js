@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.9
+ * jCanvaScript JavaScript Library v 1.6.0
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -213,3 +213,5 @@
 	<include src="objects"/>
 	<include src="serviceObjects"/>
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
+
+<include src="objects_new"/>
