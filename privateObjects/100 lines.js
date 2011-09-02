@@ -83,18 +83,18 @@ proto.lines=function()
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		if(points!==undefined)
+		var options=points;
+		if(options!==undefined)
 		{
-			if(typeof points.pop == 'function')
-				points={points:points,color:color,fill:fill};
+			if(typeof options.pop == 'function')
+				options={points:points,lineColor:lineColor,fillColor:fillColor};
+			this.shapesCount=0;
+			if(options.points!==undefined)
+				this.points(options.points);
 		}
-		proto.lines.prototype.base.call(this,points);
-		this.shapesCount=0;
-		if(points!==undefined)
-			if(points.points!==undefined)
-				this.points(points.points);
+		proto.lines.prototype.base.call(this,options);
 		return this;
 	}
 }

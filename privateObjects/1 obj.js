@@ -88,7 +88,8 @@ proto.object=function()
 		ctx.shadowOffsetY = this._shadowY;
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
-		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
+		var shadowColor=updateColor(this,this.optns.shadowColor,'shadow');
+		ctx.shadowColor = shadowColor.val;
 		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
@@ -364,29 +365,6 @@ proto.object=function()
 			this._rotateY=options.rotate.y||0;
 			options.rotate=undefined;
 		}
-		if(options.color !== undefined)
-		{
-			var colorKeeper=parseColor(options.color);
-			if(colorKeeper.color.notColor)
-				this.optns.color.notColor=colorKeeper.color.notColor;
-			else
-			{
-				options.colorR=colorKeeper.r;
-				options.colorG=colorKeeper.g;
-				options.colorB=colorKeeper.b;
-				options.alpha=colorKeeper.a;
-			}
-			options.color = undefined;
-		}
-		if(options.shadowColor !== undefined)
-		{
-			colorKeeper=parseColor(options.shadowColor);
-			options.shadowColorR=colorKeeper.r;
-			options.shadowColorG=colorKeeper.g;
-			options.shadowColorB=colorKeeper.b;
-			options.shadowColorA=colorKeeper.a;
-			options.shadowColor = undefined;
-		}
 		if(duration>1)
 		{
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
@@ -398,6 +376,27 @@ proto.object=function()
 			queue.onstep=onstep;
 		}
 		for(var key in options)
+		{
+			if(!options.hasOwnProperty(key))continue;
+			var colorArray=key.split('Color');
+			if(colorArray[0]!="" && colorArray[1]=="")
+			{
+				var
+					color=options[key],
+					colorKeeper=parseColor(color);
+				if(colorKeeper.color.notColor)
+					this.optns[key].notColor=colorKeeper.color.notColor;
+				else
+				{
+					options[key+'R']=colorKeeper.r;
+					options[key+'G']=colorKeeper.g;
+					options[key+'B']=colorKeeper.b;
+					options[key+'A']=colorKeeper.a;
+				}
+				options[key] = undefined;
+			}
+		}
+		for(key in options)
 		{
 			if(this['_'+key] !== undefined && options[key]!==undefined)
 			{
@@ -749,7 +748,8 @@ proto.object=function()
 			rotateMatrix:[[1,0,0],[0,1,0]],
 			scaleMatrix:[[1,0,0],[0,1,0]],
 			translateMatrix:[[1,0,0],[0,1,0]],
-			transformMatrix:[[1,0,0],[0,1,0]]
+			transformMatrix:[[1,0,0],[0,1,0]],
+			shadowColor:{val:'rgba(0,0,0,0)',notColor:undefined}
 		}
 		this.animateQueue = [];
 		this._x=x;

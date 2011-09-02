@@ -1,7 +1,7 @@
-function updateColor(color,prefix)
+function updateColor(object,color,prefix)
 {
 	if(color.notColor===undefined)
-		color.val='rgba('+parseInt(this['_'+prefix+'ColorR'])+','+parseInt(this['_'+prefix+'ColorG'])+','+parseInt(['_'+prefix+'ColorB'])+','+parseInt(this['_'+prefix+'Alpha']*100)/100+')';
+		color.val='rgba('+parseInt(object['_'+prefix+'ColorR'])+','+parseInt(object['_'+prefix+'ColorG'])+','+parseInt(object['_'+prefix+'ColorB'])+','+parseInt(object['_'+prefix+'ColorA']*100)/100+')';
 	else
 	{
 		var notColor=color.notColor;

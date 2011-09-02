@@ -1,8 +1,8 @@
 jCanvaScript.addObject('circle',function(){
-	this.base=function(x,y,radius,color,fill){
+	this.base=function(x,y,radius,lineColor,fillColor){
 		var options=x;
 		if(typeof options != 'object')
-			options={x:x,y:y,radius:radius,color:color,fill:fill};
+			options={x:x,y:y,radius:radius,lineColor:lineColor,fillColor:fillColor};
 		options=jCanvaScript.checkDefaults(options,{radius:0});
 		this.proto().prototype.base.call(this,options);
 		this._radius=options.radius;

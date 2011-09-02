@@ -1,15 +1,15 @@
-jCanvaScript.line=function(points,color,fill)
+jCanvaScript.line=function(points,lineColor,fillColor)
 {
 	var line = new proto.line;
-	return line.base(points,color,fill);
+	return line.base(points,lineColor,fillColor);
 }
-jCanvaScript.qCurve=function(points,color,fill)
+jCanvaScript.qCurve=function(points,lineColor,fillColor)
 {
 	var qCurve = new proto.qCurve;
-	return qCurve.base(points,color,fill);
+	return qCurve.base(points,lineColor,fillColor);
 }
-jCanvaScript.bCurve=function(points,color,fill)
+jCanvaScript.bCurve=function(points,lineColor,fillColor)
 {
 	var bCurve = new proto.bCurve;
-	return bCurve.base(points,color,fill);
+	return bCurve.base(points,lineColor,fillColor);
 }

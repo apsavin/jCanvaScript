@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.9
+ * jCanvaScript JavaScript Library v 1.6.0
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -208,6 +208,18 @@
 	}
 
 	
+function updateColor(object,color,prefix)
+{
+	if(color.notColor===undefined)
+		color.val='rgba('+parseInt(object['_'+prefix+'ColorR'])+','+parseInt(object['_'+prefix+'ColorG'])+','+parseInt(object['_'+prefix+'ColorB'])+','+parseInt(object['_'+prefix+'ColorA']*100)/100+')';
+	else
+	{
+		var notColor=color.notColor;
+		var notColorLayer=canvases[notColor.canvas].layers[notColor.layer];
+		if(notColorLayer.grdntsnptrns[notColor.level]!==undefined){color.val=notColorLayer.grdntsnptrns[notColor.level].val;}
+	}
+	return color;
+}
 function changeMatrix(object)
 {
 	var optns=object.optns;
@@ -877,12 +889,7 @@ proto.object=function()
 				this._shadowBlur=options.blur;
 				break;
 			case 'color':
-				var colorKeeper = parseColor(options.color);
-				this._shadowColor = options.color.val;
-				this._shadowColorR = colorKeeper.r;
-				this._shadowColorG = colorKeeper.g;
-				this._shadowColorB = colorKeeper.b;
-				this._shadowColorA = colorKeeper.a;
+				this.attr('shadowColor',options.color);
 				break;
 		}
 		redraw(this);
@@ -895,7 +902,8 @@ proto.object=function()
 		ctx.shadowOffsetY = this._shadowY;
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
-		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
+		var shadowColor=updateColor(this,this.optns.shadowColor,'shadow');
+		ctx.shadowColor = shadowColor.val;
 		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
@@ -1171,29 +1179,6 @@ proto.object=function()
 			this._rotateY=options.rotate.y||0;
 			options.rotate=undefined;
 		}
-		if(options.color !== undefined)
-		{
-			var colorKeeper=parseColor(options.color);
-			if(colorKeeper.color.notColor)
-				this.optns.color.notColor=colorKeeper.color.notColor;
-			else
-			{
-				options.colorR=colorKeeper.r;
-				options.colorG=colorKeeper.g;
-				options.colorB=colorKeeper.b;
-				options.alpha=colorKeeper.a;
-			}
-			options.color = undefined;
-		}
-		if(options.shadowColor !== undefined)
-		{
-			colorKeeper=parseColor(options.shadowColor);
-			options.shadowColorR=colorKeeper.r;
-			options.shadowColorG=colorKeeper.g;
-			options.shadowColorB=colorKeeper.b;
-			options.shadowColorA=colorKeeper.a;
-			options.shadowColor = undefined;
-		}
 		if(duration>1)
 		{
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
@@ -1205,6 +1190,27 @@ proto.object=function()
 			queue.onstep=onstep;
 		}
 		for(var key in options)
+		{
+			if(!options.hasOwnProperty(key))continue;
+			var colorArray=key.split('Color');
+			if(colorArray[0]!="" && colorArray[1]=="")
+			{
+				var
+					color=options[key],
+					colorKeeper=parseColor(color);
+				if(colorKeeper.color.notColor)
+					this.optns[key].notColor=colorKeeper.color.notColor;
+				else
+				{
+					options[key+'R']=colorKeeper.r;
+					options[key+'G']=colorKeeper.g;
+					options[key+'B']=colorKeeper.b;
+					options[key+'A']=colorKeeper.a;
+				}
+				options[key] = undefined;
+			}
+		}
+		for(key in options)
 		{
 			if(this['_'+key] !== undefined && options[key]!==undefined)
 			{
@@ -1556,7 +1562,8 @@ proto.object=function()
 			rotateMatrix:[[1,0,0],[0,1,0]],
 			scaleMatrix:[[1,0,0],[0,1,0]],
 			translateMatrix:[[1,0,0],[0,1,0]],
-			transformMatrix:[[1,0,0],[0,1,0]]
+			transformMatrix:[[1,0,0],[0,1,0]],
+			shadowColor:{val:'rgba(0,0,0,0)',notColor:undefined}
 		}
 		this.animateQueue = [];
 		this._x=x;
@@ -1606,10 +1613,15 @@ proto.object.prototype=new proto.object();
 
 proto.shape=function()
 {
-	this.color = function(color)
+	this.fillColor = function(color)
 	{
-		if (color===undefined)return [this._colorR,this._colorG,this._colorB,this._alpha];
-		return this.attr('color',color);
+		if (color===undefined)return [this._fillColorR,this._fillColorG,this._fillColorB,this._fillColorA];
+		return this.attr('fillColor',color);
+	}
+	this.lineColor = function(color)
+	{
+		if (color===undefined)return [this._lineColorR,this._lineColorG,this._lineColorB,this._lineColorA];
+		return this.attr('lineColor',color);
 	}
 	this.lineStyle = function(options)
 	{
@@ -1622,50 +1634,36 @@ proto.shape=function()
 		ctx.lineCap = this._cap;
 		ctx.lineJoin = this._join;
 		ctx.miterLimit = this._miterLimit;
-		var color=this.optns.color;
-		if(color.notColor===undefined)
-			color.val='rgba('+parseInt(this._colorR)+','+parseInt(this._colorG)+','+parseInt(this._colorB)+','+parseInt(this._alpha*100)/100+')';
-		else
-		{
-			var notColor=color.notColor;
-			var notColorLayer=canvases[notColor.canvas].layers[notColor.layer];
-			if(notColorLayer.grdntsnptrns[notColor.level]!==undefined){color.val=notColorLayer.grdntsnptrns[notColor.level].val;}
-		}
-		if(this._fill) ctx.fillStyle = color.val;
-		else ctx.strokeStyle = color.val;
+		var fillColor=updateColor(this,this.optns.fillColor,'fill');
+		var lineColor=updateColor(this,this.optns.lineColor,'line');
+		ctx.fillStyle = fillColor.val;
+		ctx.strokeStyle = lineColor.val;
 	}
 	this.afterDraw=function(optns)
 	{
-		//if(this._fill)
-		//ctx.fillStyle='#ffffff';
-			optns.ctx.fill();
-		//else
-		optns.ctx.strokeStyle='#ff0000';
+		optns.ctx.fill();
 		optns.ctx.stroke();
 		proto.shape.prototype.afterDraw.call(this,optns);
 	}
-	this.base=function(x)
+	this.base=function(options)
 	{
-		if(x===undefined)x={};
-		if(x.color===undefined)x.color='rgba(0,0,0,1)';
-		else
-		{
-			if(!x.color.charAt && x.color.id===undefined && x.color.r===undefined)
-			{
-				x.fill=x.color;
-				x.color='rgba(0,0,0,1)';
-			}
-		}
-		x=checkDefaults(x,{color:'rgba(0,0,0,1)',fill:0});
-		proto.shape.prototype.base.call(this,x);
-		this._fill=x.fill;
-		this.optns.color={val:x.color,notColor:undefined};
-		return this.color(x.color);
+		if(options===undefined)options={};
+		options=checkDefaults(options,{fillColor:'rgba(0,0,0,0)',lineColor:'rgba(0,0,0,0)'});
+		proto.shape.prototype.base.call(this,options);
+		this.optns.fillColor={val:options.fillColor,notColor:undefined};
+		this.optns.lineColor={val:options.lineColor,notColor:undefined};
+		this.fillColor(options.fillColor);
+		this.lineColor(options.lineColor);
+		return this;
 	}
-	this._colorR=0;
-	this._colorG=0;
-	this._colorB=0;
-	this._alpha=0;
+	this._fillColorR=0;
+	this._fillColorG=0;
+	this._fillColorB=0;
+	this._fillColorA=0;
+	this._lineColorR=0;
+	this._lineColorG=0;
+	this._lineColorB=0;
+	this._lineColorA=0;
 	this._lineWidth = 1;
 	this._cap = 'butt';
 	this._join = 'miter';
@@ -1758,18 +1756,18 @@ proto.lines=function()
 				this[names[i]+j]=undefined;
 		return this;
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		if(points!==undefined)
+		var options=points;
+		if(options!==undefined)
 		{
-			if(typeof points.pop == 'function')
-				points={points:points,color:color,fill:fill};
+			if(typeof options.pop == 'function')
+				options={points:points,lineColor:lineColor,fillColor:fillColor};
+			this.shapesCount=0;
+			if(options.points!==undefined)
+				this.points(options.points);
 		}
-		proto.lines.prototype.base.call(this,points);
-		this.shapesCount=0;
-		if(points!==undefined)
-			if(points.points!==undefined)
-				this.points(points.points);
+		proto.lines.prototype.base.call(this,options);
 		return this;
 	}
 }
@@ -1785,9 +1783,9 @@ proto.line=function(){
 			ctx.lineTo(this['_x'+j],this['_y'+j]);
 		}
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		proto.line.prototype.base.call(this,points,color,fill);
+		proto.line.prototype.base.call(this,points,lineColor,fillColor);
 		return this;
 	}
 	this._proto='line';
@@ -1804,9 +1802,9 @@ proto.qCurve=function(){
 			ctx.quadraticCurveTo(this['_cp1x'+j],this['_cp1y'+j],this['_x'+j],this['_y'+j]);
 		}
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		proto.qCurve.prototype.base.call(this,points,color,fill);
+		proto.qCurve.prototype.base.call(this,points,lineColor,fillColor);
 		return this;
 	}
 	this._proto='qCurve';
@@ -1823,9 +1821,9 @@ proto.bCurve=function(){
 			ctx.bezierCurveTo(this['_cp1x'+j],this['_cp1y'+j],this['_cp2x'+j],this['_cp2y'+j],this['_x'+j],this['_y'+j]);
 		}
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		proto.bCurve.prototype.base.call(this,points,color,fill);
+		proto.bCurve.prototype.base.call(this,points,lineColor,fillColor);
 		return this;
 	}
 	this._proto='bCurve';
@@ -1861,14 +1859,15 @@ proto.rect=function(){
 	{
 		ctx.rect(this._x, this._y, this._width, this._height);
 	}
-	this.base=function(x,y,width,height,color,fill)
+	this.base=function(x,y,width,height,lineColor,fillColor)
 	{
-		if(typeof x != 'object')
-			x={x:x,y:y,width:width,height:height,color:color,fill:fill};
-		x=checkDefaults(x,{width:0,height:0});
-		proto.rect.prototype.base.call(this,x);
-		this._width=x.width;
-		this._height=x.height;
+		var options = x;
+		if(options != 'object')
+			options={x:x,y:y,width:width,height:height,lineColor:lineColor,fillColor:fillColor};
+		options=checkDefaults(options,{width:0,height:0});
+		proto.rect.prototype.base.call(this,options);
+		this._width=options.width;
+		this._height=options.height;
 		return this;
 	}
 	this._proto='rect';
@@ -1992,22 +1991,27 @@ proto.arc=function(){
 	{
 		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
 	}
-	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,color,fill)
+	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor)
 	{
+		var options = x;
 		if(anticlockwise!==undefined)
 		{
-			if(anticlockwise.charAt)color=anticlockwise;
+			if(anticlockwise.charAt){
+				lineColor=anticlockwise;
+				fillColor=lineColor;
+				anticlockwise:true;
+			}
 			if(anticlockwise)anticlockwise=true;
 			else anticlockwise=false;
 		}
-		if(typeof x != 'object')
-			x={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,color:color,fill:fill};
-		x=checkDefaults(x,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
-		proto.arc.prototype.base.call(this,x);
-		this._radius=x.radius;
-		this._startAngle=x.startAngle;
-		this._endAngle=x.endAngle;
-		this._anticlockwise=x.anticlockwise;
+		if(typeof options != 'object')
+			options={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,lineColor:lineColor,fillColor:fillColor};
+		options=checkDefaults(options,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
+		proto.arc.prototype.base.call(this,options);
+		this._radius=options.radius;
+		this._startAngle=options.startAngle;
+		this._endAngle=options.endAngle;
+		this._anticlockwise=options.anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -2071,29 +2075,30 @@ proto.text=function(){
 	this.draw=function(ctx)
 	{
 		if(this._maxWidth===false)	{
-			if(this._fill)ctx.fillText(this._string,this._x,this._y);
+			if(this._fillColorA)ctx.fillText(this._string,this._x,this._y);
 			else ctx.strokeText(this._string,this._x,this._y);}
 		else {
-			if(this._fill) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
+			if(this._fillColorA) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
 			else ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
 	}
-	this.base=function(string,x,y,maxWidth,color,fill)
+	this.base=function(string,x,y,maxWidth,lineColor,fillColor)
 	{
+		var options = string;
 		if (maxWidth!==undefined)
 		{
 			if (maxWidth.charAt)
 			{
-				if(color!==undefined)fill=color;
-				color=maxWidth;
+				fillColor=lineColor;
+				lineColor=maxWidth;
 				maxWidth=false;
 			}
 		}
-		if(typeof string != 'object')
-			string={string:string,x:x,y:y,maxWidth:maxWidth,color:color,fill:fill};
-		string=checkDefaults(string,{string:'',maxWidth:false,fill:1});
-		proto.text.prototype.base.call(this,string);
-		this._string=string.string;
-		this._maxWidth=string.maxWidth;
+		if(typeof options != 'object')
+			options={string:string,x:x,y:y,maxWidth:maxWidth,lineColor:lineColor,fillColor:fillColor};
+		options=checkDefaults(options,{string:'',maxWidth:false,fill:1});
+		proto.text.prototype.base.call(this,options);
+		this._string=options.string;
+		this._maxWidth=options.maxWidth;
 		return this;
 	}
 	this._proto='text';
@@ -2176,6 +2181,13 @@ proto.gradients=function()
 		else this.colorStopsCount=0;
 		return this;
 	}
+	this._createColorStops = function()
+	{
+		for(var i=0;i<this.colorStopsCount;i++)
+		{
+			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
+		}
+	}
 	this.colorStops=function(array)
 	{
 		var names=this.paramNames;
@@ -2241,10 +2253,7 @@ proto.lGradient=function()
 	{
 		if(this.optns.animated)animating.call(this,canvasOptns);
 		this.val=canvasOptns.ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
-		for(var i=0;i<this.colorStopsCount;i++)
-		{
-			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
-		}
+		this._createColorStops();
 	}
 	this.base=function(x1,y1,x2,y2,colors)
 	{
@@ -2267,10 +2276,7 @@ proto.rGradient=function()
 	{
 		if(this.optns.animated)animating.call(this);
 		this.val=canvasOptns.ctx.createRadialGradient(this._x1,this._y1,this._r1,this._x2,this._y2,this._r2);
-		for(var i=0;i<this.colorStopsCount;i++)
-		{
-			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
-		}
+		this._createColorStops();
 	}
 	this.base=function(x1,y1,r1,x2,y2,r2,colors)
 	{
@@ -2933,20 +2939,20 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 	return rGrad.base(x1,y1,r1,x2,y2,r2,colors);
 }
 
-jCanvaScript.line=function(points,color,fill)
+jCanvaScript.line=function(points,lineColor,fillColor)
 {
 	var line = new proto.line;
-	return line.base(points,color,fill);
+	return line.base(points,lineColor,fillColor);
 }
-jCanvaScript.qCurve=function(points,color,fill)
+jCanvaScript.qCurve=function(points,lineColor,fillColor)
 {
 	var qCurve = new proto.qCurve;
-	return qCurve.base(points,color,fill);
+	return qCurve.base(points,lineColor,fillColor);
 }
-jCanvaScript.bCurve=function(points,color,fill)
+jCanvaScript.bCurve=function(points,lineColor,fillColor)
 {
 	var bCurve = new proto.bCurve;
-	return bCurve.base(points,color,fill);
+	return bCurve.base(points,lineColor,fillColor);
 }
 
 jCanvaScript.imageData=function(width,height)
@@ -2960,25 +2966,25 @@ jCanvaScript.image=function(img,x,y,width,height,sx,sy,swidth,sheight)
 	return image.base(img,x,y,width,height,sx,sy,swidth,sheight);
 }
 
-jCanvaScript.ellipse=function(x,y,width,height,color,fill)
+jCanvaScript.ellipse=function(x,y,width,height,lineColor,fillColor)
 {
 	var ellipse = new proto.ellipse;
-	return ellipse.base(x,y,width,height,color,fill);
+	return ellipse.base(x,y,width,height,lineColor,fillColor);
 }
-jCanvaScript.rect=function(x,y,width,height,color,fill)
+jCanvaScript.rect=function(x,y,width,height,lineColor,fillColor)
 {
 	var rect = new proto.rect;
-	return rect.base(x,y,width,height,color,fill);
+	return rect.base(x,y,width,height,lineColor,fillColor);
 }
-jCanvaScript.arc=function(x,y,radius,startAngle,endAngle,anticlockwise,color,fill)
+jCanvaScript.arc=function(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor)
 {
 	var arc=new proto.arc;
-	return arc.base(x,y,radius,startAngle,endAngle,anticlockwise,color,fill);
+	return arc.base(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor);
 }
-jCanvaScript.text = function(string,x,y,maxWidth,color,fill)
+jCanvaScript.text = function(string,x,y,maxWidth,lineColor,fillColor)
 {
 	var text=new proto.text;
-	return text.base(string,x,y,maxWidth,color,fill);
+	return text.base(string,x,y,maxWidth,lineColor,fillColor);
 }
 
 	
@@ -3342,10 +3348,10 @@ window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
 
 jCanvaScript.addObject('circle',function(){
-	this.base=function(x,y,radius,color,fill){
+	this.base=function(x,y,radius,lineColor,fillColor){
 		var options=x;
 		if(typeof options != 'object')
-			options={x:x,y:y,radius:radius,color:color,fill:fill};
+			options={x:x,y:y,radius:radius,lineColor:lineColor,fillColor:fillColor};
 		options=jCanvaScript.checkDefaults(options,{radius:0});
 		this.proto().prototype.base.call(this,options);
 		this._radius=options.radius;

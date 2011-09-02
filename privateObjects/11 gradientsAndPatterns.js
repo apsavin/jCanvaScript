@@ -74,6 +74,13 @@ proto.gradients=function()
 		else this.colorStopsCount=0;
 		return this;
 	}
+	this._createColorStops = function()
+	{
+		for(var i=0;i<this.colorStopsCount;i++)
+		{
+			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
+		}
+	}
 	this.colorStops=function(array)
 	{
 		var names=this.paramNames;

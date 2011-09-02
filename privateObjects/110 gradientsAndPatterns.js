@@ -24,10 +24,7 @@ proto.lGradient=function()
 	{
 		if(this.optns.animated)animating.call(this,canvasOptns);
 		this.val=canvasOptns.ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
-		for(var i=0;i<this.colorStopsCount;i++)
-		{
-			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
-		}
+		this._createColorStops();
 	}
 	this.base=function(x1,y1,x2,y2,colors)
 	{
@@ -50,10 +47,7 @@ proto.rGradient=function()
 	{
 		if(this.optns.animated)animating.call(this);
 		this.val=canvasOptns.ctx.createRadialGradient(this._x1,this._y1,this._r1,this._x2,this._y2,this._r2);
-		for(var i=0;i<this.colorStopsCount;i++)
-		{
-			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
-		}
+		this._createColorStops();
 	}
 	this.base=function(x1,y1,r1,x2,y2,r2,colors)
 	{

@@ -8,9 +8,9 @@ proto.line=function(){
 			ctx.lineTo(this['_x'+j],this['_y'+j]);
 		}
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		proto.line.prototype.base.call(this,points,color,fill);
+		proto.line.prototype.base.call(this,points,lineColor,fillColor);
 		return this;
 	}
 	this._proto='line';
@@ -27,9 +27,9 @@ proto.qCurve=function(){
 			ctx.quadraticCurveTo(this['_cp1x'+j],this['_cp1y'+j],this['_x'+j],this['_y'+j]);
 		}
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		proto.qCurve.prototype.base.call(this,points,color,fill);
+		proto.qCurve.prototype.base.call(this,points,lineColor,fillColor);
 		return this;
 	}
 	this._proto='qCurve';
@@ -46,9 +46,9 @@ proto.bCurve=function(){
 			ctx.bezierCurveTo(this['_cp1x'+j],this['_cp1y'+j],this['_cp2x'+j],this['_cp2y'+j],this['_x'+j],this['_y'+j]);
 		}
 	}
-	this.base=function(points,color,fill)
+	this.base=function(points,lineColor,fillColor)
 	{
-		proto.bCurve.prototype.base.call(this,points,color,fill);
+		proto.bCurve.prototype.base.call(this,points,lineColor,fillColor);
 		return this;
 	}
 	this._proto='bCurve';

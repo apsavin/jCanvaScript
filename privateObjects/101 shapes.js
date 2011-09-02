@@ -26,14 +26,15 @@ proto.rect=function(){
 	{
 		ctx.rect(this._x, this._y, this._width, this._height);
 	}
-	this.base=function(x,y,width,height,color,fill)
+	this.base=function(x,y,width,height,lineColor,fillColor)
 	{
-		if(typeof x != 'object')
-			x={x:x,y:y,width:width,height:height,color:color,fill:fill};
-		x=checkDefaults(x,{width:0,height:0});
-		proto.rect.prototype.base.call(this,x);
-		this._width=x.width;
-		this._height=x.height;
+		var options = x;
+		if(options != 'object')
+			options={x:x,y:y,width:width,height:height,lineColor:lineColor,fillColor:fillColor};
+		options=checkDefaults(options,{width:0,height:0});
+		proto.rect.prototype.base.call(this,options);
+		this._width=options.width;
+		this._height=options.height;
 		return this;
 	}
 	this._proto='rect';
@@ -157,22 +158,27 @@ proto.arc=function(){
 	{
 		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
 	}
-	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,color,fill)
+	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor)
 	{
+		var options = x;
 		if(anticlockwise!==undefined)
 		{
-			if(anticlockwise.charAt)color=anticlockwise;
+			if(anticlockwise.charAt){
+				lineColor=anticlockwise;
+				fillColor=lineColor;
+				anticlockwise:true;
+			}
 			if(anticlockwise)anticlockwise=true;
 			else anticlockwise=false;
 		}
-		if(typeof x != 'object')
-			x={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,color:color,fill:fill};
-		x=checkDefaults(x,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
-		proto.arc.prototype.base.call(this,x);
-		this._radius=x.radius;
-		this._startAngle=x.startAngle;
-		this._endAngle=x.endAngle;
-		this._anticlockwise=x.anticlockwise;
+		if(typeof options != 'object')
+			options={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,lineColor:lineColor,fillColor:fillColor};
+		options=checkDefaults(options,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
+		proto.arc.prototype.base.call(this,options);
+		this._radius=options.radius;
+		this._startAngle=options.startAngle;
+		this._endAngle=options.endAngle;
+		this._anticlockwise=options.anticlockwise;
 		return this;
 	}
 	this._proto='arc';
@@ -236,29 +242,30 @@ proto.text=function(){
 	this.draw=function(ctx)
 	{
 		if(this._maxWidth===false)	{
-			if(this._fill)ctx.fillText(this._string,this._x,this._y);
+			if(this._fillColorA)ctx.fillText(this._string,this._x,this._y);
 			else ctx.strokeText(this._string,this._x,this._y);}
 		else {
-			if(this._fill) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
+			if(this._fillColorA) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
 			else ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
 	}
-	this.base=function(string,x,y,maxWidth,color,fill)
+	this.base=function(string,x,y,maxWidth,lineColor,fillColor)
 	{
+		var options = string;
 		if (maxWidth!==undefined)
 		{
 			if (maxWidth.charAt)
 			{
-				if(color!==undefined)fill=color;
-				color=maxWidth;
+				fillColor=lineColor;
+				lineColor=maxWidth;
 				maxWidth=false;
 			}
 		}
-		if(typeof string != 'object')
-			string={string:string,x:x,y:y,maxWidth:maxWidth,color:color,fill:fill};
-		string=checkDefaults(string,{string:'',maxWidth:false,fill:1});
-		proto.text.prototype.base.call(this,string);
-		this._string=string.string;
-		this._maxWidth=string.maxWidth;
+		if(typeof options != 'object')
+			options={string:string,x:x,y:y,maxWidth:maxWidth,lineColor:lineColor,fillColor:fillColor};
+		options=checkDefaults(options,{string:'',maxWidth:false,fill:1});
+		proto.text.prototype.base.call(this,options);
+		this._string=options.string;
+		this._maxWidth=options.maxWidth;
 		return this;
 	}
 	this._proto='text';
