@@ -14,7 +14,7 @@ function changeMatrix(object)
 {
 	var optns=object.optns;
 	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
-	redraw(object);
+	object.redraw();
 }
 function checkDefaults(check,def)
 {
@@ -23,11 +23,6 @@ function checkDefaults(check,def)
 		if(check[key]===undefined)check[key]=def[key];
 	}
 	return check;
-}
-
-function redraw(object)
-{
-	objectCanvas(object).optns.redraw=1;
 }
 
 function animating(canvasOptns)
@@ -72,7 +67,7 @@ function animating(canvasOptns)
 			}
 		}
 	}
-	if (this.animateQueue.length)redraw(this);
+	if (this.animateQueue.length)this.redraw();
 	else this.optns.animated=false;
 	return this;
 }
@@ -462,7 +457,7 @@ function objectCanvas(object)
 }
 function layer(idLayer,object,array)
 {
-	redraw(object);
+	object.redraw();
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
 	if (idLayer===undefined)return objectLayer.id;
@@ -484,7 +479,7 @@ function layer(idLayer,object,array)
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
 	objectCanvas.id=newLayer.optns.canvas.id;
-	redraw(object);
+	object.redraw();
 	return object;
 }
 
@@ -523,7 +518,7 @@ function canvas(idCanvas,object,array)
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
 	if(idCanvas===undefined)return canvases[objectCanvas.number];
-	redraw(object);
+	object.redraw();
 	if(canvases[objectCanvas.number].optns.id==idCanvas)return object;
 	var oldIndex={
 		i:objectCanvas.number,
@@ -546,7 +541,7 @@ function canvas(idCanvas,object,array)
 			objectLayer.id=canvasItem.layers[0].optns.id;
 		}
 	}
-	redraw(object);
+	object.redraw();
 	return object;
 }
 function normalizeLevels(array)

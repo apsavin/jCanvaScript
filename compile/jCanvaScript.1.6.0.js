@@ -224,7 +224,7 @@ function changeMatrix(object)
 {
 	var optns=object.optns;
 	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
-	redraw(object);
+	object.redraw();
 }
 function checkDefaults(check,def)
 {
@@ -233,11 +233,6 @@ function checkDefaults(check,def)
 		if(check[key]===undefined)check[key]=def[key];
 	}
 	return check;
-}
-
-function redraw(object)
-{
-	objectCanvas(object).optns.redraw=1;
 }
 
 function animating(canvasOptns)
@@ -282,7 +277,7 @@ function animating(canvasOptns)
 			}
 		}
 	}
-	if (this.animateQueue.length)redraw(this);
+	if (this.animateQueue.length)this.redraw();
 	else this.optns.animated=false;
 	return this;
 }
@@ -672,7 +667,7 @@ function objectCanvas(object)
 }
 function layer(idLayer,object,array)
 {
-	redraw(object);
+	object.redraw();
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
 	if (idLayer===undefined)return objectLayer.id;
@@ -694,7 +689,7 @@ function layer(idLayer,object,array)
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
 	objectCanvas.id=newLayer.optns.canvas.id;
-	redraw(object);
+	object.redraw();
 	return object;
 }
 
@@ -733,7 +728,7 @@ function canvas(idCanvas,object,array)
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
 	if(idCanvas===undefined)return canvases[objectCanvas.number];
-	redraw(object);
+	object.redraw();
 	if(canvases[objectCanvas.number].optns.id==idCanvas)return object;
 	var oldIndex={
 		i:objectCanvas.number,
@@ -756,7 +751,7 @@ function canvas(idCanvas,object,array)
 			objectLayer.id=canvasItem.layers[0].optns.id;
 		}
 	}
-	redraw(object);
+	object.redraw();
 	return object;
 }
 function normalizeLevels(array)
@@ -892,7 +887,7 @@ proto.object=function()
 				this.attr('shadowColor',options.color);
 				break;
 		}
-		redraw(this);
+		this.redraw();
 		return this;
 	}
 	this.setOptns=function(ctx)
@@ -951,14 +946,14 @@ proto.object=function()
 		}
 		this._level=n;
 		layer.optns.anyObjLevelChanged = true;
-		redraw(this);
+		this.redraw();
 		return this;
 	}
 	this.del=function()
 	{
 		this.optns.deleted=true;
 		objectLayer(this).optns.anyObjDeleted = true;
-		redraw(this);
+		this.redraw();
 	}
 	this.focus=function(fn)
 	{
@@ -1251,7 +1246,7 @@ proto.object=function()
 			if(options['scaleX']||options['scaleY'])
 				this.scale(this._scaleX,this._scaleY);
 		}
-		redraw(this);
+		this.redraw();
 		return this;
 	}
 	this.matrix=function(m)
@@ -1380,6 +1375,10 @@ proto.object=function()
 		{
 			proto.shape.prototype.afterDraw.call(this.optns.clipObject,optns);
 		}
+	}
+	this.redraw = function()
+	{
+		this.canvas().optns.redraw=1;
 	}
 	this.isPointIn=function(x,y,global)
 	{
@@ -1582,7 +1581,7 @@ proto.object=function()
 			this._level=limit?(layer.objs[limit-1]._level+1):0;
 			layer.objs[limit]=this;
 			this.optns.layer.id=layer.optns.id;
-			redraw(this);
+			this.redraw();
 		}
 		return this;
 	}
@@ -1709,7 +1708,7 @@ proto.lines=function()
 		return getRect(this,points,type);
 	}
 	this.addPoint=function(){
-		redraw(this);
+		this.redraw();
 		var names=this.pointNames;
 		for(var i=0;i<names.length;i++)
 				this[names[i]+this.shapesCount]=arguments[i];
@@ -1717,7 +1716,7 @@ proto.lines=function()
 		return this;
 	}
 	this.delPoint=function(x,y,radius){
-		redraw(this);
+		this.redraw();
 		if(y===undefined)
 		{
 			var points=this.points();
@@ -1748,7 +1747,7 @@ proto.lines=function()
 			}
 			return points;
 		}
-		redraw(this);
+		this.redraw();
 		var oldCount=this.shapesCount;
 		this.shapesCount=points.length;
 		for(j=0;j<this.shapesCount;j++)
@@ -1866,7 +1865,7 @@ proto.grdntsnptrn=function()
 		var grdntsnptrnsArray=canvases[lastCanvas].layers[0].grdntsnptrns;
 		this._level=grdntsnptrnsArray.length;
 		grdntsnptrnsArray[this._level]=this;
-		redraw(this);
+		this.redraw();
 	}
 	return this;
 }
@@ -1875,7 +1874,7 @@ proto.gradients=function()
 	this.colorStopsCount=0;
 	this.paramNames=['_pos','_colorR','_colorG','_colorB','_alpha'];
 	this.addColorStop=function(pos,color){
-		redraw(this);
+		this.redraw();
 		var colorKeeper = parseColor(color);
 		var i=this.colorStopsCount;
 		this['_pos'+i] = pos;
@@ -1903,7 +1902,7 @@ proto.gradients=function()
 	}
 	this.delColorStop=function(i)
 	{
-		redraw(this);
+		this.redraw();
 		var colorStops=this.colorStops();
 		colorStops.splice(i,1);
 		if(colorStops.length>0)this.colorStops(colorStops);
@@ -1930,7 +1929,7 @@ proto.gradients=function()
 			}
 			return array;
 		}
-		redraw(this);
+		this.redraw();
 		var oldCount=this.colorStopsCount;
 		var limit=array.length;
 		if(array[0].length==2)

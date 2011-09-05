@@ -33,7 +33,7 @@ proto.lines=function()
 		return getRect(this,points,type);
 	}
 	this.addPoint=function(){
-		redraw(this);
+		this.redraw();
 		var names=this.pointNames;
 		for(var i=0;i<names.length;i++)
 				this[names[i]+this.shapesCount]=arguments[i];
@@ -41,7 +41,7 @@ proto.lines=function()
 		return this;
 	}
 	this.delPoint=function(x,y,radius){
-		redraw(this);
+		this.redraw();
 		if(y===undefined)
 		{
 			var points=this.points();
@@ -72,7 +72,7 @@ proto.lines=function()
 			}
 			return points;
 		}
-		redraw(this);
+		this.redraw();
 		var oldCount=this.shapesCount;
 		this.shapesCount=points.length;
 		for(j=0;j<this.shapesCount;j++)

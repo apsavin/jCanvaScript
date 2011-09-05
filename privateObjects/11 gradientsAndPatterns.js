@@ -30,7 +30,7 @@ proto.grdntsnptrn=function()
 		var grdntsnptrnsArray=canvases[lastCanvas].layers[0].grdntsnptrns;
 		this._level=grdntsnptrnsArray.length;
 		grdntsnptrnsArray[this._level]=this;
-		redraw(this);
+		this.redraw();
 	}
 	return this;
 }
@@ -39,7 +39,7 @@ proto.gradients=function()
 	this.colorStopsCount=0;
 	this.paramNames=['_pos','_colorR','_colorG','_colorB','_alpha'];
 	this.addColorStop=function(pos,color){
-		redraw(this);
+		this.redraw();
 		var colorKeeper = parseColor(color);
 		var i=this.colorStopsCount;
 		this['_pos'+i] = pos;
@@ -67,7 +67,7 @@ proto.gradients=function()
 	}
 	this.delColorStop=function(i)
 	{
-		redraw(this);
+		this.redraw();
 		var colorStops=this.colorStops();
 		colorStops.splice(i,1);
 		if(colorStops.length>0)this.colorStops(colorStops);
@@ -94,7 +94,7 @@ proto.gradients=function()
 			}
 			return array;
 		}
-		redraw(this);
+		this.redraw();
 		var oldCount=this.colorStopsCount;
 		var limit=array.length;
 		if(array[0].length==2)

@@ -78,7 +78,7 @@ proto.object=function()
 				this.attr('shadowColor',options.color);
 				break;
 		}
-		redraw(this);
+		this.redraw();
 		return this;
 	}
 	this.setOptns=function(ctx)
@@ -137,14 +137,14 @@ proto.object=function()
 		}
 		this._level=n;
 		layer.optns.anyObjLevelChanged = true;
-		redraw(this);
+		this.redraw();
 		return this;
 	}
 	this.del=function()
 	{
 		this.optns.deleted=true;
 		objectLayer(this).optns.anyObjDeleted = true;
-		redraw(this);
+		this.redraw();
 	}
 	this.focus=function(fn)
 	{
@@ -437,7 +437,7 @@ proto.object=function()
 			if(options['scaleX']||options['scaleY'])
 				this.scale(this._scaleX,this._scaleY);
 		}
-		redraw(this);
+		this.redraw();
 		return this;
 	}
 	this.matrix=function(m)
@@ -566,6 +566,10 @@ proto.object=function()
 		{
 			proto.shape.prototype.afterDraw.call(this.optns.clipObject,optns);
 		}
+	}
+	this.redraw = function()
+	{
+		this.canvas().optns.redraw=1;
 	}
 	this.isPointIn=function(x,y,global)
 	{
@@ -768,7 +772,7 @@ proto.object=function()
 			this._level=limit?(layer.objs[limit-1]._level+1):0;
 			layer.objs[limit]=this;
 			this.optns.layer.id=layer.optns.id;
-			redraw(this);
+			this.redraw();
 		}
 		return this;
 	}
