@@ -8,15 +8,15 @@ jCanvaScript.addObject('image', function()
 		options = jCanvaScript.checkDefaults(options, {width:false, height:false, sx:0, sy:0, swidth:false, sheight:false});
 		if(options.width === false)
 		{
-			image.width  = options.image.width;
-			image.height = options.image.height;
+			options.width  = options.image.width;
+			options.height = options.image.height;
 		}
 		if(options.swidth === false)
 		{
-			image.swidth  = options.image.width;
-			image.sheight = options.image.height;
+			options.swidth  = options.image.width;
+			options.sheight = options.image.height;
 		}
-		this.protobase(this, options);
+		this.protobase(options);
 		this._img     = options.image;
 		this._width   = options.width;
 		this._height  = options.height;
