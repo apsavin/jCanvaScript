@@ -216,3 +216,4 @@ window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
 <include src="shapes"/>
 <include src="rasters"/>
+<include src="lines"/>

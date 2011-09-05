@@ -3,20 +3,23 @@ jCanvaScript.addFunction=function(name,fn,prototype)
 	proto[prototype||'object'].prototype[name]=fn;
 	return this;
 }
-jCanvaScript.addObject=function(name,constructor,parent)
+jCanvaScript.addObject=function(name,constructor,parent,abstraction)
 {
 	proto[name]=constructor;
 	var protoItem=proto[name];
 	if(parent===undefined)parent='shape';
 	protoItem.prototype=new proto[parent];
-	(function(name)
+	if(!abstraction)
 	{
-		jCanvaScript[name]=function()
+		(function(name)
 		{
-			var object=new proto[name];
-			return object.base.apply(object,arguments);
-		}
-	})(name);
+			jCanvaScript[name]=function()
+			{
+				var object=new proto[name];
+				return object.base.apply(object,arguments);
+			}
+		})(name);
+	}
 	return this;
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
@@ -32,11 +35,16 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
 	return jCanvaScript;
 }
+jCanvaScript.getProto=function(name){
+	return proto[name].prototype;
+}
 jCanvaScript.getCenter = getCenter;
 jCanvaScript.getRect = getRect;
 jCanvaScript.checkDefaults = checkDefaults;
 jCanvaScript.parseColor = parseColor;
 jCanvaScript.imageDataFilters = imageDataFilters;
+jCanvaScript.multiplyPointM = multiplyPointM;
+jCanvaScript.multiplyM = multiplyM;
 jCanvaScript.constants={
 	PIx2:pi2,
 	radian:radian,

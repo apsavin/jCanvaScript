@@ -667,10 +667,10 @@ function objectCanvas(object)
 }
 function layer(idLayer,object,array)
 {
-	object.redraw();
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
-	if (idLayer===undefined)return objectLayer.id;
+	if (idLayer===undefined)return objectLayer;
+	object.redraw();
 	if(objectLayer.id==idLayer)return object;
 	var oldIndex={
 		i:objectCanvas.number,
@@ -1673,166 +1673,6 @@ proto.shape=function()
 }
 proto.shape.prototype=new proto.object;
 
-proto.lines=function()
-{
-	this.getCenter=function(type)
-	{
-		var point={
-			x:this._x0,
-			y:this._y0
-		};
-		for(var i=1;i<this.shapesCount;i++)
-		{
-			point.x+=this['_x'+i];
-			point.y+=this['_y'+i];
-		}
-		point.x=point.x/this.shapesCount;
-		point.y=point.y/this.shapesCount;
-		return getCenter(this,point,type);
-	}
-	this.position=function(){
-		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
-	}
-	this.getRect=function(type){
-		var minX, minY,
-		maxX=minX=this._x0,
-		maxY=minY=this._y0;
-		for(var i=1;i<this.shapesCount;i++)
-		{
-			if(maxX<this['_x'+i])maxX=this['_x'+i];
-			if(maxY<this['_y'+i])maxY=this['_y'+i];
-			if(minX>this['_x'+i])minX=this['_x'+i];
-			if(minY>this['_y'+i])minY=this['_y'+i];
-		}
-		var points={x:minX,y:minY,width:maxX-minX,height:maxY-minY};
-		return getRect(this,points,type);
-	}
-	this.addPoint=function(){
-		this.redraw();
-		var names=this.pointNames;
-		for(var i=0;i<names.length;i++)
-				this[names[i]+this.shapesCount]=arguments[i];
-		this.shapesCount++;
-		return this;
-	}
-	this.delPoint=function(x,y,radius){
-		this.redraw();
-		if(y===undefined)
-		{
-			var points=this.points();
-			points.splice(x,1)
-			this.points(points);
-		}
-		else{
-			radius=radius||0;
-			for(var j=0;j<this.shapesCount;j++)
-				if(this['_x'+j]<x+radius && this['_x'+j]>x-radius && this['_y'+j]<y+radius && this['_y'+j]<y+radius)
-				{
-					this.delPoint(j);
-					j--;
-				}
-		}
-		return this;
-	}
-	this.points=function(points)
-	{
-		var names=this.pointNames;
-		if(points===undefined){
-			points=[];
-			for(var j=0;j<this.shapesCount;j++)
-			{
-				points[j]=[];
-				for(var i=0;i<names.length;i++)
-					points[j][i]=this[names[i]+j];
-			}
-			return points;
-		}
-		this.redraw();
-		var oldCount=this.shapesCount;
-		this.shapesCount=points.length;
-		for(j=0;j<this.shapesCount;j++)
-			for(i=0;i<names.length;i++)
-				this[names[i]+j]=points[j][i];
-		for(j=this.shapesCount;j<oldCount;j++)
-			for(i=0;i<names.length;i++)
-				this[names[i]+j]=undefined;
-		return this;
-	}
-	this.base=function(points,lineColor,fillColor)
-	{
-		var options=points;
-		if(options!==undefined)
-		{
-			if(typeof options.pop == 'function')
-				options={points:points,lineColor:lineColor,fillColor:fillColor};
-			this.shapesCount=0;
-			if(options.points!==undefined)
-				this.points(options.points);
-		}
-		proto.lines.prototype.base.call(this,options);
-		return this;
-	}
-}
-proto.lines.prototype=new proto.shape;
-
-proto.line=function(){
-	this.draw=function(ctx)
-	{
-		if(this._x0===undefined)return;
-		ctx.moveTo(this._x0,this._y0);
-		for(var j=1;j<this.shapesCount;j++)
-		{
-			ctx.lineTo(this['_x'+j],this['_y'+j]);
-		}
-	}
-	this.base=function(points,lineColor,fillColor)
-	{
-		proto.line.prototype.base.call(this,points,lineColor,fillColor);
-		return this;
-	}
-	this._proto='line';
-	this.pointNames=['_x','_y'];
-}
-proto.line.prototype=new proto.lines;
-proto.qCurve=function(){
-	this.draw=function(ctx)
-	{
-		if(this._x0===undefined)return;
-		ctx.moveTo(this._x0,this._y0);
-		for(var j=1;j<this.shapesCount;j++)
-		{
-			ctx.quadraticCurveTo(this['_cp1x'+j],this['_cp1y'+j],this['_x'+j],this['_y'+j]);
-		}
-	}
-	this.base=function(points,lineColor,fillColor)
-	{
-		proto.qCurve.prototype.base.call(this,points,lineColor,fillColor);
-		return this;
-	}
-	this._proto='qCurve';
-	this.pointNames=['_x','_y','_cp1x','_cp1y'];
-}
-proto.qCurve.prototype=new proto.lines;
-proto.bCurve=function(){
-	this.draw=function(ctx)
-	{
-		if(this._x0===undefined)return;
-		ctx.moveTo(this._x0,this._y0);
-		for(var j=1;j<this.shapesCount;j++)
-		{
-			ctx.bezierCurveTo(this['_cp1x'+j],this['_cp1y'+j],this['_cp2x'+j],this['_cp2y'+j],this['_x'+j],this['_y'+j]);
-		}
-	}
-	this.base=function(points,lineColor,fillColor)
-	{
-		proto.bCurve.prototype.base.call(this,points,lineColor,fillColor);
-		return this;
-	}
-	this._proto='bCurve';
-	this.pointNames=['_x','_y','_cp1x','_cp1y','_cp2x','_cp2y'];
-}
-proto.bCurve.prototype=new proto.lines;
-
 proto.grdntsnptrn=function()
 {
 	this.layer=function(idLayer)
@@ -2441,20 +2281,23 @@ jCanvaScript.addFunction=function(name,fn,prototype)
 	proto[prototype||'object'].prototype[name]=fn;
 	return this;
 }
-jCanvaScript.addObject=function(name,constructor,parent)
+jCanvaScript.addObject=function(name,constructor,parent,abstraction)
 {
 	proto[name]=constructor;
 	var protoItem=proto[name];
 	if(parent===undefined)parent='shape';
 	protoItem.prototype=new proto[parent];
-	(function(name)
+	if(!abstraction)
 	{
-		jCanvaScript[name]=function()
+		(function(name)
 		{
-			var object=new proto[name];
-			return object.base.apply(object,arguments);
-		}
-	})(name);
+			jCanvaScript[name]=function()
+			{
+				var object=new proto[name];
+				return object.base.apply(object,arguments);
+			}
+		})(name);
+	}
 	return this;
 }
 jCanvaScript.addAnimateFunction=function(name,fn)
@@ -2470,11 +2313,16 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
 	return jCanvaScript;
 }
+jCanvaScript.getProto=function(name){
+	return proto[name].prototype;
+}
 jCanvaScript.getCenter = getCenter;
 jCanvaScript.getRect = getRect;
 jCanvaScript.checkDefaults = checkDefaults;
 jCanvaScript.parseColor = parseColor;
 jCanvaScript.imageDataFilters = imageDataFilters;
+jCanvaScript.multiplyPointM = multiplyPointM;
+jCanvaScript.multiplyM = multiplyM;
 jCanvaScript.constants={
 	PIx2:pi2,
 	radian:radian,
@@ -2516,22 +2364,6 @@ jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
 {
 	var rGrad = new proto.rGradient;
 	return rGrad.base(x1,y1,r1,x2,y2,r2,colors);
-}
-
-jCanvaScript.line=function(points,lineColor,fillColor)
-{
-	var line = new proto.line;
-	return line.base(points,lineColor,fillColor);
-}
-jCanvaScript.qCurve=function(points,lineColor,fillColor)
-{
-	var qCurve = new proto.qCurve;
-	return qCurve.base(points,lineColor,fillColor);
-}
-jCanvaScript.bCurve=function(points,lineColor,fillColor)
-{
-	var bCurve = new proto.bCurve;
-	return bCurve.base(points,lineColor,fillColor);
 }
 
 	
@@ -3402,3 +3234,173 @@ jCanvaScript.addObject('imageData', function()
 	this._putData = false;
 	this._proto = 'imageData';
 },'object');
+
+
+jCanvaScript.addObject('lines', function()
+{
+	this.base = function(points, lineColor, fillColor)
+	{
+		var options = points;
+		if(options !== undefined)
+		{
+			if(typeof options.pop == 'function')
+				options = {points: points, lineColor: lineColor, fillColor: fillColor};
+			this.shapesCount = 0;
+		}
+		jCanvaScript.getProto('lines').base.call(this, options);
+		if(options.points !== undefined)
+			this.points(options.points);
+		return this;
+	}
+
+	this.getCenter = function(type)
+	{
+		var point={
+			x: this._x0,
+			y: this._y0
+		}
+		for(var i = 1; i < this.shapesCount; i++)
+		{
+			point.x += this['_x' + i];
+			point.y += this['_y' + i];
+		}
+		point.x = point.x / this.shapesCount;
+		point.y = point.y / this.shapesCount;
+		return getCenter(this, point, type);
+	}
+
+	this.position = function(){
+		return jCanvaScript.multiplyPointM(this._x0, this._y0, jCanvaScript.multiplyM(this.matrix(), this.layer().matrix()));
+	}
+
+	this.getRect = function(type)
+	{
+		var 
+			minX,
+			minY,
+			maxX = minX = this._x0,
+			maxY = minY = this._y0,
+			points;
+		for(var i = 1; i < this.shapesCount; i++)
+		{
+			if( maxX < this['_x' + i] ) maxX = this['_x' + i];
+			if( maxY < this['_y' + i] ) maxY = this['_y' + i];
+			if( minX > this['_x' + i] ) minX = this['_x' + i];
+			if( minY > this['_y' + i] ) minY = this['_y' + i];
+		}
+		points = {x: minX, y:minY, width: maxX - minX, height: maxY - minY};
+		return jCanvaScript.getRect(this, points, type);
+	}
+
+	this.addPoint = function()
+	{
+		this.redraw();
+		var names = this.pointNames;
+		for(var i = 0; i < names.length; i++)
+			this[names[i] + this.shapesCount] = arguments[i];
+		this.shapesCount++;
+		return this;
+	}
+
+	this.delPoint = function(x, y, radius){
+		this.redraw();
+		if(y === undefined)
+		{
+			var points = this.points();
+			points.splice(x, 1)
+			this.points(points);
+		}
+		else{
+			radius = radius || 0;
+			for(var j = 0; j < this.shapesCount; j++)
+				if(this['_x' + j] < x + radius && this['_x'+j] > x - radius && this['_y' + j] < y + radius && this['_y' + j] < y + radius)
+				{
+					this.delPoint(j);
+					j--;
+				}
+		}
+		return this;
+	}
+
+	this.points=function(points)
+	{
+		var names = this.pointNames;
+		if(points === undefined){
+			points = [];
+			for(var j = 0; j < this.shapesCount; j++)
+			{
+				points[j] = [];
+				for(var i = 0; i < names.length; i++)
+					points[j][i] = this[names[i] + j];
+			}
+			return points;
+		}
+		this.redraw();
+		var oldCount = this.shapesCount;
+		this.shapesCount = points.length;
+		for(j = 0; j < this.shapesCount; j++)
+			for(i = 0; i < names.length; i++)
+				this[names[i] + j] = points[j][i];
+		for(j = this.shapesCount; j < oldCount; j++)
+			for(i = 0; i < names.length; i++)
+				this[names[i] + j] = undefined;
+		return this;
+	}
+
+	this._proto = 'lines';
+
+}, 'shape', true);
+
+jCanvaScript.addObject('bCurve', function()
+{
+	this.draw = function(ctx)
+	{
+		if(this._x0 === undefined) return;
+		ctx.moveTo(this._x0, this._y0);
+		for(var j = 1; j < this.shapesCount; j++)
+		{
+			ctx.bezierCurveTo(this['_cp1x' + j], this['_cp1y' + j], this['_cp2x' + j], this['_cp2y' + j], this['_x' + j], this['_y' + j]);
+		}
+	}
+
+	this._proto = 'bCurve';
+
+	this.pointNames=['_x', '_y', '_cp1x', '_cp1y', '_cp2x', '_cp2y'];
+
+}, 'lines')
+
+jCanvaScript.addObject('line', function()
+{
+	this.draw = function(ctx)
+	{
+		if(this._x0 === undefined)return;
+		ctx.moveTo(this._x0, this._y0);
+		for(var j = 1; j < this.shapesCount; j++)
+		{
+			ctx.lineTo(this['_x' + j], this['_y' + j]);
+		}
+	}
+
+	this._proto = 'line';
+
+	this.pointNames = ['_x', '_y'];
+
+}, 'lines');
+
+jCanvaScript.addObject('qCurve', function()
+{
+	this.draw = function(ctx)
+	{
+		if(this._x0 === undefined) return;
+		ctx.moveTo(this._x0, this._y0);
+		for(var j = 1; j < this.shapesCount; j++)
+		{
+			ctx.quadraticCurveTo(this['_cp1x' + j], this['_cp1y' + j], this['_x' + j], this['_y' + j]);
+		}
+	}
+
+	this._proto = 'qCurve';
+
+	this.pointNames=['_x', '_y', '_cp1x', '_cp1y'];
+
+}, 'lines')

@@ -457,10 +457,10 @@ function objectCanvas(object)
 }
 function layer(idLayer,object,array)
 {
-	object.redraw();
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
-	if (idLayer===undefined)return objectLayer.id;
+	if (idLayer===undefined)return objectLayer;
+	object.redraw();
 	if(objectLayer.id==idLayer)return object;
 	var oldIndex={
 		i:objectCanvas.number,
