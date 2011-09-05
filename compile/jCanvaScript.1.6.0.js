@@ -3104,7 +3104,7 @@ jCanvaScript.addObject('rect', function(){
 	this.base = function(x, y, width, height, lineColor, fillColor)
 	{
 		var options = x;
-		if(options != 'object')
+		if(typeof options != 'object')
 			options = {x:x, y:y, width:width, height:height, lineColor:lineColor, fillColor:fillColor};
 		options = jCanvaScript.checkDefaults(options, {width:0, height:0});
 		this.protobase(options);
