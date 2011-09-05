@@ -520,10 +520,10 @@ function take(f,s) {
 }
 function canvas(idCanvas,object,array)
 {
-	redraw(object);
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
-	if(idCanvas===undefined)return canvases[objectCanvas.number].optns.id;
+	if(idCanvas===undefined)return canvases[objectCanvas.number];
+	redraw(object);
 	if(canvases[objectCanvas.number].optns.id==idCanvas)return object;
 	var oldIndex={
 		i:objectCanvas.number,

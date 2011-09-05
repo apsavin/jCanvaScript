@@ -730,10 +730,10 @@ function take(f,s) {
 }
 function canvas(idCanvas,object,array)
 {
-	redraw(object);
 	var objectCanvas=object.optns.canvas;
 	var objectLayer=object.optns.layer;
-	if(idCanvas===undefined)return canvases[objectCanvas.number].optns.id;
+	if(idCanvas===undefined)return canvases[objectCanvas.number];
+	redraw(object);
 	if(canvases[objectCanvas.number].optns.id==idCanvas)return object;
 	var oldIndex={
 		i:objectCanvas.number,
@@ -1533,7 +1533,11 @@ proto.object=function()
 	}
 	this.proto = function()
 	{
-		return proto[this._proto];
+		return proto[this._proto].prototype;
+	}
+	this.protobase = function(options)
+	{
+		return this.proto().base.call(this, options);
 	}
 	this.instanceOf=function(name)
 	{
@@ -1589,7 +1593,6 @@ proto.object=function()
 	this._shadowX=0;
 	this._shadowY=0;
 	this._shadowBlur= 0;
-	this._shadowColor= 'rgba(0,0,0,0)';
 	this._shadowColorR= 0;
 	this._shadowColorG= 0;
 	this._shadowColorB= 0;
@@ -1830,280 +1833,6 @@ proto.bCurve=function(){
 	this.pointNames=['_x','_y','_cp1x','_cp1y','_cp2x','_cp2y'];
 }
 proto.bCurve.prototype=new proto.lines;
-
-proto.ellipse=function(){
-	this.draw=function(ctx)
-	{
-		 var kappa = .5522848,
-		 ox = width / 2 * kappa, // control point offset horiz
-		 oy = height / 2 * kappa, // control point offset vert
-		 xe = x + width, // x end
-		 ye = y + height, // y end
-		 xm = x + width / 2, // x middle
-		 ym = y + height / 2; // y middle
-		 ctx.moveTo(this._x0,this._y0);
-		 ctx.push([xm, y, x, ym - oy, xm - ox, y]);
-		 points.push([xe, ym, xm + ox, y, xe, ym - oy]);
-		 points.push([xm, ye, xe, ym + oy, xm + ox, ye]);
-		 points.push([x, ym, xm - ox, ye, x, ym + oy]);
-		 points.push([xm, y, x, ym - oy, xm - ox, y]);
-		 ellipse.base(points,color,fill);
-	}
-}
-proto.rect=function(){
-	this.getRect=function(type)
-	{
-		return getRect(this,{x:this._x,y:this._y,width:this._width,height:this._height},type);
-	}
-	this.draw=function(ctx)
-	{
-		ctx.rect(this._x, this._y, this._width, this._height);
-	}
-	this.base=function(x,y,width,height,lineColor,fillColor)
-	{
-		var options = x;
-		if(options != 'object')
-			options={x:x,y:y,width:width,height:height,lineColor:lineColor,fillColor:fillColor};
-		options=checkDefaults(options,{width:0,height:0});
-		proto.rect.prototype.base.call(this,options);
-		this._width=options.width;
-		this._height=options.height;
-		return this;
-	}
-	this._proto='rect';
-}
-proto.rect.prototype=new proto.shape;
-proto.arc=function(){
-	this.getRect=function(type)
-	{
-		var points={x:this._x,y:this._y},
-		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
-		startY=m_floor(m_sin(startAngle/radian)*radius), startX=m_floor(m_cos(startAngle/radian)*radius),
-		endY=m_floor(m_sin(endAngle/radian)*radius), endX=m_floor(m_cos(endAngle/radian)*radius),
-		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
-		points.width=points.height=radius;
-		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
-		{
-			if(((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX==0 && endX==0))
-			{
-				points.y-=radius;
-				points.height+=radius;
-			}
-			else
-			{
-				if(positiveXs && endY<0 && startY>0)
-				{
-					points.y+=endY;
-					points.height+=endY;
-				}
-				else
-				if(endX>0 && endY<0 && startX<0)
-				{
-					points.y+=m_min(endY,startY);
-					points.height-=m_min(endY,startY);
-				}
-				else
-				{
-					if(negtiveYs)points.y-=m_max(endY,startY);
-					else points.y-=radius;
-					points.height+=m_max(endY,startY);
-				}
-			}
-			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY==0 && endY==0))
-			{
-				points.x-=radius;
-				points.width+=radius;
-			}
-			else
-			{
-				if(endY<0 && startY>0)
-				{
-					points.x+=m_min(endX,startX);
-					points.width-=m_min(endX,startX);
-				}
-				else
-				{
-					if(negtiveXs)points.x-=m_max(endX,startX);
-					else points.x-=radius;
-					points.width+=m_max(endX,startX);
-				}
-			}
-		}
-		else
-		{
-			positiveXs=startX>=0 && endX>=0;
-			positiveYs=startY>=0 && endY>=0;
-			negtiveXs=startX<=0 && endX<=0;
-			negtiveYs=startY<=0 && endY<=0;
-			if(negtiveYs && positiveXs)
-			{
-				points.x+=m_min(endX,startX);
-				points.width-=m_min(endX,startX);
-				points.y+=m_min(endY,startY);
-				points.height+=m_max(endY,startY);
-			}
-			else if (negtiveYs && negtiveXs)
-			{
-				points.x+=m_min(endX,startX);
-				points.width+=m_max(endX,startX);
-				points.y+=m_min(endY,startY);
-				points.height+=m_max(endY,startY);
-			}
-			else if (negtiveYs)
-			{
-				points.x+=m_min(endX,startX);
-				points.width+=m_max(endX,startX);
-				points.y-=radius;
-				points.height+=m_max(endY,startY);
-			}
-			else if (positiveXs && positiveYs)
-			{
-				points.x+=m_min(endX,startX);
-				points.width=m_abs(endX-startX);
-				points.y+=m_min(endY,startY);
-				points.height-=m_min(endY,startY);
-			}
-			else if (positiveYs)
-			{
-				points.x+=m_min(endX,startX);
-				points.width=m_abs(endX)+m_abs(startX);
-				points.y+=m_min(endY,startY);
-				points.height-=m_min(endY,startY);
-			}
-			else if (negtiveXs)
-			{
-				points.x-=radius;
-				points.width+=m_max(endX,startX);
-				points.y-=radius;
-				points.height+=m_max(endY,startY);
-			}
-			else if (positiveXs)
-			{
-				points.x-=radius;
-				points.width+=m_max(endX,startX);
-				points.y-=radius;
-				points.height+=radius;
-			}
-		}
-		return getRect(this,points,type);
-	}
-	this.draw=function(ctx)
-	{
-		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
-	}
-	this.base=function(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor)
-	{
-		var options = x;
-		if(anticlockwise!==undefined)
-		{
-			if(anticlockwise.charAt){
-				lineColor=anticlockwise;
-				fillColor=lineColor;
-				anticlockwise:true;
-			}
-			if(anticlockwise)anticlockwise=true;
-			else anticlockwise=false;
-		}
-		if(typeof options != 'object')
-			options={x:x,y:y,radius:radius,startAngle:startAngle,endAngle:endAngle,anticlockwise:anticlockwise,lineColor:lineColor,fillColor:fillColor};
-		options=checkDefaults(options,{radius:0,startAngle:0,endAngle:0,anticlockwise:true});
-		proto.arc.prototype.base.call(this,options);
-		this._radius=options.radius;
-		this._startAngle=options.startAngle;
-		this._endAngle=options.endAngle;
-		this._anticlockwise=options.anticlockwise;
-		return this;
-	}
-	this._proto='arc';
-}
-proto.arc.prototype=new proto.shape;
-proto.text=function(){
-	this.font=function(font)
-	{
-		return this.attr('font',font);
-	}
-	this._font="10px sans-serif";
-	this.align=function(align)
-	{
-		return this.attr('align',align);
-	}
-	this._align="start";
-	this.baseline=function(baseline)
-	{
-		return this.attr('baseline',baseline);
-	}
-	this._baseline="alphabetic";
-	this.string=function(string)
-	{
-		return this.attr('string',string);
-	}
-	this.position=function()
-	{
-		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
-		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
-		points.y-=points.height;
-		ctx.save();
-		ctx.textBaseline=this._baseline;
-		ctx.font=this._font;
-		ctx.textAlign=this._align;
-		points.width=ctx.measureText(this._string).width;
-		ctx.restore();
-		return getRect(this,points);
-	}
-	this.getRect=function(type)
-	{
-		var points={x:this._x,y:this._y}, ctx=objectCanvas(this).optns.ctx;
-		points.height=parseInt(this._font.match(regNumsWithMeasure)[0]);
-		points.y-=points.height;
-		ctx.save();
-		ctx.textBaseline=this._baseline;
-		ctx.font=this._font;
-		ctx.textAlign=this._align;
-		points.width=ctx.measureText(this._string).width;
-		if(this._align=='center')points.x-=points.width/2;
-		if(this._align=='right')points.x-=points.width;
-		ctx.restore();
-		return getRect(this,points,type);
-	}
-	this.setOptns = function(ctx)
-	{
-		proto.text.prototype.setOptns.call(this,ctx);
-		ctx.textBaseline=this._baseline;
-		ctx.font=this._font;
-		ctx.textAlign=this._align;
-	}
-	this.draw=function(ctx)
-	{
-		if(this._maxWidth===false)	{
-			if(this._fillColorA)ctx.fillText(this._string,this._x,this._y);
-			else ctx.strokeText(this._string,this._x,this._y);}
-		else {
-			if(this._fillColorA) ctx.fillText(this._string,this._x,this._y,this._maxWidth);
-			else ctx.strokeText(this._string,this._x,this._y,this._maxWidth);}
-	}
-	this.base=function(string,x,y,maxWidth,lineColor,fillColor)
-	{
-		var options = string;
-		if (maxWidth!==undefined)
-		{
-			if (maxWidth.charAt)
-			{
-				fillColor=lineColor;
-				lineColor=maxWidth;
-				maxWidth=false;
-			}
-		}
-		if(typeof options != 'object')
-			options={string:string,x:x,y:y,maxWidth:maxWidth,lineColor:lineColor,fillColor:fillColor};
-		options=checkDefaults(options,{string:'',maxWidth:false,fill:1});
-		proto.text.prototype.base.call(this,options);
-		this._string=options.string;
-		this._maxWidth=options.maxWidth;
-		return this;
-	}
-	this._proto='text';
-}
-proto.text.prototype=new proto.shape;
 
 proto.grdntsnptrn=function()
 {
@@ -2561,159 +2290,6 @@ function layers(idLayer)
 	return layer.base(idLayer);
 }
 
-proto.imageData=function()
-{
-	this.filter=function(filterName,filterType)
-	{
-		var filter=imageDataFilters[filterName];
-		filter.fn.call(this,this._width,this._height,filter.matrix,filterType);
-		return this;
-	};
-	this.getRect=function(type)
-	{
-		var points={x:this._x,y:this._y,width:this._width,height:this._height};
-		return getRect(this,points,type);
-	}
-	this.setPixel=function(x,y,color)
-	{
-		var colorKeeper,index=(x + y * this._width) * 4;
-		if (color.r !== undefined) colorKeeper=color;
-		else if (color[0] !== undefined)
-			if (!color.charAt) colorKeeper={r:color[0],g:color[1],b:color[2],a:color[3]};
-			else colorKeeper = parseColor(color);
-		this._data[index+0] = colorKeeper.r;
-		this._data[index+1] = colorKeeper.g;
-		this._data[index+2] = colorKeeper.b;
-		this._data[index+3] = colorKeeper.a*255;
-		redraw(this);
-		return this;
-	}
-	this.getPixel=function(x,y)
-	{
-		var index=(x + y * this._width) * 4;
-		return [this._data[index+0],this._data[index+1],this._data[index+2],this._data[index+3]/255];
-	}
-	this._getX=0;
-	this._getY=0;
-	this.getData=function(x,y,width,height)
-	{
-		this._getX=x;
-		this._getY=y;
-		this._width=width;
-		this._height=height;
-		var ctx=objectCanvas(this).optns.ctx;
-		try{
-				this._imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
-			}catch(e){
-				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-				this._imgData=ctx.getImageData(this._getX,this._getY,this._width,this._height);
-		}
-		this._data=this._imgData.data;
-		redraw(this);
-		return this;
-	}
-	this.putData=function(x,y)
-	{
-		if(x!==undefined)this._x=x;
-		if(y!==undefined)this._y=y;
-		this._putData=true;
-		redraw(this);
-		return this;
-	}
-	this.clone=function(){
-		var clone=proto.imageData.prototype.clone.call(this);
-		clone._imgData=undefined;
-		return clone;
-	}
-	this.draw=function(ctx)
-	{
-		if(this._imgData===undefined)
-		{
-			this._imgData=ctx.createImageData(this._width,this._height);
-			for(var i=0;i<this._width*this._height*4;i++)
-				this._imgData.data[i]=this._data[i];
-			this._data=this._imgData.data;
-		}
-		if(this._putData)
-			ctx.putImageData(this._imgData,this._x,this._y);
-	}
-	this.base=function(width,height)
-	{
-		proto.imageData.prototype.base.call(this);
-		if(height===undefined)
-		{
-			var oldImageData=width;
-			if(oldImageData._width!==undefined)
-			{
-				width=oldImageData._width;
-				height=oldImageData._height;
-			}
-			else
-			{
-				width=checkDefaults(width,{width:0,height:0});
-				height=width.height;
-				width=width.width;
-			}
-		}
-		this._width=width;
-		this._height=height;
-		this._data=[];
-		for(var i=0;i<this._width;i++)
-			for(var j=0;j<this._height;j++)
-			{
-				var index=(i+j*this._width)*4;
-				this._data[index+0]=0;
-				this._data[index+1]=0;
-				this._data[index+2]=0;
-				this._data[index+3]=0;
-			}
-		return this;
-	}
-	this._putData=false;
-	this._proto='imageData';
-}
-proto.imageData.prototype=new proto.object;
-proto.image=function()
-{
-	this.getRect=function(type)
-	{
-		var points={x:this._x,y:this._y,width:this._width,height:this._height};
-		return getRect(this,points,type);
-	}
-	this.draw=function(ctx)
-	{
-		ctx.drawImage(this._img,this._sx,this._sy,this._swidth,this._sheight,this._x,this._y,this._width,this._height);
-	}
-	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
-	{
-		if(typeof image!='object' || image.src!==undefined)
-			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
-		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
-		if(image.width===false)
-		{
-			image.width=image.image.width;
-			image.height=image.image.height;
-		}
-		if(image.swidth===false)
-		{
-			image.swidth=image.image.width;
-			image.sheight=image.image.height;
-		}
-		proto.image.prototype.base.call(this,image);
-		this._img=image.image;
-		this._width=image.width;
-		this._height=image.height;
-		this._sx=image.sx;
-		this._sy=image.sy;
-		this._swidth=image.swidth;
-		this._sheight=image.sheight;
-		return this;
-	}
-	this._proto='image';
-}
-proto.image.prototype=new proto.object;
-
-
 proto.groups=function()
 {
 	for(var Class in proto)
@@ -2898,8 +2474,12 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 jCanvaScript.getCenter = getCenter;
 jCanvaScript.getRect = getRect;
 jCanvaScript.checkDefaults = checkDefaults;
+jCanvaScript.parseColor = parseColor;
+jCanvaScript.imageDataFilters = imageDataFilters;
 jCanvaScript.constants={
-	PIx2:pi2
+	PIx2:pi2,
+	radian:radian,
+	regNumsWithMeasure:regNumsWithMeasure
 }
 jCanvaScript.clear=function(idCanvas)
 {
@@ -2953,38 +2533,6 @@ jCanvaScript.bCurve=function(points,lineColor,fillColor)
 {
 	var bCurve = new proto.bCurve;
 	return bCurve.base(points,lineColor,fillColor);
-}
-
-jCanvaScript.imageData=function(width,height)
-{
-	var imageData=new proto.imageData;
-	return imageData.base(width,height);
-}
-jCanvaScript.image=function(img,x,y,width,height,sx,sy,swidth,sheight)
-{
-	var image=new proto.image;
-	return image.base(img,x,y,width,height,sx,sy,swidth,sheight);
-}
-
-jCanvaScript.ellipse=function(x,y,width,height,lineColor,fillColor)
-{
-	var ellipse = new proto.ellipse;
-	return ellipse.base(x,y,width,height,lineColor,fillColor);
-}
-jCanvaScript.rect=function(x,y,width,height,lineColor,fillColor)
-{
-	var rect = new proto.rect;
-	return rect.base(x,y,width,height,lineColor,fillColor);
-}
-jCanvaScript.arc=function(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor)
-{
-	var arc=new proto.arc;
-	return arc.base(x,y,radius,startAngle,endAngle,anticlockwise,lineColor,fillColor);
-}
-jCanvaScript.text = function(string,x,y,maxWidth,lineColor,fillColor)
-{
-	var text=new proto.text;
-	return text.base(string,x,y,maxWidth,lineColor,fillColor);
 }
 
 	
@@ -3347,28 +2895,511 @@ jCanvaScript.layer=function(idLayer)
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
 
-jCanvaScript.addObject('circle',function(){
-	this.base=function(x,y,radius,lineColor,fillColor){
-		var options=x;
+jCanvaScript.addObject('arc', function(){
+
+	this.base = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor)
+	{
+		var options = x;
+		if(anticlockwise !== undefined)
+		{
+			if(anticlockwise.charAt){
+				lineColor = anticlockwise;
+				fillColor = lineColor;
+				anticlockwise = true;
+			}
+			if(anticlockwise)anticlockwise = true;
+			else anticlockwise = false;
+		}
 		if(typeof options != 'object')
-			options={x:x,y:y,radius:radius,lineColor:lineColor,fillColor:fillColor};
-		options=jCanvaScript.checkDefaults(options,{radius:0});
-		this.proto().prototype.base.call(this,options);
-		this._radius=options.radius;
+			options = {x:x, y:y, radius:radius, startAngle:startAngle, endAngle:endAngle, anticlockwise:anticlockwise, lineColor:lineColor, fillColor:fillColor};
+		options = jCanvaScript.checkDefaults(options, {radius:0, startAngle:0, endAngle:0, anticlockwise:true});
+		this.protobase(options);
+		this._radius = options.radius;
+		this._startAngle = options.startAngle;
+		this._endAngle = options.endAngle;
+		this._anticlockwise = options.anticlockwise;
 		return this;
 	}
-	this.draw=function(ctx){
-		ctx.arc(this._x, this._y, this._radius, 0,jCanvaScript.constants.PIx2,true);
+
+	this.draw = function(ctx)
+	{
+		var radian = jCanvaScript.constants.radian;
+		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
 	}
-	this.getRect=function(type){
-		var points={x:this._x-this._radius,y:this._y-this._radius};
-		points.width=points.height=this._radius*2;
-		return jCanvaScript.getRect(this,points,type);
+
+	this.getRect = function(type)
+	{
+		var 
+			radian = jCanvaScript.constants.radian,
+			points = {x:this._x, y:this._y},
+			startAngle = this._startAngle, endAngle=this._endAngle, radius=this._radius,
+			startY = m_floor(m_sin(startAngle/radian)*radius), startX=m_floor(m_cos(startAngle/radian)*radius),
+			endY = m_floor(m_sin(endAngle/radian)*radius), endX=m_floor(m_cos(endAngle/radian)*radius),
+			positiveXs = startX > 0 && endX > 0, negtiveXs = startX < 0 && endX < 0,
+			positiveYs = startY > 0 && endY > 0,negtiveYs = startY < 0 && endY < 0;
+
+		points.width = points.height = radius;
+
+		if((this._anticlockwise && startAngle < endAngle) || (!this._anticlockwise && startAngle > endAngle))
+		{
+			if(((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX == 0 && endX == 0))
+			{
+				points.y -= radius;
+				points.height += radius;
+			}
+			else
+			{
+				if(positiveXs && endY < 0 && startY > 0)
+				{
+					points.y += endY;
+					points.height += endY;
+				}
+				else
+				if(endX > 0 && endY < 0 && startX < 0)
+				{
+					points.y += m_min(endY,startY);
+					points.height -= m_min(endY,startY);
+				}
+				else
+				{
+					if(negtiveYs)points.y -= m_max(endY,startY);
+					else points.y -= radius;
+					points.height += m_max(endY,startY);
+				}
+			}
+			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY == 0 && endY == 0))
+			{
+				points.x -= radius;
+				points.width += radius;
+			}
+			else
+			{
+				if(endY < 0 && startY > 0)
+				{
+					points.x += m_min(endX, startX);
+					points.width -= m_min(endX, startX);
+				}
+				else
+				{
+					if(negtiveXs)points.x -= m_max(endX, startX);
+					else points.x -= radius;
+					points.width += m_max(endX, startX);
+				}
+			}
+		}
+		else
+		{
+			positiveXs = startX >= 0 && endX >= 0;
+			positiveYs = startY >= 0 && endY >= 0;
+			negtiveXs  = startX <= 0 && endX <= 0;
+			negtiveYs  = startY <= 0 && endY <= 0;
+			if(negtiveYs && positiveXs)
+			{
+				points.x      += m_min(endX, startX);
+				points.width  -= m_min(endX, startX);
+				points.y      += m_min(endY, startY);
+				points.height += m_max(endY, startY);
+			}
+			else if (negtiveYs && negtiveXs)
+			{
+				points.x      += m_min(endX, startX);
+				points.width  += m_max(endX, startX);
+				points.y      += m_min(endY, startY);
+				points.height += m_max(endY, startY);
+			}
+			else if (negtiveYs)
+			{
+				points.x      += m_min(endX,startX);
+				points.width  += m_max(endX,startX);
+				points.y      -= radius;
+				points.height += m_max(endY,startY);
+			}
+			else if (positiveXs && positiveYs)
+			{
+				points.x      += m_min(endX, startX);
+				points.width  =  m_abs(endX - startX);
+				points.y      += m_min(endY, startY);
+				points.height -= m_min(endY, startY);
+			}
+			else if (positiveYs)
+			{
+				points.x      += m_min(endX, startX);
+				points.width  =  m_abs(endX) + m_abs(startX);
+				points.y      += m_min(endY,startY);
+				points.height -= m_min(endY, startY);
+			}
+			else if (negtiveXs)
+			{
+				points.x      -= radius;
+				points.width  += m_max(endX, startX);
+				points.y      -= radius;
+				points.height += m_max(endY, startY);
+			}
+			else if (positiveXs)
+			{
+				points.x      -= radius;
+				points.width  += m_max(endX, startX);
+				points.y      -= radius;
+				points.height += radius;
+			}
+		}
+		return jCanvaScript.getRect(this, points, type);
 	}
-	this._proto='circle';
+	this._proto='arc';
 });
 
-jCanvaScript.addFunction('getCenter',function(type){
-	return jCanvaScript.getCenter(this,{x:this._x,y:this._y},type);
-},'circle');
+jCanvaScript.addObject('circle', function()
+{
+	this.base = function(x, y, radius, lineColor, fillColor)
+	{
+		var options = x;
+		if(typeof options != 'object')
+			options = {x:x, y:y, radius:radius, lineColor:lineColor, fillColor:fillColor};
+		options = jCanvaScript.checkDefaults(options, {radius:0});
+		this.protobase(options);
+		this._radius = options.radius;
+		return this;
+	}
 
+	this.draw = function(ctx){
+		ctx.arc(this._x, this._y, this._radius, 0, jCanvaScript.constants.PIx2,true);
+	}
+
+	this.getRect = function(type){
+		var points = {x:this._x-this._radius, y:this._y-this._radius};
+		points.width = points.height = this._radius*2;
+		return jCanvaScript.getRect(this, points, type);
+	}
+
+	this._proto = 'circle';
+	
+	this.getCenter = function(type){
+		return jCanvaScript.getCenter(this, {x:this._x, y:this._y}, type);
+	}
+});
+
+
+jCanvaScript.addObject('ellipse',function(){
+	this.draw=function(ctx)
+	{
+		 var kappa = .5522848,
+		 ox = width / 2 * kappa, // control point offset horiz
+		 oy = height / 2 * kappa, // control point offset vert
+		 xe = x + width, // x end
+		 ye = y + height, // y end
+		 xm = x + width / 2, // x middle
+		 ym = y + height / 2; // y middle
+		 ctx.moveTo(this._x0,this._y0);
+		 ctx.push([xm, y, x, ym - oy, xm - ox, y]);
+		 points.push([xe, ym, xm + ox, y, xe, ym - oy]);
+		 points.push([xm, ye, xe, ym + oy, xm + ox, ye]);
+		 points.push([x, ym, xm - ox, ye, x, ym + oy]);
+		 points.push([xm, y, x, ym - oy, xm - ox, y]);
+		 ellipse.base(points,color,fill);
+	}
+});
+
+jCanvaScript.addObject('rect', function(){
+
+	this.base = function(x, y, width, height, lineColor, fillColor)
+	{
+		var options = x;
+		if(options != 'object')
+			options = {x:x, y:y, width:width, height:height, lineColor:lineColor, fillColor:fillColor};
+		options = jCanvaScript.checkDefaults(options, {width:0, height:0});
+		this.protobase(options);
+		this._width = options.width;
+		this._height = options.height;
+		return this;
+	}
+
+	this.draw = function(ctx)
+	{
+		ctx.rect(this._x, this._y, this._width, this._height);
+	}
+
+	this.getRect = function(type)
+	{
+		return jCanvaScript.getRect(this, {x:this._x, y:this._y, width:this._width, height:this._height}, type);
+	}
+
+	this._proto = 'rect';
+});
+
+jCanvaScript.addObject('text', function()
+{
+	this.base = function(string, x, y, maxWidth, lineColor, fillColor)
+	{
+		var options = string;
+		if (maxWidth !== undefined)
+		{
+			if (maxWidth.charAt)
+			{
+				fillColor = lineColor;
+				lineColor = maxWidth;
+				maxWidth = false;
+			}
+		}
+		if(typeof options != 'object')
+			options = {string:string, x:x, y:y, maxWidth:maxWidth, lineColor:lineColor, fillColor:fillColor};
+		options = jCanvaScript.checkDefaults(options, {string:'', maxWidth:false, fill:1});
+		this.protobase(options);
+		this._string = options.string;
+		this._maxWidth = options.maxWidth;
+		return this;
+	}
+
+	this.setOptns = function(ctx)
+	{
+		this.proto().setOptns.call(this,ctx);
+		ctx.textBaseline = this._baseline;
+		ctx.font = this._font;
+		ctx.textAlign = this._align;
+		return this;
+	}
+
+	this.draw = function(ctx)
+	{
+		if(this._maxWidth === false)
+		{
+			if(this._fillColorA)ctx.fillText(this._string, this._x, this._y);
+			else ctx.strokeText(this._string, this._x, this._y);
+		}
+		else
+		{
+			if(this._fillColorA) ctx.fillText(this._string, this._x, this._y, this._maxWidth);
+			else ctx.strokeText(this._string, this._x, this._y, this._maxWidth);
+		}
+	}
+
+	this.getRect = function(type)
+	{
+		var 
+			points = {x:this._x, y:this._y},
+			ctx = jCanvaScript.objectCanvas(this).optns.ctx;
+		points.height = parseInt(this._font.match(jCanvaScript.constants.regNumsWithMeasure)[0]);
+		points.y -= points.height;
+		ctx.save();
+		ctx.textBaseline = this._baseline;
+		ctx.font = this._font;
+		ctx.textAlign = this._align;
+		points.width = ctx.measureText(this._string).width;
+		if(this._align == 'center')points.x -= points.width/2;
+		if(this._align == 'right')points.x -= points.width;
+		ctx.restore();
+		return jCanvaScript.getRect(this, points, type);
+	}
+
+	this._proto='text';
+
+	this.position=function()
+	{
+		var points = {x:this._x, y:this._y},
+			ctx = this.canvas().optns.ctx;
+		points.height = parseInt(this._font.match(jCanvaScript.constants.regNumsWithMeasure)[0]);
+		points.y -= points.height;
+		ctx.save();
+		ctx.textBaseline = this._baseline;
+		ctx.font = this._font;
+		ctx.textAlign = this._align;
+		points.width = ctx.measureText(this._string).width;
+		ctx.restore();
+		return jCanvaScript.getRect(this,points);
+	}
+
+	this.font = function(font)
+	{
+		return this.attr('font', font);
+	}
+
+	this.align = function(align)
+	{
+		return this.attr('align', align);
+	}
+
+	this.baseline = function(baseline)
+	{
+		return this.attr('baseline', baseline);
+	}
+
+	this.string = function(string)
+	{
+		return this.attr('string', string);
+	}
+
+	this._font = "10px sans-serif";
+
+	this._align = "start";
+
+	this._baseline = "alphabetic";
+});
+
+
+jCanvaScript.addObject('image', function()
+{
+	this.base = function(image, x, y, width, height, sx, sy, swidth, sheight)
+	{
+		var options = image;
+		if(typeof image != 'object' || image.src !== undefined)
+			options = {image:image, x:x, y:y, width:width, height:height, sx:sx, sy:sy, swidth:swidth, sheight:sheight};
+		options = jCanvaScript.checkDefaults(options, {width:false, height:false, sx:0, sy:0, swidth:false, sheight:false});
+		if(options.width === false)
+		{
+			image.width  = options.image.width;
+			image.height = options.image.height;
+		}
+		if(options.swidth === false)
+		{
+			image.swidth  = options.image.width;
+			image.sheight = options.image.height;
+		}
+		this.protobase(this, options);
+		this._img     = options.image;
+		this._width   = options.width;
+		this._height  = options.height;
+		this._sx      = options.sx;
+		this._sy      = options.sy;
+		this._swidth  = options.swidth;
+		this._sheight = options.sheight;
+		return this;
+	}
+
+	this.draw = function(ctx)
+	{
+		ctx.drawImage(this._img, this._sx, this._sy, this._swidth, this._sheight, this._x, this._y, this._width, this._height);
+	}
+
+	this.getRect = function(type)
+	{
+		var points = {x:this._x, y:this._y, width:this._width, height:this._height};
+		return jCanvaScript.getRect(this, points, type);
+	}
+	
+	this._proto='image';
+},'object')
+
+jCanvaScript.addObject('imageData', function()
+{
+	this.base = function(width, height)
+	{
+		this.protobase();
+		if(height === undefined)
+		{
+			var oldImageData = width;
+			if(oldImageData._width !== undefined)
+			{
+				width = oldImageData._width;
+				height = oldImageData._height;
+			}
+			else
+			{
+				width = jCanvaScript.checkDefaults(width, {width:0, height:0});
+				height = width.height;
+				width = width.width;
+			}
+		}
+		this._width = width;
+		this._height = height;
+		this._data = [];
+		for(var i = 0; i < this._width; i++)
+		for(var j = 0; j < this._height; j++)
+		{
+			var index = (i + j * this._width) * 4;
+			this._data[index + 0] = 0;
+			this._data[index + 1] = 0;
+			this._data[index + 2] = 0;
+			this._data[index + 3] = 0;
+		}
+		return this;
+	}
+
+	this.draw = function(ctx)
+	{
+		if(this._imgData === undefined)
+		{
+			this._imgData = ctx.createImageData(this._width, this._height);
+			for(var i = 0; i < this._width * this._height * 4; i++)
+				this._imgData.data[i] = this._data[i];
+			this._data = this._imgData.data;
+		}
+		if(this._putData)
+			ctx.putImageData(this._imgData, this._x, this._y);
+	}
+
+	this.getRect = function(type)
+	{
+		var points = {x:this._x, y:this._y, width:this._width, height:this._height};
+		return getRect(this, points, type);
+	}
+
+	this.setPixel = function(x, y, color)
+	{
+		var
+			colorKeeper,
+			index = (x + y * this._width) * 4;
+		if (color.r !== undefined) colorKeeper=color;
+		else if (color[0] !== undefined)
+			if (!color.charAt) colorKeeper = {r:color[0], g:color[1], b:color[2], a:color[3]};
+			else colorKeeper = jCanvaScript.parseColor(color);
+		this._data[index + 0] = colorKeeper.r;
+		this._data[index + 1] = colorKeeper.g;
+		this._data[index + 2] = colorKeeper.b;
+		this._data[index + 3] = colorKeeper.a*255;
+		this.redraw()
+		return this;
+	}
+
+	this.getPixel = function(x, y)
+	{
+		var index = (x + y * this._width) * 4;
+		return [this._data[index + 0], this._data[index + 1], this._data[index + 2], this._data[index + 3] / 255];
+	}
+
+	this._getX = 0;
+
+	this._getY = 0;
+
+	this.getData = function(x, y, width, height)
+	{
+		this._getX = x;
+		this._getY = y;
+		this._width = width;
+		this._height = height;
+		var ctx = objectCanvas(this).optns.ctx;
+		try{
+			this._imgData = ctx.getImageData(this._getX, this._getY, this._width, this._height);
+		}catch(e){
+			netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+			this._imgData = ctx.getImageData(this._getX, this._getY, this._width, this._height);
+		}
+		this._data = this._imgData.data;
+		this.redraw();
+		return this;
+	}
+
+	this.putData = function(x, y)
+	{
+		if(x !== undefined)this._x = x;
+		if(y !== undefined)this._y = y;
+		this._putData = true;
+		this.redraw();
+		return this;
+	}
+
+	this.clone = function()
+	{
+		var clone = this.proto().clone.call(this);
+		clone._imgData = undefined;
+		return clone;
+	}
+
+	this.filter = function(filterName, filterType)
+	{
+		var filter = jCanvaScript.imageDataFilters[filterName];
+		filter.fn.call(this, this._width, this._height, filter.matrix, filterType);
+		return this;
+	}
+
+	this._putData = false;
+	this._proto = 'imageData';
+},'object');

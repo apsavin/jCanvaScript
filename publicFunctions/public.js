@@ -35,8 +35,12 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 jCanvaScript.getCenter = getCenter;
 jCanvaScript.getRect = getRect;
 jCanvaScript.checkDefaults = checkDefaults;
+jCanvaScript.parseColor = parseColor;
+jCanvaScript.imageDataFilters = imageDataFilters;
 jCanvaScript.constants={
-	PIx2:pi2
+	PIx2:pi2,
+	radian:radian,
+	regNumsWithMeasure:regNumsWithMeasure
 }
 jCanvaScript.clear=function(idCanvas)
 {

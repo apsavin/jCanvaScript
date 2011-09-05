@@ -719,7 +719,11 @@ proto.object=function()
 	}
 	this.proto = function()
 	{
-		return proto[this._proto];
+		return proto[this._proto].prototype;
+	}
+	this.protobase = function(options)
+	{
+		return this.proto().base.call(this, options);
 	}
 	this.instanceOf=function(name)
 	{
@@ -775,7 +779,6 @@ proto.object=function()
 	this._shadowX=0;
 	this._shadowY=0;
 	this._shadowBlur= 0;
-	this._shadowColor= 'rgba(0,0,0,0)';
 	this._shadowColorR= 0;
 	this._shadowColorG= 0;
 	this._shadowColorB= 0;

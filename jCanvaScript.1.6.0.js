@@ -214,4 +214,5 @@
 	<include src="serviceObjects"/>
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
-<include src="objects_new"/>
+<include src="shapes"/>
+<include src="rasters"/>
