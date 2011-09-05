@@ -3141,7 +3141,7 @@ jCanvaScript.addObject('text', function()
 		}
 		if(typeof options != 'object')
 			options = {string:string, x:x, y:y, maxWidth:maxWidth, lineColor:lineColor, fillColor:fillColor};
-		options = jCanvaScript.checkDefaults(options, {string:'', maxWidth:false, fill:1});
+		options = jCanvaScript.checkDefaults(options, {string:'', maxWidth:false});
 		this.protobase(options);
 		this._string = options.string;
 		this._maxWidth = options.maxWidth;
@@ -3162,12 +3162,12 @@ jCanvaScript.addObject('text', function()
 		if(this._maxWidth === false)
 		{
 			if(this._fillColorA)ctx.fillText(this._string, this._x, this._y);
-			else ctx.strokeText(this._string, this._x, this._y);
+			if(this._lineColorA)ctx.strokeText(this._string, this._x, this._y);
 		}
 		else
 		{
 			if(this._fillColorA) ctx.fillText(this._string, this._x, this._y, this._maxWidth);
-			else ctx.strokeText(this._string, this._x, this._y, this._maxWidth);
+			if(this._lineColorA) ctx.strokeText(this._string, this._x, this._y, this._maxWidth);
 		}
 	}
 
