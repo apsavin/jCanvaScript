@@ -2903,8 +2903,8 @@ jCanvaScript.addObject('arc', function(){
 		if(anticlockwise !== undefined)
 		{
 			if(anticlockwise.charAt){
-				lineColor = anticlockwise;
 				fillColor = lineColor;
+				lineColor = anticlockwise;
 				anticlockwise = true;
 			}
 			if(anticlockwise)anticlockwise = true;
