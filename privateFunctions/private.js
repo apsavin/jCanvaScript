@@ -593,8 +593,3 @@ function objDeleter(array)
 	normalizeLevels(array);
 	return array.length;
 }
-/*
-@namespace
- */
-jCanvaScript.Proto={};
-proto = {};

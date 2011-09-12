@@ -83,7 +83,7 @@
             map = stroke;
             stroke = undefined;
         }
-        var canvasNumber = -1,layerNumber = -1,limitC = canvases.length,myGroup = group(),i,j,canvas,layer,layers,element,limitL;
+        var canvasNumber = -1,layerNumber = -1,limitC = canvases.length,myGroup = jCanvaScript.group(),i,j,canvas,layer,layers,element,limitL;
         if (map === undefined) {
             if (stroke.charAt(0) == '#') {
                 for (i = 0; i < limitC; i++) {
@@ -138,7 +138,7 @@
                     }
                 }
             }
-            if (layerNumber < 0 && canvasNumber < 0)return group();
+            if (layerNumber < 0 && canvasNumber < 0)return jCanvaScript.group();
             if (layerNumber < 0) {
                 layers = canvas.layers;
                 limitL = layers.length;
@@ -173,14 +173,16 @@
             if (map.attrs !== undefined || map.fns !== undefined)
                 return myGroup.find(map);
         if (myGroup.elements.length)return myGroup;
-        return group();
+        return jCanvaScript.group();
     };
+    /*@namespace*/
+    jCanvaScript.Proto={};
 	<include src="privateFunctions"/>
-	<include src="privateObjects"/>
-	<include src="publicFunctions"/>
 	<include src="serviceObjects"/>
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
+<include src="privateObjects"/>
+<include src="publicFunctions"/>
 <include src="shapes"/>
 <include src="rasters"/>
 <include src="lines"/>
