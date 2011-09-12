@@ -12,6 +12,14 @@ jCanvaScript.Proto.Shape = function(options) {
     this._join = 'miter';
     this._miterLimit = 1;
     if (options === undefined)options = {};
+    if(options.fillColor !== undefined){
+        if(options.fillColor === 0){
+            options.fillColor = undefined;
+        }
+        if(options.fillColor === 1 || options.fillColor === true){
+            options.fillColor = options.lineColor;
+        }
+    }
     options = checkDefaults(options, {fillColor:'rgba(0,0,0,0)',lineColor:'rgba(0,0,0,0)'});
     jCanvaScript.Proto.Object.call(this,options);
     this.optns.fillColor = {val:options.fillColor,notColor:undefined};

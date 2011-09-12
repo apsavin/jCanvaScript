@@ -87,3 +87,7 @@ jCanvaScript.Proto.Text.prototype.baseline = function(baseline) {
 jCanvaScript.Proto.Text.prototype.string = function(string) {
     return this.attr('string', string);
 };
+
+jCanvaScript.text = function(string, x, y, maxWidth, lineColor, fillColor) {
+    return new jCanvaScript.Proto.Text(string, x, y, maxWidth, lineColor, fillColor);
+}

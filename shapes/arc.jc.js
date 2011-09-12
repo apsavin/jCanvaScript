@@ -1,4 +1,4 @@
-jCanvaScript.Proto.Arc = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor) {
+jCanvaScript.Proto.Arc = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor){
     var options = x;
     if (anticlockwise !== undefined) {
         if (anticlockwise.charAt) {
@@ -125,3 +125,7 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
     }
     return jCanvaScript.getRect(this, points, type);
 };
+
+jCanvaScript.arc = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor) {
+    return new jCanvaScript.Proto.Arc(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor);
+}

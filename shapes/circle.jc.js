@@ -24,3 +24,7 @@ jCanvaScript.Proto.Circle.prototype.getRect = function(type) {
 jCanvaScript.Proto.Circle.prototype.getCenter = function(type){
     return jCanvaScript.getCenter(this, {x:this._x, y:this._y}, type);
 }
+
+jCanvaScript.circle = function(x, y, radius, lineColor, fillColor){
+    return new jCanvaScript.Proto.Circle(x, y, radius, lineColor, fillColor);
+}

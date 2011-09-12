@@ -19,3 +19,7 @@ jCanvaScript.Proto.Rect.prototype.draw = function(ctx) {
 jCanvaScript.Proto.Rect.prototype.getRect = function(type) {
     return jCanvaScript.getRect(this, {x:this._x, y:this._y, width:this._width, height:this._height}, type);
 };
+
+jCanvaScript.rect = function(x, y, width, height, lineColor, fillColor) {
+    return new jCanvaScript.Proto.Rect(x, y, width, height, lineColor, fillColor);
+}
