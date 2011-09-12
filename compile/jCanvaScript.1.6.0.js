@@ -8,24 +8,9 @@
 (function (window, undefined)
 {
 	var canvases = [],
-	m = Math,
-	m_pi = m.PI,
-	pi2 = m_pi*2,
-	lastCanvas = 0,lastLayer = 0,
 	underMouse = false,
 	regHasLetters = /[A-z]+?/,
-	regNumsWithMeasure = /\d.\w\w/,
 	FireFox = window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
-	radian = 180/m_pi,
-	m_max = m.max,
-	m_min = m.min,
-	m_cos = m.cos,
-	m_sin = m.sin,
-	m_floor = m.floor,
-	m_round = m.round,
-	m_abs = m.abs,
-	m_pow = m.pow,
-	m_sqrt = m.sqrt,
 	fps=1000/60,
 	requestAnimFrame = (function(){return window.requestAnimationFrame       ||
               window.webkitRequestAnimationFrame ||
@@ -41,9 +26,15 @@
 			window.oCancelRequestAnimationFrame     ||
 			window.msCancelRequestAnimationFrame        ||
 			clearTimeout})();
-	if (FireFox!="" && FireFox!==null)FireFox=true;
-	else FireFox=false;
-
+	FireFox = FireFox != "" && FireFox !== null;
+    if (typeof Object.create !== 'function') {
+        Object.create = function (o) {
+            function F() {}
+            F.prototype = o;
+            return new F();
+        };
+    }
+    
 	function findById(i, j, stroke)
 	{
 		var objs=canvases[i].layers[j].objs,
@@ -82,131 +73,108 @@
 			myGroup.elements.push(grdntsnptrns[k]);
 		return myGroup;
 	}
-	var jCanvaScript=function (stroke, map)
-	{
-		if(stroke===undefined)return this;
-		if(typeof stroke=='object')
-		{
-			map=stroke;
-			stroke=undefined;
-		}
-		var canvasNumber=-1,layerNumber=-1,limitC=canvases.length,myGroup=group(),i,j,canvas,layer,layers,element,limitL;
-		if (map===undefined)
-		{
-			if(stroke.charAt(0)=='#')
-			{
-				for(i=0;i<limitC;i++)
-				{
-					limitL=canvases[i].layers.length;
-					for (j=0;j<limitL;j++)
-					{
-						element=findById(i,j,stroke);
-						if(element)return element;
-					}
-				}
-			}
-			if(stroke.charAt(0)=='.')
-			{
-				for(i=0;i<limitC;i++)
-				{
-					limitL=canvases[i].layers.length;
-					for (j=0;j<limitL;j++)
-						myGroup=findByName(i,j,myGroup,stroke);
-				}
-			}
-		}
-		else
-		{
-			if(map.canvas!==undefined)
-			{
-				for(i=0;i<limitC;i++)
-					if(canvases[i].optns.id==map.canvas){
-						canvasNumber=i;
-						canvas=canvases[i];
-						break;
-					}
-			}
-			if(map.layer!==undefined)
-			{
-				if(canvasNumber!=-1)
-				{
-					limitL=canvas.layers.length;
-					for(i=0;i<limitL;i++)
-						if(canvas.layers[i].optns.id==map.layer)
-						{
-							layerNumber=i;
-							layer=canvas.layers[i];
-							break;
-						}
-				}
-				else
-				{
-					for(i=0;i<limitC;i++)
-					{
-						layers=canvases[i].layers;
-						limitL=layers.length;
-						for (j=0;j<limitL;j++)
-						{
-							if(layers[j].optns.id==map.layer)
-							{
-								canvasNumber=i;
-								layerNumber=j;
-								canvas=canvases[i]
-								layer=canvas.layers[j];
-								break;
-							}
-						}
-						if (layer>-1)break;
-					}
-				}
-			}
-			if(layerNumber<0 && canvasNumber<0)return group();
-			if (layerNumber<0)
-			{
-				layers=canvas.layers;
-				limitL=layers.length;
-				if (stroke===undefined)
-				{
-					for (j=0;j<limitL;j++)
-						myGroup=findByCanvasAndLayer(canvasNumber,j,myGroup);
-				}
-				else if(stroke.charAt(0)=='#')
-				{
-					for (j=0;j<limitL;j++)
-					{
-						element=findById(canvasNumber,j,stroke);
-						if(element)return element;
-					}
-				}
-				else if(stroke.charAt(0)=='.')
-				{
-					for (j=0;j<limitL;j++)
-						myGroup=findByName(canvasNumber,j,myGroup,stroke);
-				}
-			}
-			else
-			{
-				if(stroke===undefined)
-				{
-					myGroup = findByCanvasAndLayer(canvasNumber,layerNumber,myGroup);
-				}
-				if(stroke.charAt(0)=='#')
-				{
-					return findById(canvasNumber,layerNumber,stroke);
-				}
-				if(stroke.charAt(0)=='.')
-				{
-					myGroup = findByName(canvasNumber,layerNumber,myGroup,stroke)
-				}
-			}
-		}
-		if (map!==undefined)
-			if (map.attrs!==undefined || map.fns!==undefined)
-				return myGroup.find(map);
-		if(myGroup.elements.length)return myGroup;
-		return group();
-	}
-
+    /*
+    *@function
+    *@namespace
+    * */
+	var jCanvaScript = function (stroke, map) {
+        if (stroke === undefined)return this;
+        if (typeof stroke == 'object') {
+            map = stroke;
+            stroke = undefined;
+        }
+        var canvasNumber = -1,layerNumber = -1,limitC = canvases.length,myGroup = group(),i,j,canvas,layer,layers,element,limitL;
+        if (map === undefined) {
+            if (stroke.charAt(0) == '#') {
+                for (i = 0; i < limitC; i++) {
+                    limitL = canvases[i].layers.length;
+                    for (j = 0; j < limitL; j++) {
+                        element = findById(i, j, stroke);
+                        if (element)return element;
+                    }
+                }
+            }
+            if (stroke.charAt(0) == '.') {
+                for (i = 0; i < limitC; i++) {
+                    limitL = canvases[i].layers.length;
+                    for (j = 0; j < limitL; j++)
+                        myGroup = findByName(i, j, myGroup, stroke);
+                }
+            }
+        }
+        else {
+            if (map.canvas !== undefined) {
+                for (i = 0; i < limitC; i++)
+                    if (canvases[i].optns.id == map.canvas) {
+                        canvasNumber = i;
+                        canvas = canvases[i];
+                        break;
+                    }
+            }
+            if (map.layer !== undefined) {
+                if (canvasNumber != -1) {
+                    limitL = canvas.layers.length;
+                    for (i = 0; i < limitL; i++)
+                        if (canvas.layers[i].optns.id == map.layer) {
+                            layerNumber = i;
+                            layer = canvas.layers[i];
+                            break;
+                        }
+                }
+                else {
+                    for (i = 0; i < limitC; i++) {
+                        layers = canvases[i].layers;
+                        limitL = layers.length;
+                        for (j = 0; j < limitL; j++) {
+                            if (layers[j].optns.id == map.layer) {
+                                canvasNumber = i;
+                                layerNumber = j;
+                                canvas = canvases[i];
+                                layer = canvas.layers[j];
+                                break;
+                            }
+                        }
+                        if (layer > -1)break;
+                    }
+                }
+            }
+            if (layerNumber < 0 && canvasNumber < 0)return group();
+            if (layerNumber < 0) {
+                layers = canvas.layers;
+                limitL = layers.length;
+                if (stroke === undefined) {
+                    for (j = 0; j < limitL; j++)
+                        myGroup = findByCanvasAndLayer(canvasNumber, j, myGroup);
+                }
+                else if (stroke.charAt(0) == '#') {
+                    for (j = 0; j < limitL; j++) {
+                        element = findById(canvasNumber, j, stroke);
+                        if (element)return element;
+                    }
+                }
+                else if (stroke.charAt(0) == '.') {
+                    for (j = 0; j < limitL; j++)
+                        myGroup = findByName(canvasNumber, j, myGroup, stroke);
+                }
+            }
+            else {
+                if (stroke === undefined) {
+                    myGroup = findByCanvasAndLayer(canvasNumber, layerNumber, myGroup);
+                }
+                if (stroke.charAt(0) == '#') {
+                    return findById(canvasNumber, layerNumber, stroke);
+                }
+                if (stroke.charAt(0) == '.') {
+                    myGroup = findByName(canvasNumber, layerNumber, myGroup, stroke)
+                }
+            }
+        }
+        if (map !== undefined)
+            if (map.attrs !== undefined || map.fns !== undefined)
+                return myGroup.find(map);
+        if (myGroup.elements.length)return myGroup;
+        return group();
+    };
 	
 function updateColor(object,color,prefix)
 {
@@ -350,101 +318,101 @@ function setKeyEvent(fn,eventName)
 	else this[eventName] = fn;
 	return this;
 }
-var animateFunctions={
-	linear:function(progress,params){
-		return progress;
-	},
-	exp:function(progress,params){
-		var n=params.n||2;
-		return m_pow(progress,n);
-	},
-	circ:function(progress,params){
-		return 1 - m_sqrt(1-progress*progress);
-	},
-	sine:function(progress,params){
-		return 1 - m_sin((1 - progress) * m_pi/2);
-	},
-	back:function(progress,params){
-		var n=params.n||2;
-		var x=params.x||1.5;
-		return m_pow(progress, n) * ((x + 1) * progress - x);
-	},
-	elastic:function(progress,params){
-		var n=params.n||2;
-		var m=params.m||20;
-		var k=params.k||3;
-		var x=params.x||1.5;
-		return m_pow(n,10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
-	},
-	bounce:function(progress,params)
-	{
-		var n=params.n||4;
-		var b=params.b||0.25;
-		var sum = [1];
-		for(var i=1; i<n; i++) sum[i] = sum[i-1] + m_pow(b, i/2);
-		var x = 2*sum[n-1]-1;
-		for(i=0; i<n; i++)
-		{
-			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
-				return m_pow(x*(progress-(2*sum[i]-1-m_pow(b, i/2))/x), 2)+1-m_pow(b, i);
-		}
-		return 1;
-	}
+var animateFunctions = {
+    linear:function(progress, params) {
+        return progress;
+    },
+    exp:function(progress, params) {
+        var n = params.n || 2;
+        return m_pow(progress, n);
+    },
+    circ:function(progress, params) {
+        return 1 - m_sqrt(1 - progress * progress);
+    },
+    sine:function(progress, params) {
+        return 1 - m_sin((1 - progress) * m_pi / 2);
+    },
+    back:function(progress, params) {
+        var n = params.n || 2;
+        var x = params.x || 1.5;
+        return m_pow(progress, n) * ((x + 1) * progress - x);
+    },
+    elastic:function(progress, params) {
+        var n = params.n || 2;
+        var m = params.m || 20;
+        var k = params.k || 3;
+        var x = params.x || 1.5;
+        return m_pow(n, 10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
+    },
+    bounce:function(progress, params) {
+        var n = params.n || 4;
+        var b = params.b || 0.25;
+        var sum = [1];
+        for (var i = 1; i < n; i++) sum[i] = sum[i - 1] + m_pow(b, i / 2);
+        var x = 2 * sum[n - 1] - 1;
+        for (i = 0; i < n; i++) {
+            if (x * progress >= (i > 0 ? 2 * sum[i - 1] - 1 : 0) && x * progress <= 2 * sum[i] - 1)
+                return m_pow(x * (progress - (2 * sum[i] - 1 - m_pow(b, i / 2)) / x), 2) + 1 - m_pow(b, i);
+        }
+        return 1;
+    }
 },
-imageDataFilters={
-	color:{fn:function(width,height,matrix,type){
-		var old,i,j;
-		matrix=matrix[type];
-		for(i=0;i<width;i++)
-		for(j=0;j<height;j++)
-		{
-			old=this.getPixel(i,j);
-			old[matrix[0]]=old[matrix[0]]*2-old[matrix[1]]-old[matrix[2]];
-			old[matrix[1]]=0;
-			old[matrix[2]]=0;
-			old[matrix[0]]=old[matrix[0]]>255?255:old[matrix[0]];
-			this.setPixel(i,j,old);
-		}
-	},matrix:
-		{
-			red:[0,1,2],
-			green:[1,0,2],
-			blue:[2,0,1]
-		}},
-	linear:{fn:function(width,height,matrix,type){
-		var newMatrix=[],old,i,j,k,m,n;
-		matrix=matrix[type];
-		m=matrix.length;
-		n=matrix[0].length;
-			for(i=0;i<width;i++)
-			{
-				newMatrix[i]=[];
-				for(j=0;j<height;j++)
-				{
-					newMatrix[i][j]=[0,0,0,1];
-					for(m=0;m<3;m++)
-					for(n=0;n<3;n++)
-					{
-						old=this.getPixel(i-parseInt(m/2),j-parseInt(n/2));
-						for(k=0;k<3;k++)
-						{
-							newMatrix[i][j][k]+=old[k]*matrix[m][n];
-						}
-					}
-				}
-			}
-			for(i=0;i<width;i++)
-			{
-				for(j=0;j<height;j++)
-					this.setPixel(i,j,newMatrix[i][j]);
-			}
-	},
-		matrix:{
-			sharp:[[-0.375,-0.375,-0.375],[-0.375,4,-0.375],[-0.375,-0.375,-0.375]],
-			blur:[[0.111,0.111,0.111],[0.111,0.111,0.111],[0.111,0.111,0.111]]
-		}
-	}
-}
+    imageDataFilters = {
+        color:{fn:function(width, height, matrix, type) {
+            var old,i,j;
+            matrix = matrix[type];
+            for (i = 0; i < width; i++)
+                for (j = 0; j < height; j++) {
+                    old = this.getPixel(i, j);
+                    old[matrix[0]] = old[matrix[0]] * 2 - old[matrix[1]] - old[matrix[2]];
+                    old[matrix[1]] = 0;
+                    old[matrix[2]] = 0;
+                    old[matrix[0]] = old[matrix[0]] > 255 ? 255 : old[matrix[0]];
+                    this.setPixel(i, j, old);
+                }
+        },matrix:
+        {
+            red:[0,1,2],
+            green:[1,0,2],
+            blue:[2,0,1]
+        }},
+        linear:{fn:function(width, height, matrix, type) {
+            var newMatrix = [],old,i,j,k,m,n;
+            matrix = matrix[type];
+            m = matrix.length;
+            n = matrix[0].length;
+            for (i = 0; i < width; i++) {
+                newMatrix[i] = [];
+                for (j = 0; j < height; j++) {
+                    newMatrix[i][j] = [0,0,0,1];
+                    for (m = 0; m < 3; m++)
+                        for (n = 0; n < 3; n++) {
+                            old = this.getPixel(i - parseInt(m / 2), j - parseInt(n / 2));
+                            for (k = 0; k < 3; k++) {
+                                newMatrix[i][j][k] += old[k] * matrix[m][n];
+                            }
+                        }
+                }
+            }
+            for (i = 0; i < width; i++) {
+                for (j = 0; j < height; j++)
+                    this.setPixel(i, j, newMatrix[i][j]);
+            }
+        },
+            matrix:{
+                sharp:[
+                    [-0.375,-0.375,-0.375],
+                    [-0.375,4,-0.375],
+                    [-0.375,-0.375,-0.375]
+                ],
+                blur:[
+                    [0.111,0.111,0.111],
+                    [0.111,0.111,0.111],
+                    [0.111,0.111,0.111]
+                ]
+            }
+        }
+    };
 
 function multiplyM(m1,m2)
 {
@@ -505,20 +473,20 @@ function parseColor(color)
 		a:1};
 	if(color.id!==undefined)
 	{
-		colorKeeper.color.notColor={
-			level:color._level,
-			canvas:color.optns.canvas.number,
-			layer:color.optns.layer.number
-		}
+		colorKeeper.color.notColor = {
+            level:color._level,
+            canvas:color.optns.canvas.number,
+            layer:color.optns.layer.number
+        };
 		return colorKeeper;
 	}
 	if(color.r!==undefined)
 	{
 		colorKeeper=checkDefaults(color,{r:0,g:0,b:0,a:1});
-		colorKeeper.color={
-			val:'rgba('+colorKeeper.r+','+colorKeeper.g+','+colorKeeper.b+','+colorKeeper.a+')',
-			notColor:undefined
-		}
+		colorKeeper.color = {
+            val:'rgba(' + colorKeeper.r + ',' + colorKeeper.g + ',' + colorKeeper.b + ',' + colorKeeper.a + ')',
+            notColor:undefined
+        };
 		return colorKeeper;
 	}
 	if(color.charAt(0)=='#')
@@ -560,10 +528,10 @@ function getOffset(elem) {
 }
 
 function getOffsetSum(elem) {
-	var top=0, left=0
+	var top = 0, left = 0;
 	while(elem) {
-		top = top + parseInt(elem.offsetTop)
-		left = left + parseInt(elem.offsetLeft)
+		top = top + parseInt(elem.offsetTop);
+		left = left + parseInt(elem.offsetLeft);
 		elem = elem.offsetParent
 	}
 	return {
@@ -573,15 +541,15 @@ function getOffsetSum(elem) {
 }
 
 function getOffsetRect(elem) {
-	var box = elem.getBoundingClientRect()
+	var box = elem.getBoundingClientRect();
 	var body = document.body||{};
-	var docElem = document.documentElement
-	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop
-	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft
-	var clientTop = docElem.clientTop || body.clientTop || 0
-	var clientLeft = docElem.clientLeft || body.clientLeft || 0
-	var top  = box.top +  scrollTop - clientTop
-	var left = box.left + scrollLeft - clientLeft
+	var docElem = document.documentElement;
+	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+	var clientTop = docElem.clientTop || body.clientTop || 0;
+	var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+	var top = box.top + scrollTop - clientTop;
+	var left = box.left + scrollLeft - clientLeft;
 	return {
 		top: m_round(top),
 		left: m_round(left)
@@ -803,1467 +771,925 @@ function objDeleter(array)
 	normalizeLevels(array);
 	return array.length;
 }
-var proto={};
-
+/*
+@namespace
+ */
+jCanvaScript.Proto={};
+proto = {};
 
 	
-proto.object=function()
-{
-	this.getCenter=function(type){
-		var rect=this.getRect('poor'),
-		point = {
-					x:(rect.x*2+rect.width)/2,
-					y:(rect.y*2+rect.height)/2
-				};
-		return getCenter(this,point,type);
-	}
-	this.position=function(){
-		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
-	}
-	this.buffer=function(doBuffering){
-		var bufOptns=this.optns.buffer;
-		if(doBuffering===undefined)
-			if(bufOptns.val)return bufOptns.cnv;
-			else return false;
-		if(bufOptns.val===doBuffering)return this;
-		if(doBuffering)
-		{
-			var cnv=bufOptns.cnv=document.createElement('canvas'),
-				ctx=bufOptns.ctx=cnv.getContext('2d'),
-				rect=bufOptns.rect=this.getRect(),
-				oldM=this.transform();
-			cnv.setAttribute('width',rect.width);
-			cnv.setAttribute('height',rect.height);
-			bufOptns.x=this._x;
-			bufOptns.y=this._y;
-			bufOptns.dx=this._transformdx;
-			bufOptns.dy=this._transformdy;
-			this._x=this._y=0;
-			this.transform(1, 0, 0, 1, -rect.x+bufOptns.dx, -rect.y+bufOptns.dy,true);
-			this.setOptns(ctx);
-			take(bufOptns.optns={},objectCanvas(this).optns);
-			bufOptns.optns.ctx=ctx;
-			this.draw(bufOptns.optns);
-			this._x=bufOptns.x;
-			this._y=bufOptns.y;
-			this.transform(oldM[0][0], oldM[1][0], oldM[0][1], oldM[1][1], rect.x, rect.y,true);
-			bufOptns.val=true;
-		}
-		else
-		{
-			this.translate(-bufOptns.rect.x+bufOptns.dx,-bufOptns.rect.y+bufOptns.dy);
-			this.optns.buffer={val:false};
-		}
-		return this;
-	}
-	this.clone=function(params)
-	{
-		var clone=new proto[this._proto];
-		proto[this._proto].prototype.base.call(clone);
-		take(clone,this);
-		clone.layer(objectLayer(this).optns.id);
-		take(clone.optns.transformMatrix,this.optns.transformMatrix);
-		take(clone.optns.translateMatrix,this.optns.translateMatrix);
-		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
-		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
-		if(params===undefined) return clone;
-		return clone.animate(params);
-	}
-	this.shadow= function(options)
-	{
-		for(var key in options)
-		switch (key)
-		{
-			case 'x':
-				this._shadowX=options.x;
-				break;
-			case 'y':
-				this._shadowY=options.y;
-				break;
-			case 'blur':
-				this._shadowBlur=options.blur;
-				break;
-			case 'color':
-				this.attr('shadowColor',options.color);
-				break;
-		}
-		this.redraw();
-		return this;
-	}
-	this.setOptns=function(ctx)
-	{
-		ctx.globalAlpha = this._opacity;
-		ctx.shadowOffsetX = this._shadowX;
-		ctx.shadowOffsetY = this._shadowY;
-		ctx.shadowBlur = this._shadowBlur;
-		ctx.globalCompositeOperation=this._composite;
-		var shadowColor=updateColor(this,this.optns.shadowColor,'shadow');
-		ctx.shadowColor = shadowColor.val;
-		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
-		return this;
-	}
-	this.up=function(n)
-	{
-		if(n === undefined)n=1;
-		if(n=='top')this.level(n);
-		else {
-			var next=objectLayer(this).objs[this.optns.number+n];
-			if(next!==undefined)
-			{
-				n=next._level+1-this._level;
-			}
-			this.level(this._level+n);
-		}
-		return this;
-	}
-	this.down=function(n)
-	{
-		if(n == undefined)n=1;
-		if(n == 'bottom')this.level(n);
-		else {
-			var previous=objectLayer(this).objs[this.optns.number-n];
-			if(previous!==undefined)
-			{
-				n=this._level-(previous._level-1);
-			}
-			this.level(this._level-n);
-		}
-		return this;
-	}
-	this.level=function(n)
-	{
-		if(n == undefined)return this._level;
-		var layer=objectLayer(this);
-		if(n=='bottom')
-		{
-			if(this.optns.number==0)n=this._level;
-			else n=layer.objs[0]._level-1;
-		}
-		if(n=='top')
-		{
-			if(this.optns.number==layer.objs.length)n=this._level;
-			else n=layer.objs[layer.objs.length-1]._level+1;
-		}
-		this._level=n;
-		layer.optns.anyObjLevelChanged = true;
-		this.redraw();
-		return this;
-	}
-	this.del=function()
-	{
-		this.optns.deleted=true;
-		objectLayer(this).optns.anyObjDeleted = true;
-		this.redraw();
-	}
-	this.focus=function(fn)
-	{
-		if(fn===undefined)
-		{
-			this.optns.focused=true;
-			if(typeof this.onfocus=='function')this.onfocus();
-		}
-		else this.onfocus=fn;
-		return this;
-	}
-	this.blur=function(fn)
-	{
-		if(fn===undefined)
-		{
-			this.optns.focused=false;
-			if(typeof this.onblur == 'function')this.onblur();
-		}
-		else this.onblur=fn;
-		return this;
-	}
-	this.click= function(fn)
-	{
-		return setMouseEvent.call(this,fn,'click');
-	}
-	this.dblclick = function(fn)
-	{
-		return setMouseEvent.call(this,fn,'dblclick');
-	}
-	this.keypress= function(fn)
-	{
-		return setKeyEvent.call(this,fn,'onkeypress');
-	}
-	this.keydown= function(fn)
-	{
-		return setKeyEvent.call(this,fn,'onkeydown');
-	}
-	this.keyup= function(fn)
-	{
-		return setKeyEvent.call(this,fn,'onkeyup');
-	}
-	this.mousedown= function(fn)
-	{
-		return setMouseEvent.call(this,fn,'mousedown');
-	}
-	this.mouseup= function(fn)
-	{
-		return setMouseEvent.call(this,fn,'mouseup');
-	}
-	this.mousemove= function(fn)
-	{
-		return setMouseEvent.call(this,fn,'mousemove');
-	}
-	this.mouseover= function(fn)
-	{
-		return setMouseEvent.call(this,fn,'mouseover');
-	}
-	this.mouseout= function(fn)
-	{
-		return setMouseEvent.call(this,fn,'mouseout');
-	}
-	this.attr=function(parameter,value)
-	{
-		if(typeof parameter==='object')
-			var parameters=parameter;
-		else
-		{
-			if(value===undefined)
-				return this['_'+parameter];
-			parameters={};
-			parameters[parameter]=value;
-		}
-		return this.animate(parameters);
-	}
-	this.queue=function(){
-		var animateQueueLength=this.animateQueue.length, queue,i,j,duration=0,longFn=0,fn,args=arguments;
-		for (i=0;i<args.length;i++)
-		{
-			if(typeof args[i]=='function'){
-				args[i].apply(this);
-				args[i]=false;
-				i++;
-				if(this.animateQueue.length>animateQueueLength)
-				{
-					for (j=animateQueueLength;j<this.animateQueue.length;j++)
-					{
-						queue=this.animateQueue[j];
-						if(queue.duration!==undefined){
-							if(queue.duration>duration)
-							{
-								duration=queue.duration;
-								longFn=j;
-							}
-							break;
-						}
-					}
-					if(duration){
-						queue=this.animateQueue[longFn];
-						if(queue.animateFn){
-							fn=queue.animateFn;
-							queue.animateFn=function(){
-								fn.apply(this);
-								this.queue.apply(this,args)
-							}
-						}
-						else queue.animateFn=function(){this.queue.apply(this,args)};
-						break;
-					}
-				}
-			}
-		}
-	}
-	this.stop=function(jumpToEnd,runCallbacks)
-	{
-		this.optns.animated=false;
-		if(runCallbacks===undefined)runCallbacks=false;
-		if(jumpToEnd===undefined)jumpToEnd=false;
-		for(var q=0;q<this.animateQueue.length;q++)
-		{
-			var queue=this.animateQueue[q];
-			if(runCallbacks)queue.animateFn.call(this);
-			if(jumpToEnd)
-			for(var key in queue)
-			{
-				if(queue[key]['from']!==undefined)
-				{
-					this[key]=queue[key]['to'];
-					animateTransforms(key,this,queue);
-				}
-			}
-		}
-		this.animateQueue=[];
-		return this;
-	}
-	this.animate=function(options,duration,easing,onstep,fn)
-	{
-		if(duration===undefined)duration=1;
-		else
-		{
-			if(typeof duration == 'function')
-			{
-				fn=duration;
-				duration=1;
-			}
-			if(typeof duration == 'object')
-			{
-				easing=duration;
-				duration=1;
-			}
-		}
-		if (easing===undefined)easing={fn:'linear',type:'in'};
-		else
-		{
-			if(typeof easing == 'function')
-			{
-				fn=easing;
-				easing={fn:'linear',type:'in'};
-			}
-			if (easing.type===undefined)easing.type='in';
-		}
-		if(onstep===undefined)onstep=false;
-		else
-		{
-			if(typeof onstep == 'function')
-			{
-				fn=onstep;
-				onstep=false;
-			}
-		}
-		if(options.scale!==undefined)
-		{
-			this._scaleX=this._scaleY=1;
-			if(typeof options.scale!='object')
-			{
-				options.scaleX=options.scaleY=options.scale;
-			}
-			else
-			{
-				options.scaleX=options.scale.x||1;
-				options.scaleY=options.scale.y||1;
-			}
-		}
-		if(options.translate!==undefined)
-		{
-			this._translateX=this._translateY=0;
-			if(typeof options.translate!='object')
-			{
-				options.translateX=options.translateY=options.translate;
-			}
-			else
-			{
-				options.translateX=options.translate.x||0;
-				options.translateY=options.translate.y||0;
-			}
-			options.translate=undefined;
-		}
-		if(options.translateTo!==undefined)
-		{
-			var point=this.position();
-			this._translateToX=point.x;
-			this._translateToY=point.y;
-			if(typeof options.translateTo!='object')
-			{
-				options.translateToX=options.translateToY=options.translateTo;
-			}
-			else
-			{
-				options.translateToX=options.translateTo.x||0;
-				options.translateToY=options.translateTo.y||0;
-			}
-			options.translateTo=undefined;
-		}
-		if(options.rotate!==undefined)
-		{
-			options.rotateAngle=options.rotate.angle;
-			this._rotateAngle=0;
-			this._rotateX=options.rotate.x||0;
-			this._rotateY=options.rotate.y||0;
-			options.rotate=undefined;
-		}
-		if(duration>1)
-		{
-			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
-			queue.animateFn=fn||false;
-			this.optns.animated=true;
-			queue.duration=duration;
-			queue.step=0;
-			queue.easing=easing;
-			queue.onstep=onstep;
-		}
-		for(var key in options)
-		{
-			if(!options.hasOwnProperty(key))continue;
-			var colorArray=key.split('Color');
-			if(colorArray[0]!="" && colorArray[1]=="")
-			{
-				var
-					color=options[key],
-					colorKeeper=parseColor(color);
-				if(colorKeeper.color.notColor)
-					this.optns[key].notColor=colorKeeper.color.notColor;
-				else
-				{
-					options[key+'R']=colorKeeper.r;
-					options[key+'G']=colorKeeper.g;
-					options[key+'B']=colorKeeper.b;
-					options[key+'A']=colorKeeper.a;
-				}
-				options[key] = undefined;
-			}
-		}
-		for(key in options)
-		{
-			if(this['_'+key] !== undefined && options[key]!==undefined)
-			{
-				var keyValue=options[key],privateKey='_'+key;
-				if(keyValue!=this[privateKey])
-				{
-					if(keyValue.charAt)
-					{
-						if(key=='string')this._string=keyValue;
-						else if(keyValue.charAt(1)=='=')
-						{
-							keyValue=this[privateKey]+parseInt(keyValue.charAt(0)+'1')*parseInt(keyValue.substr(2));
-						}
-						else if(!regHasLetters.test(keyValue))keyValue=parseInt(keyValue);
-						else this[privateKey]=keyValue;
-					}
-					if(duration==1)this[privateKey]=keyValue;
-					else
-					{
-						queue[privateKey]={
-							from:this[privateKey],
-							to:keyValue,
-							prev:0
-						}
-						queue.animateKeyCount++;
-					}
-				}
-			}
-		}
-		if(duration==1)
-		{
-			if(options['rotateAngle'])
-				this.rotate(this._rotateAngle,this._rotateX,this._rotateY);
-			if(options['translateX']||options['translateY'])
-				this.translate(this._translateX,this._translateY);
-			if(options['translateToX']||options['translateToY'])
-				this.translate(this._translateToX,this._translateToY);
-			if(options['scaleX']||options['scaleY'])
-				this.scale(this._scaleX,this._scaleY);
-		}
-		this.redraw();
-		return this;
-	}
-	this.matrix=function(m)
-	{
-		if(m===undefined)return [[this._transform11,this._transform21,this._transformdx],[this._transform12,this._transform22,this._transformdy]];
-		this._transform11=m[0][0];
-		this._transform21=m[0][1];
-		this._transform12=m[1][0];
-		this._transform22=m[1][1];
-		this._transformdx=m[0][2];
-		this._transformdy=m[1][2];
-		return this;
-	}
-	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
-	{
-		if(duration!==undefined)
-			return this.animate({translateTo:{x:newX,y:newY}},duration,easing,onstep,fn);
-		var point=this.position(),
-			x=0,y=0;
-		if(newX!==undefined)
-			x=newX-point.x;
-		if(newY!==undefined)
-			y=newY-point.y;
-		return this.translate(x,y);
-	}
-	this.translate=function(x,y,duration,easing,onstep,fn)
-	{
-		if(duration!==undefined)
-			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		this.optns.translateMatrix=multiplyM(this.optns.translateMatrix,[[1,0,x],[0,1,y]]);
-		changeMatrix(this);
-		return this;
-	}
-	this.scale=function(x,y,duration,easing,onstep,fn)
-	{
-		if(duration!==undefined)
-			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
-		if(y===undefined)y=x;
-		this.optns.scaleMatrix=multiplyM(this.optns.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
-		changeMatrix(this);
-		return this;
-	}
-	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
-	{
-		if(duration!==undefined)
-			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
-		x=x/radian;
-		var cos=m_cos(x),
-			sin=m_sin(x),
-			translateX=0,
-			translateY=0;
-		if(x1!==undefined)
-		{
-			if(x1=='center')
-			{
-				var point=this.getCenter('poor');
-				if(y1===undefined)
-				{
-					x1=point.x;
-					y1=point.y;
-				}
-				else
-				{
-					x1=point.x+y1.x;
-					y1=point.y+y1.y;
-				}
-			}
-			translateX=-x1*(cos-1)+y1*sin;
-			translateY=-y1*(cos-1)-x1*sin;
-		}
-		this.optns.rotateMatrix=multiplyM(this.optns.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
-		changeMatrix(this);
-		return this;
-	}
-	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
-	{
-		if(m11===undefined)return this.matrix();
-		var optns=this.optns;
-		if(reset!==undefined)
-		{
-			optns.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
-			optns.rotateMatrix=[[1,0,0],[0,1,0]];
-			optns.scaleMatrix=[[1,0,0],[0,1,0]];
-			optns.translateMatrix=[[1,0,0],[0,1,0]];
-		}
-		else
-		{
-			optns.transformMatrix=multiplyM(optns.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
-		}
-		changeMatrix(this);
-		return this;
-	}
-	this.beforeDraw=function(canvasOptns)
-	{
-		if(!this._visible)return false;
-		var ctx=canvasOptns.ctx;
-		ctx.save();
-		if(this.optns.clipObject)
-		{
-			var clipObject=this.optns.clipObject;
-			clipObject._visible=true;
-			if (clipObject.optns.animated)animating.call(clipObject,canvasOptns);
-			clipObject.setOptns(ctx);
-			ctx.beginPath();
-			clipObject.draw(ctx);
-			ctx.clip();
-		}
-		this.setOptns(ctx);
-		if (this.optns.animated)animating.call(this,canvasOptns);
-		ctx.beginPath();
-		return true;
-	}
-	this.clip=function(object)
-	{
-		if(object===undefined)return this.optns.clipObject;
-		objectLayer(this).objs.splice(object.optns.number,1);
-		this.optns.clipObject=object;
-		return this;
-	}
-	this.afterDraw=function(optns)
-	{
-		optns.ctx.closePath();
-		checkEvents(this,optns);
-		optns.ctx.restore();
-		if(this.optns.clipObject)
-		{
-			proto.shape.prototype.afterDraw.call(this.optns.clipObject,optns);
-		}
-	}
-	this.redraw = function()
-	{
-		this.canvas().optns.redraw=1;
-	}
-	this.isPointIn=function(x,y,global)
-	{
-		var canvasOptns=objectCanvas(this).optns,
-			ctx=canvasOptns.ctx,
-			thisAnimated=false,
-			optns=this.optns,
-			clipAnimated=false;
-		if(global!==undefined)
-		{
-			x-=canvasOptns.x;
-			y-=canvasOptns.y;
-		}
-		if(optns.animated)thisAnimated=true;
-		optns.animated=false;
-		if(optns.clipObject)
-		{
-			var clipObject=optns.clipObject,
-				clipOptns=clipObject.optns;
-			if(clipOptns.animated)
-			{
-				clipAnimated=true;
-				clipOptns.animated=false;
-			}
-		}
-		this.beforeDraw(canvasOptns);
-		this.draw(ctx);
-		var point=isPointInPath(this,x,y);
-		ctx.closePath();
-		ctx.restore();
-		optns.animated=thisAnimated;
-		if(clipAnimated)
-		{
-			clipOptns.animated=clipAnimated;
-		}
-		if(point)return true;
-		return false;
-	}
-	this.layer=function(idLayer)
-	{
-		return layer(idLayer,this,'objs');
-	}
-	this.canvas=function(idCanvas)
-	{
-		return canvas(idCanvas,this,'objs');
-	}
-	this.draggable=function(object,params,drag)
-	{
-		if(params===undefined && typeof object=='object' && object.optns===undefined)
-		{
-			params=object.params;
-			drag=object.drag;
-			var start=object.start,
-				stop=object.stop,
-				disabled=object.disabled;
-			object=object.object;
-		}
-		var dragObj=this;
-		var dragOptns=this.optns.drag;
-		if(typeof params==='function')
-		{
-			drag=params;
-			params=undefined;
-		}
-		if(typeof object=='function')
-		{
-			drag=object;
-			object=undefined;
-		}
-		dragOptns.shiftX=0;
-		dragOptns.shiftY=0;
-		if(params!==undefined)
-		{
-			if(params.shiftX!==undefined){dragOptns.shiftX=params.shiftX;params.shiftX=undefined;}
-			if(params.shiftY!==undefined){dragOptns.shiftY=params.shiftY;params.shiftY=undefined;}
-		}
-		if(object!==undefined)
-		{
-			if(object.id)dragObj=(params===undefined)? object.visible(false) : object.animate(params).visible(false);
-			if(object=='clone')
-			{
-				dragObj=this.clone(params).visible(false);
-				dragOptns.type='clone';
-			}
-		}
-		dragOptns.val=true;
-		dragOptns.x=this._x;
-		dragOptns.y=this._y;
-		dragOptns.dx=this._transformdx;
-		dragOptns.dy=this._transformdy;
-		dragOptns.object=dragObj;
-		dragOptns.params=params;
-		dragOptns.drag=drag||false;
-		dragOptns.start=start||false;
-		dragOptns.stop=stop||false;
-		dragOptns.disabled=disabled||false;
-		var optns=objectCanvas(this).optns;
-		optns.mousemove.val=true;
-		optns.mousedown.val=true;
-		optns.mouseup.val=true;
-		return this;
-	}
-	this.droppable=function(fn)
-	{
-		this.optns.drop.val=true;
-		if(fn!==undefined)this.optns.drop.fn=fn;
-		return this;
-	}
-	this.name = function(name)
-	{
-		return this.attr('name',name);
-	}
-	this.visible=function(visibility)
-	{
-		return this.attr('visible',visibility);
-	}
-	this.composite=function(composite)
-	{
-		return this.attr('composite',composite);
-	}
-	this.id=function(id)
-	{
-		if(id===undefined)return this.optns.id;
-		this.optns.id=id;
-		return this;
-	}
-	this.opacity=function(n)
-	{
-		return this.attr('opacity',n);
-	}
-	this.fadeIn=function(duration,easing,onstep,fn)
-	{
-		return this.fadeTo(1,duration,easing,onstep,fn);
-	}
-	this.fadeOut=function(duration,easing,onstep,fn)
-	{
-		return this.fadeTo(0,duration,easing,onstep,fn);
-	}
-	this.fadeTo=function(val,duration,easing,onstep,fn)
-	{
-		if(duration===undefined)duration=600;
-		return this.animate({opacity:val},duration,easing,onstep,fn);
-	}
-	this.fadeToggle=function(duration,easing,onstep,fn)
-	{
-		if(this._opacity)
-			this.fadeOut(duration,easing,onstep,fn);
-		else
-			this.fadeIn(duration,easing,onstep,fn);
-		return this;
-	}
-	this.proto = function()
-	{
-		return proto[this._proto].prototype;
-	}
-	this.protobase = function(options)
-	{
-		return this.proto().base.call(this, options);
-	}
-	this.instanceOf=function(name)
-	{
-		if(name===undefined)return this._proto;
-		return this instanceof proto[name];
-	}
-	this.base=function(x,y,service)
-	{
-		if(typeof x == 'object'){
-			x=checkDefaults(x,{x:0,y:0,service:false});
-			service=x.service;
-			y=x.y;
-			x=x.x;
-		}
-		else{if(service===undefined)service=false;}
-		var canvasItem=canvases[lastCanvas];
-		this.optns={
-			animated:false,
-			clipObject:false,
-			drop:{val:false,fn:function(){}},
-			drag:{val:false},
-			layer:{id:canvasItem.optns.id+"Layer0",number:0},
-			canvas:{number:0},
-			focused:false,
-			buffer:{val:false},
-			rotateMatrix:[[1,0,0],[0,1,0]],
-			scaleMatrix:[[1,0,0],[0,1,0]],
-			translateMatrix:[[1,0,0],[0,1,0]],
-			transformMatrix:[[1,0,0],[0,1,0]],
-			shadowColor:{val:'rgba(0,0,0,0)',notColor:undefined}
-		}
-		this.animateQueue = [];
-		this._x=x;
-		this._y=y;
-		if(service==false && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
-		{
-			this.optns.layer.number=0;
-			this.optns.canvas.number=lastCanvas;
-			var layer=objectLayer(this),
-			limit=layer.objs.length;
-			this.optns.number=limit;
-			this._level=limit?(layer.objs[limit-1]._level+1):0;
-			layer.objs[limit]=this;
-			this.optns.layer.id=layer.optns.id;
-			this.redraw();
-		}
-		return this;
-	}
-	this._visible=true;
-	this._composite='source-over';
-	this._name="";
-	this._opacity=1;
-	this._shadowX=0;
-	this._shadowY=0;
-	this._shadowBlur= 0;
-	this._shadowColorR= 0;
-	this._shadowColorG= 0;
-	this._shadowColorB= 0;
-	this._shadowColorA= 0;
-	this._translateX=0;
-	this._translateY=0;
-	this._scaleX=1;
-	this._scaleY=1;
-	this._rotateAngle=0;
-	this._rotateX=0;
-	this._rotateY=0;
-	this._transform11=1;
-	this._transform12=0;
-	this._transform21=0;
-	this._transform22=1;
-	this._transformdx=0;
-	this._transformdy=0;
-	this._matrixChanged=false;
-}
-proto.object.prototype=new proto.object();
+jCanvaScript.Proto.Object = function(x, y, service) {
+    this._visible = true;
+    this._composite = 'source-over';
+    this._name = "";
+    this._opacity = 1;
+    this._shadowX = 0;
+    this._shadowY = 0;
+    this._shadowBlur = 0;
+    this._shadowColorR = 0;
+    this._shadowColorG = 0;
+    this._shadowColorB = 0;
+    this._shadowColorA = 0;
+    this._translateX = 0;
+    this._translateY = 0;
+    this._scaleX = 1;
+    this._scaleY = 1;
+    this._rotateAngle = 0;
+    this._rotateX = 0;
+    this._rotateY = 0;
+    this._transform11 = 1;
+    this._transform12 = 0;
+    this._transform21 = 0;
+    this._transform22 = 1;
+    this._transformdx = 0;
+    this._transformdy = 0;
+    this._matrixChanged = false;
+    var options = x;
+    if (typeof options == 'object') {
+        options = checkDefaults(options, {x:0,y:0,service:false});
+        service = options.service;
+        y = options.y;
+        x = options.x;
+    }
+    else {
+        if (service === undefined)service = false;
+    }
+    var canvasItem = canvases[jCanvaScript._lastCanvas];
+    this.optns = {
+        animated:false,
+        clipObject:false,
+        drop:{val:false,fn:function() {
+        }},
+        drag:{val:false},
+        layer:{id:canvasItem.optns.id + "Layer0",number:0},
+        canvas:{number:0},
+        focused:false,
+        buffer:{val:false},
+        rotateMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        scaleMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        translateMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        transformMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        shadowColor:{val:'rgba(0,0,0,0)',notColor:undefined}
+    };
+    this.animateQueue = [];
+    this._x = x;
+    this._y = y;
+    if (!service && canvasItem !== undefined && canvasItem.layers[0] !== undefined) {
+        this.optns.layer.number = 0;
+        this.optns.canvas.number = jCanvaScript._lastCanvas;
+        var layer = objectLayer(this),
+            limit = layer.objs.length;
+        this.optns.number = limit;
+        this._level = limit ? (layer.objs[limit - 1]._level + 1) : 0;
+        layer.objs[limit] = this;
+        this.optns.layer.id = layer.optns.id;
+        this.redraw();
+    }
+};
+jCanvaScript.Proto.Object.prototype.getCenter = function(type) {
+        var rect = this.getRect('poor'),
+            point = {
+                x:(rect.x * 2 + rect.width) / 2,
+                y:(rect.y * 2 + rect.height) / 2
+            };
+        return getCenter(this, point, type);
+    };
+jCanvaScript.Proto.Object.prototype.position = function() {
+        return multiplyPointM(this._x, this._y, multiplyM(this.matrix(), objectLayer(this).matrix()));
+    };
+jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
+        var bufOptns = this.optns.buffer;
+        if (doBuffering === undefined)
+            if (bufOptns.val)return bufOptns.cnv;
+            else return false;
+        if (bufOptns.val === doBuffering)return this;
+        if (doBuffering) {
+            var cnv = bufOptns.cnv = document.createElement('canvas'),
+                ctx = bufOptns.ctx = cnv.getContext('2d'),
+                rect = bufOptns.rect = this.getRect(),
+                oldM = this.transform();
+            cnv.setAttribute('width', rect.width);
+            cnv.setAttribute('height', rect.height);
+            bufOptns.x = this._x;
+            bufOptns.y = this._y;
+            bufOptns.dx = this._transformdx;
+            bufOptns.dy = this._transformdy;
+            this._x = this._y = 0;
+            this.transform(1, 0, 0, 1, -rect.x + bufOptns.dx, -rect.y + bufOptns.dy, true);
+            this.setOptns(ctx);
+            take(bufOptns.optns = {}, objectCanvas(this).optns);
+            bufOptns.optns.ctx = ctx;
+            this.draw(bufOptns.optns);
+            this._x = bufOptns.x;
+            this._y = bufOptns.y;
+            this.transform(oldM[0][0], oldM[1][0], oldM[0][1], oldM[1][1], rect.x, rect.y, true);
+            bufOptns.val = true;
+        }
+        else {
+            this.translate(-bufOptns.rect.x + bufOptns.dx, -bufOptns.rect.y + bufOptns.dy);
+            this.optns.buffer = {val:false};
+        }
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.clone = function(params) {
+        var clone = new proto[this._proto];
+        proto[this._proto].prototype.base.call(clone);
+        take(clone, this);
+        clone.layer(objectLayer(this).optns.id);
+        take(clone.optns.transformMatrix, this.optns.transformMatrix);
+        take(clone.optns.translateMatrix, this.optns.translateMatrix);
+        take(clone.optns.scaleMatrix, this.optns.scaleMatrix);
+        take(clone.optns.rotateMatrix, this.optns.rotateMatrix);
+        if (params === undefined) return clone;
+        return clone.animate(params);
+    };
+jCanvaScript.Proto.Object.prototype.shadow = function(options) {
+        for (var key in options)
+            switch (key) {
+                case 'x':
+                    this._shadowX = options.x;
+                    break;
+                case 'y':
+                    this._shadowY = options.y;
+                    break;
+                case 'blur':
+                    this._shadowBlur = options.blur;
+                    break;
+                case 'color':
+                    this.attr('shadowColor', options.color);
+                    break;
+            }
+        this.redraw();
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.setOptns = function(ctx) {
+        ctx.globalAlpha = this._opacity;
+        ctx.shadowOffsetX = this._shadowX;
+        ctx.shadowOffsetY = this._shadowY;
+        ctx.shadowBlur = this._shadowBlur;
+        ctx.globalCompositeOperation = this._composite;
+        var shadowColor = updateColor(this, this.optns.shadowColor, 'shadow');
+        ctx.shadowColor = shadowColor.val;
+        ctx.transform(this._transform11, this._transform12, this._transform21, this._transform22, this._transformdx, this._transformdy);
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.up = function(n) {
+        if (n === undefined)n = 1;
+        if (n == 'top')this.level(n);
+        else {
+            var next = objectLayer(this).objs[this.optns.number + n];
+            if (next !== undefined) {
+                n = next._level + 1 - this._level;
+            }
+            this.level(this._level + n);
+        }
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.down = function(n) {
+        if (n == undefined)n = 1;
+        if (n == 'bottom')this.level(n);
+        else {
+            var previous = objectLayer(this).objs[this.optns.number - n];
+            if (previous !== undefined) {
+                n = this._level - (previous._level - 1);
+            }
+            this.level(this._level - n);
+        }
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.level = function(n) {
+        if (n == undefined)return this._level;
+        var layer = objectLayer(this);
+        if (n == 'bottom') {
+            if (this.optns.number == 0)n = this._level;
+            else n = layer.objs[0]._level - 1;
+        }
+        if (n == 'top') {
+            if (this.optns.number == layer.objs.length)n = this._level;
+            else n = layer.objs[layer.objs.length - 1]._level + 1;
+        }
+        this._level = n;
+        layer.optns.anyObjLevelChanged = true;
+        this.redraw();
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.del = function() {
+        this.optns.deleted = true;
+        objectLayer(this).optns.anyObjDeleted = true;
+        this.redraw();
+    };
+jCanvaScript.Proto.Object.prototype.focus = function(fn) {
+        if (fn === undefined) {
+            this.optns.focused = true;
+            if (typeof this.onfocus == 'function')this.onfocus();
+        }
+        else this.onfocus = fn;
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.blur = function(fn) {
+        if (fn === undefined) {
+            this.optns.focused = false;
+            if (typeof this.onblur == 'function')this.onblur();
+        }
+        else this.onblur = fn;
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.click = function(fn) {
+        return setMouseEvent.call(this, fn, 'click');
+    };
+jCanvaScript.Proto.Object.prototype.dblclick = function(fn) {
+        return setMouseEvent.call(this, fn, 'dblclick');
+    };
+jCanvaScript.Proto.Object.prototype.keypress = function(fn) {
+        return setKeyEvent.call(this, fn, 'onkeypress');
+    };
+jCanvaScript.Proto.Object.prototype.keydown = function(fn) {
+        return setKeyEvent.call(this, fn, 'onkeydown');
+    };
+jCanvaScript.Proto.Object.prototype.keyup = function(fn) {
+        return setKeyEvent.call(this, fn, 'onkeyup');
+    };
+jCanvaScript.Proto.Object.prototype.mousedown = function(fn) {
+        return setMouseEvent.call(this, fn, 'mousedown');
+    };
+jCanvaScript.Proto.Object.prototype.mouseup = function(fn) {
+        return setMouseEvent.call(this, fn, 'mouseup');
+    };
+jCanvaScript.Proto.Object.prototype.mousemove = function(fn) {
+        return setMouseEvent.call(this, fn, 'mousemove');
+    };
+jCanvaScript.Proto.Object.prototype.mouseover = function(fn) {
+        return setMouseEvent.call(this, fn, 'mouseover');
+    };
+jCanvaScript.Proto.Object.prototype.mouseout = function(fn) {
+        return setMouseEvent.call(this, fn, 'mouseout');
+    };
+jCanvaScript.Proto.Object.prototype.attr = function(parameter, value) {
+        if (typeof parameter === 'object')
+            var parameters = parameter;
+        else {
+            if (value === undefined)
+                return this['_' + parameter];
+            parameters = {};
+            parameters[parameter] = value;
+        }
+        return this.animate(parameters);
+    };
+jCanvaScript.Proto.Object.prototype.queue = function() {
+        var animateQueueLength = this.animateQueue.length, queue,i,j,duration = 0,longFn = 0,fn,args = arguments;
+        for (i = 0; i < args.length; i++) {
+            if (typeof args[i] == 'function') {
+                args[i].apply(this);
+                args[i] = false;
+                i++;
+                if (this.animateQueue.length > animateQueueLength) {
+                    for (j = animateQueueLength; j < this.animateQueue.length; j++) {
+                        queue = this.animateQueue[j];
+                        if (queue.duration !== undefined) {
+                            if (queue.duration > duration) {
+                                duration = queue.duration;
+                                longFn = j;
+                            }
+                            break;
+                        }
+                    }
+                    if (duration) {
+                        queue = this.animateQueue[longFn];
+                        if (queue.animateFn) {
+                            fn = queue.animateFn;
+                            queue.animateFn = function() {
+                                fn.apply(this);
+                                this.queue.apply(this, args)
+                            }
+                        }
+                        else queue.animateFn = function() {
+                            this.queue.apply(this, args)
+                        };
+                        break;
+                    }
+                }
+            }
+        }
+    };
+jCanvaScript.Proto.Object.prototype.stop = function(jumpToEnd, runCallbacks) {
+        this.optns.animated = false;
+        if (runCallbacks === undefined)runCallbacks = false;
+        if (jumpToEnd === undefined)jumpToEnd = false;
+        for (var q = 0; q < this.animateQueue.length; q++) {
+            var queue = this.animateQueue[q];
+            if (runCallbacks)queue.animateFn.call(this);
+            if (jumpToEnd)
+                for (var key in queue) {
+                    if (queue[key]['from'] !== undefined) {
+                        this[key] = queue[key]['to'];
+                        animateTransforms(key, this, queue);
+                    }
+                }
+        }
+        this.animateQueue = [];
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.animate = function(options, duration, easing, onstep, fn) {
+        if (duration === undefined)duration = 1;
+        else {
+            if (typeof duration == 'function') {
+                fn = duration;
+                duration = 1;
+            }
+            if (typeof duration == 'object') {
+                easing = duration;
+                duration = 1;
+            }
+        }
+        if (easing === undefined)easing = {fn:'linear',type:'in'};
+        else {
+            if (typeof easing == 'function') {
+                fn = easing;
+                easing = {fn:'linear',type:'in'};
+            }
+            if (easing.type === undefined)easing.type = 'in';
+        }
+        if (onstep === undefined)onstep = false;
+        else {
+            if (typeof onstep == 'function') {
+                fn = onstep;
+                onstep = false;
+            }
+        }
+        if (options.scale !== undefined) {
+            this._scaleX = this._scaleY = 1;
+            if (typeof options.scale != 'object') {
+                options.scaleX = options.scaleY = options.scale;
+            }
+            else {
+                options.scaleX = options.scale.x || 1;
+                options.scaleY = options.scale.y || 1;
+            }
+        }
+        if (options.translate !== undefined) {
+            this._translateX = this._translateY = 0;
+            if (typeof options.translate != 'object') {
+                options.translateX = options.translateY = options.translate;
+            }
+            else {
+                options.translateX = options.translate.x || 0;
+                options.translateY = options.translate.y || 0;
+            }
+            options.translate = undefined;
+        }
+        if (options.translateTo !== undefined) {
+            var point = this.position();
+            this._translateToX = point.x;
+            this._translateToY = point.y;
+            if (typeof options.translateTo != 'object') {
+                options.translateToX = options.translateToY = options.translateTo;
+            }
+            else {
+                options.translateToX = options.translateTo.x || 0;
+                options.translateToY = options.translateTo.y || 0;
+            }
+            options.translateTo = undefined;
+        }
+        if (options.rotate !== undefined) {
+            options.rotateAngle = options.rotate.angle;
+            this._rotateAngle = 0;
+            this._rotateX = options.rotate.x || 0;
+            this._rotateY = options.rotate.y || 0;
+            options.rotate = undefined;
+        }
+        if (duration > 1) {
+            var queue = this.animateQueue[this.animateQueue.length] = {animateKeyCount:0};
+            queue.animateFn = fn || false;
+            this.optns.animated = true;
+            queue.duration = duration;
+            queue.step = 0;
+            queue.easing = easing;
+            queue.onstep = onstep;
+        }
+        for (var key in options) {
+            if (!options.hasOwnProperty(key))continue;
+            var colorArray = key.split('Color');
+            if (colorArray[0] != "" && colorArray[1] == "") {
+                var
+                    color = options[key],
+                    colorKeeper = parseColor(color);
+                if (colorKeeper.color.notColor)
+                    this.optns[key].notColor = colorKeeper.color.notColor;
+                else {
+                    options[key + 'R'] = colorKeeper.r;
+                    options[key + 'G'] = colorKeeper.g;
+                    options[key + 'B'] = colorKeeper.b;
+                    options[key + 'A'] = colorKeeper.a;
+                }
+                options[key] = undefined;
+            }
+        }
+        for (key in options) {
+            if (this['_' + key] !== undefined && options[key] !== undefined) {
+                var keyValue = options[key],privateKey = '_' + key;
+                if (keyValue != this[privateKey]) {
+                    if (keyValue.charAt) {
+                        if (key == 'string')this._string = keyValue;
+                        else if (keyValue.charAt(1) == '=') {
+                            keyValue = this[privateKey] + parseInt(keyValue.charAt(0) + '1') * parseInt(keyValue.substr(2));
+                        }
+                        else if (!regHasLetters.test(keyValue))keyValue = parseInt(keyValue);
+                        else this[privateKey] = keyValue;
+                    }
+                    if (duration == 1)this[privateKey] = keyValue;
+                    else {
+                        queue[privateKey] = {
+                            from:this[privateKey],
+                            to:keyValue,
+                            prev:0
+                        };
+                        queue.animateKeyCount++;
+                    }
+                }
+            }
+        }
+        if (duration == 1) {
+            if (options['rotateAngle'])
+                this.rotate(this._rotateAngle, this._rotateX, this._rotateY);
+            if (options['translateX'] || options['translateY'])
+                this.translate(this._translateX, this._translateY);
+            if (options['translateToX'] || options['translateToY'])
+                this.translate(this._translateToX, this._translateToY);
+            if (options['scaleX'] || options['scaleY'])
+                this.scale(this._scaleX, this._scaleY);
+        }
+        this.redraw();
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.matrix = function(m) {
+        if (m === undefined)return [
+            [this._transform11,this._transform21,this._transformdx],
+            [this._transform12,this._transform22,this._transformdy]
+        ];
+        this._transform11 = m[0][0];
+        this._transform21 = m[0][1];
+        this._transform12 = m[1][0];
+        this._transform22 = m[1][1];
+        this._transformdx = m[0][2];
+        this._transformdy = m[1][2];
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.translateTo = function(newX, newY, duration, easing, onstep, fn) {
+        if (duration !== undefined)
+            return this.animate({translateTo:{x:newX,y:newY}}, duration, easing, onstep, fn);
+        var point = this.position(),
+            x = 0,y = 0;
+        if (newX !== undefined)
+            x = newX - point.x;
+        if (newY !== undefined)
+            y = newY - point.y;
+        return this.translate(x, y);
+    };
+jCanvaScript.Proto.Object.prototype.translate = function(x, y, duration, easing, onstep, fn) {
+        if (duration !== undefined)
+            return this.animate({translate:{x:x,y:y}}, duration, easing, onstep, fn);
+        this.optns.translateMatrix = multiplyM(this.optns.translateMatrix, [
+            [1,0,x],
+            [0,1,y]
+        ]);
+        changeMatrix(this);
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.scale = function(x, y, duration, easing, onstep, fn) {
+        if (duration !== undefined)
+            return this.animate({scale:{x:x,y:y}}, duration, easing, onstep, fn);
+        if (y === undefined)y = x;
+        this.optns.scaleMatrix = multiplyM(this.optns.scaleMatrix, [
+            [x,0,this._x * (1 - x)],
+            [0,y,this._y * (1 - y)]
+        ]);
+        changeMatrix(this);
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.rotate = function(x, x1, y1, duration, easing, onstep, fn) {
+        if (duration !== undefined)
+            return this.animate({rotate:{angle:x,x:x1,y:y1}}, duration, easing, onstep, fn);
+        x = x / radian;
+        var cos = m_cos(x),
+            sin = m_sin(x),
+            translateX = 0,
+            translateY = 0;
+        if (x1 !== undefined) {
+            if (x1 == 'center') {
+                var point = this.getCenter('poor');
+                if (y1 === undefined) {
+                    x1 = point.x;
+                    y1 = point.y;
+                }
+                else {
+                    x1 = point.x + y1.x;
+                    y1 = point.y + y1.y;
+                }
+            }
+            translateX = -x1 * (cos - 1) + y1 * sin;
+            translateY = -y1 * (cos - 1) - x1 * sin;
+        }
+        this.optns.rotateMatrix = multiplyM(this.optns.rotateMatrix, [
+            [cos,-sin,translateX],
+            [sin,cos,translateY]
+        ]);
+        changeMatrix(this);
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.transform = function(m11, m12, m21, m22, dx, dy, reset) {
+        if (m11 === undefined)return this.matrix();
+        var optns = this.optns;
+        if (reset !== undefined) {
+            optns.transformMatrix = [
+                [m11,m21,dx],
+                [m12,m22,dy]
+            ];
+            optns.rotateMatrix = [
+                [1,0,0],
+                [0,1,0]
+            ];
+            optns.scaleMatrix = [
+                [1,0,0],
+                [0,1,0]
+            ];
+            optns.translateMatrix = [
+                [1,0,0],
+                [0,1,0]
+            ];
+        }
+        else {
+            optns.transformMatrix = multiplyM(optns.transformMatrix, [
+                [m11,m21,dx],
+                [m12,m22,dy]
+            ]);
+        }
+        changeMatrix(this);
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.beforeDraw = function(canvasOptns) {
+        if (!this._visible)return false;
+        var ctx = canvasOptns.ctx;
+        ctx.save();
+        if (this.optns.clipObject) {
+            var clipObject = this.optns.clipObject;
+            clipObject._visible = true;
+            if (clipObject.optns.animated)animating.call(clipObject, canvasOptns);
+            clipObject.setOptns(ctx);
+            ctx.beginPath();
+            clipObject.draw(ctx);
+            ctx.clip();
+        }
+        this.setOptns(ctx);
+        if (this.optns.animated)animating.call(this, canvasOptns);
+        ctx.beginPath();
+        return true;
+    };
+jCanvaScript.Proto.Object.prototype.clip = function(object) {
+        if (object === undefined)return this.optns.clipObject;
+        objectLayer(this).objs.splice(object.optns.number, 1);
+        this.optns.clipObject = object;
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.afterDraw = function(optns) {
+        optns.ctx.closePath();
+        checkEvents(this, optns);
+        optns.ctx.restore();
+        if (this.optns.clipObject) {
+            jCanvaScript.Proto.Shape.afterDraw.call(this.optns.clipObject, optns);
+        }
+    };
+jCanvaScript.Proto.Object.prototype.redraw = function() {
+        this.canvas().optns.redraw = 1;
+    };
+jCanvaScript.Proto.Object.prototype.isPointIn = function(x, y, global) {
+        var canvasOptns = objectCanvas(this).optns,
+            ctx = canvasOptns.ctx,
+            thisAnimated = false,
+            optns = this.optns,
+            clipAnimated = false;
+        if (global !== undefined) {
+            x -= canvasOptns.x;
+            y -= canvasOptns.y;
+        }
+        if (optns.animated)thisAnimated = true;
+        optns.animated = false;
+        if (optns.clipObject) {
+            var clipObject = optns.clipObject,
+                clipOptns = clipObject.optns;
+            if (clipOptns.animated) {
+                clipAnimated = true;
+                clipOptns.animated = false;
+            }
+        }
+        this.beforeDraw(canvasOptns);
+        this.draw(ctx);
+        var point = isPointInPath(this, x, y);
+        ctx.closePath();
+        ctx.restore();
+        optns.animated = thisAnimated;
+        if (clipAnimated) {
+            clipOptns.animated = clipAnimated;
+        }
+        return point;
 
-proto.shape=function()
-{
-	this.fillColor = function(color)
-	{
-		if (color===undefined)return [this._fillColorR,this._fillColorG,this._fillColorB,this._fillColorA];
-		return this.attr('fillColor',color);
-	}
-	this.lineColor = function(color)
-	{
-		if (color===undefined)return [this._lineColorR,this._lineColorG,this._lineColorB,this._lineColorA];
-		return this.attr('lineColor',color);
-	}
-	this.lineStyle = function(options)
-	{
-		return this.attr(options);
-	}
-	this.setOptns = function(ctx)
-	{
-		proto.shape.prototype.setOptns.call(this,ctx);
-		ctx.lineWidth = this._lineWidth;
-		ctx.lineCap = this._cap;
-		ctx.lineJoin = this._join;
-		ctx.miterLimit = this._miterLimit;
-		var fillColor=updateColor(this,this.optns.fillColor,'fill');
-		var lineColor=updateColor(this,this.optns.lineColor,'line');
-		ctx.fillStyle = fillColor.val;
-		ctx.strokeStyle = lineColor.val;
-	}
-	this.afterDraw=function(optns)
-	{
-		optns.ctx.fill();
-		optns.ctx.stroke();
-		proto.shape.prototype.afterDraw.call(this,optns);
-	}
-	this.base=function(options)
-	{
-		if(options===undefined)options={};
-		options=checkDefaults(options,{fillColor:'rgba(0,0,0,0)',lineColor:'rgba(0,0,0,0)'});
-		proto.shape.prototype.base.call(this,options);
-		this.optns.fillColor={val:options.fillColor,notColor:undefined};
-		this.optns.lineColor={val:options.lineColor,notColor:undefined};
-		this.fillColor(options.fillColor);
-		this.lineColor(options.lineColor);
-		return this;
-	}
-	this._fillColorR=0;
-	this._fillColorG=0;
-	this._fillColorB=0;
-	this._fillColorA=0;
-	this._lineColorR=0;
-	this._lineColorG=0;
-	this._lineColorB=0;
-	this._lineColorA=0;
-	this._lineWidth = 1;
-	this._cap = 'butt';
-	this._join = 'miter';
-	this._miterLimit= 1;
-}
-proto.shape.prototype=new proto.object;
+    };
+jCanvaScript.Proto.Object.prototype.layer = function(idLayer) {
+        return layer(idLayer, this, 'objs');
+    };
+jCanvaScript.Proto.Object.prototype.canvas = function(idCanvas) {
+        return canvas(idCanvas, this, 'objs');
+    };
+jCanvaScript.Proto.Object.prototype.draggable = function(object, params, drag) {
+        if (params === undefined && typeof object == 'object' && object.optns === undefined) {
+            params = object.params;
+            drag = object.drag;
+            var start = object.start,
+                stop = object.stop,
+                disabled = object.disabled;
+            object = object.object;
+        }
+        var dragObj = this;
+        var dragOptns = this.optns.drag;
+        if (typeof params === 'function') {
+            drag = params;
+            params = undefined;
+        }
+        if (typeof object == 'function') {
+            drag = object;
+            object = undefined;
+        }
+        dragOptns.shiftX = 0;
+        dragOptns.shiftY = 0;
+        if (params !== undefined) {
+            if (params.shiftX !== undefined) {
+                dragOptns.shiftX = params.shiftX;
+                params.shiftX = undefined;
+            }
+            if (params.shiftY !== undefined) {
+                dragOptns.shiftY = params.shiftY;
+                params.shiftY = undefined;
+            }
+        }
+        if (object !== undefined) {
+            if (object.id)dragObj = (params === undefined) ? object.visible(false) : object.animate(params).visible(false);
+            if (object == 'clone') {
+                dragObj = this.clone(params).visible(false);
+                dragOptns.type = 'clone';
+            }
+        }
+        dragOptns.val = true;
+        dragOptns.x = this._x;
+        dragOptns.y = this._y;
+        dragOptns.dx = this._transformdx;
+        dragOptns.dy = this._transformdy;
+        dragOptns.object = dragObj;
+        dragOptns.params = params;
+        dragOptns.drag = drag || false;
+        dragOptns.start = start || false;
+        dragOptns.stop = stop || false;
+        dragOptns.disabled = disabled || false;
+        var optns = objectCanvas(this).optns;
+        optns.mousemove.val = true;
+        optns.mousedown.val = true;
+        optns.mouseup.val = true;
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.droppable = function(fn) {
+        this.optns.drop.val = true;
+        if (fn !== undefined)this.optns.drop.fn = fn;
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.name = function(name) {
+        return this.attr('name', name);
+    };
+jCanvaScript.Proto.Object.prototype.visible = function(visibility) {
+        return this.attr('visible', visibility);
+    };
+jCanvaScript.Proto.Object.prototype.composite = function(composite) {
+        return this.attr('composite', composite);
+    };
+jCanvaScript.Proto.Object.prototype.id = function(id) {
+        if (id === undefined)return this.optns.id;
+        this.optns.id = id;
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.opacity = function(n) {
+        return this.attr('opacity', n);
+    };
+jCanvaScript.Proto.Object.prototype.fadeIn = function(duration, easing, onstep, fn) {
+        return this.fadeTo(1, duration, easing, onstep, fn);
+    };
+jCanvaScript.Proto.Object.prototype.fadeOut = function(duration, easing, onstep, fn) {
+        return this.fadeTo(0, duration, easing, onstep, fn);
+    };
+jCanvaScript.Proto.Object.prototype.fadeTo = function(val, duration, easing, onstep, fn) {
+        if (duration === undefined)duration = 600;
+        return this.animate({opacity:val}, duration, easing, onstep, fn);
+    };
+jCanvaScript.Proto.Object.prototype.fadeToggle = function(duration, easing, onstep, fn) {
+        if (this._opacity)
+            this.fadeOut(duration, easing, onstep, fn);
+        else
+            this.fadeIn(duration, easing, onstep, fn);
+        return this;
+    };
+jCanvaScript.Proto.Object.prototype.proto = function() {
+        return proto[this._proto].prototype;
+    };
+jCanvaScript.Proto.Object.prototype.superclass = function() {
+        return  jCanvaScript.getProto(jCanvaScript.getProtoConstructor(this._proto).proto)
+    };
+jCanvaScript.Proto.Object.prototype.protobase = function(options) {
+        return this.superclass().base.call(this, options);
+    };
+jCanvaScript.Proto.Object.prototype.instanceOf = function(name) {
+        if (name === undefined)return this._proto;
+        return ((this instanceof proto[name]) == true);
+    };
 
-proto.grdntsnptrn=function()
-{
-	this.layer=function(idLayer)
-	{
-		return layer(idLayer,this,'grdntsnptrns');
-	}
-	this.canvas=function(idCanvas)
-	{
-		return canvas(idCanvas,this,'grdntsnptrns');
-	}
-	var tmpObj=new proto.object;
-	this.animate=tmpObj.animate;
-	this.attr=tmpObj.attr;
-	this.id=tmpObj.id;
-	this.name=tmpObj.name;
-	this.level=tmpObj.level;
-	this.base=function()
-	{
-		this.animateQueue=[];
-		this.optns={
-			animated:false,
-			name:"",
-			layer:{id:canvases[0].optns.id+'Layer_0',number:0},
-			canvas:{number:0},
-			visible:true
-		}
-		this.optns.layer.id=canvases[lastCanvas].optns.id+'Layer_0';
-		this.optns.layer.number=0
-		this.optns.canvas.number=lastCanvas;
-		var grdntsnptrnsArray=canvases[lastCanvas].layers[0].grdntsnptrns;
-		this._level=grdntsnptrnsArray.length;
-		grdntsnptrnsArray[this._level]=this;
-		this.redraw();
-	}
-	return this;
-}
-proto.gradients=function()
-{
-	this.colorStopsCount=0;
-	this.paramNames=['_pos','_colorR','_colorG','_colorB','_alpha'];
-	this.addColorStop=function(pos,color){
-		this.redraw();
-		var colorKeeper = parseColor(color);
-		var i=this.colorStopsCount;
-		this['_pos'+i] = pos;
-		this['_colorR'+i] = colorKeeper.r;
-		this['_colorG'+i] = colorKeeper.g;
-		this['_colorB'+i] = colorKeeper.b;
-		this['_alpha'+i] = colorKeeper.a;
-		this.colorStopsCount++;
-		return this;
-	}
-	this.animate=function(parameters,duration,easing,onstep,fn){
-		for(var key in parameters)
-		{
-			if(key.substr(0,5)=='color')
-			{
-				var i=key.substring(5);
-				var colorKeeper=parseColor(parameters[key]);
-				parameters['colorR'+i] = colorKeeper.r;
-				parameters['colorG'+i] = colorKeeper.g;
-				parameters['colorB'+i] = colorKeeper.b;
-				parameters['alpha'+i] = colorKeeper.a;
-			}
-		}
-		proto.gradients.prototype.animate.call(this,parameters,duration,easing,onstep,fn);
-	}
-	this.delColorStop=function(i)
-	{
-		this.redraw();
-		var colorStops=this.colorStops();
-		colorStops.splice(i,1);
-		if(colorStops.length>0)this.colorStops(colorStops);
-		else this.colorStopsCount=0;
-		return this;
-	}
-	this._createColorStops = function()
-	{
-		for(var i=0;i<this.colorStopsCount;i++)
-		{
-			this.val.addColorStop(this['_pos'+i],'rgba('+parseInt(this['_colorR'+i])+','+parseInt(this['_colorG'+i])+','+parseInt(this['_colorB'+i])+','+this['_alpha'+i]+')');
-		}
-	}
-	this.colorStops=function(array)
-	{
-		var names=this.paramNames;
-		if(array===undefined){
-			array=[];
-			for(var j=0;j<this.colorStopsCount;j++)
-			{
-				array[j]=[];
-				for(var i=0;i<names.length;i++)
-					array[j][i]=this[names[i]+j];
-			}
-			return array;
-		}
-		this.redraw();
-		var oldCount=this.colorStopsCount;
-		var limit=array.length;
-		if(array[0].length==2)
-			for(j=0;j<limit;j++)
-				this.addColorStop(array[j][0], array[j][1]);
-		else
-			for(j=0;j<limit;j++)
-				for(i=0;i<names.length;i++)
-					this[names[i]+j]=array[j][i];
-		for(j=limit;j<oldCount;j++)
-			for(i=0;i<names.length;i++)
-				this[names[i]+j]=undefined;
-		this.colorStopsCount=limit;
-		return this;
-	}
-	this.base=function(colors)
-	{
-		proto.gradients.prototype.base.call(this);
-		if (colors==undefined)
-			return this;
-		else return this.colorStops(colors);
-	}
-}
-proto.gradients.prototype=new proto.grdntsnptrn;
+jCanvaScript.Proto.Shape = function(options) {
+        this._fillColorR = 0;
+        this._fillColorG = 0;
+        this._fillColorB = 0;
+        this._fillColorA = 0;
+        this._lineColorR = 0;
+        this._lineColorG = 0;
+        this._lineColorB = 0;
+        this._lineColorA = 0;
+        this._lineWidth = 1;
+        this._cap = 'butt';
+        this._join = 'miter';
+        this._miterLimit = 1;
+        if (options === undefined)options = {};
+        options = checkDefaults(options, {fillColor:'rgba(0,0,0,0)',lineColor:'rgba(0,0,0,0)'});
+        jCanvaScript.Proto.Object.call(this,options);
+        this.optns.fillColor = {val:options.fillColor,notColor:undefined};
+        this.optns.lineColor = {val:options.lineColor,notColor:undefined};
+        this.fillColor(options.fillColor);
+        this.lineColor(options.lineColor);
+        return this;
+    }
+jCanvaScript.Proto.Shape.prototype = Object.create(jCanvaScript.Proto.Object.prototype);
 
-proto.pattern = function()
-{
-	this.create = function(canvasOptns)
-	{
-		if(this.optns.animated)animating.call(this,canvasOptns);
-		this.val = canvasOptns.ctx.createPattern(this._img,this._type);
-	}
-	this.base=function(image,type)
-	{
-		if(image.onload)
-			image={image:image,type:type};
-		image=checkDefaults(image,{type:'repeat'});
-		proto.pattern.prototype.base.call(this);
-		this._img=image.image;
-		this._type=image.type;
-		return this;
-	}
-	this._proto='pattern';
-}
-proto.pattern.prototype=new proto.grdntsnptrn;
-proto.lGradient=function()
-{
-	this.create = function(canvasOptns)
-	{
-		if(this.optns.animated)animating.call(this,canvasOptns);
-		this.val=canvasOptns.ctx.createLinearGradient(this._x1,this._y1,this._x2,this._y2);
-		this._createColorStops();
-	}
-	this.base=function(x1,y1,x2,y2,colors)
-	{
-		if(typeof x1!=='object')
-			x1={x1:x1,y1:y1,x2:x2,y2:y2,colors:colors};
-		x1=checkDefaults(x1,{x1:0,y1:0,x2:0,y2:0})
-		proto.lGradient.prototype.base.call(this,x1.colors);
-		this._x1 = x1.x1;
-		this._y1 = x1.y1;
-		this._x2 = x1.x2;
-		this._y2 = x1.y2;
-		return this;
-	}
-	this._proto='lGradient';
-}
-proto.lGradient.prototype=new proto.gradients;
-proto.rGradient=function()
-{
-	this.create = function(canvasOptns)
-	{
-		if(this.optns.animated)animating.call(this);
-		this.val=canvasOptns.ctx.createRadialGradient(this._x1,this._y1,this._r1,this._x2,this._y2,this._r2);
-		this._createColorStops();
-	}
-	this.base=function(x1,y1,r1,x2,y2,r2,colors)
-	{
-		if(typeof x1!=='object')
-			x1={x1:x1,y1:y1,r1:r1,x2:x2,y2:y2,r2:r2,colors:colors};
-		x1=checkDefaults(x1,{x1:0,y1:0,r1:0,x2:0,y2:0,r2:0})
-		proto.rGradient.prototype.base.call(this,x1.colors);
-		this._x1 = x1.x1;
-		this._y1 = x1.y1;
-		this._r1 = x1.r1;
-		this._x2 = x1.x2;
-		this._y2 = x1.y2;
-		this._r2 = x1.r2;
-		return this;
-	}
-	this._proto='rGradient';
-}
-proto.rGradient.prototype=new proto.gradients;
+jCanvaScript.Proto.Shape.prototype.fillColor = function(color) {
+        if (color === undefined)return [this._fillColorR,this._fillColorG,this._fillColorB,this._fillColorA];
+        return this.attr('fillColor', color);
+    };
+jCanvaScript.Proto.Shape.prototype.lineColor = function(color) {
+        if (color === undefined)return [this._lineColorR,this._lineColorG,this._lineColorB,this._lineColorA];
+        return this.attr('lineColor', color);
+    };
+jCanvaScript.Proto.Shape.prototype.lineStyle = function(options) {
+        return this.attr(options);
+    };
+jCanvaScript.Proto.Shape.prototype.setOptns = function(ctx) {
+        jCanvaScript.Proto.Object.prototype.setOptns.call(this, ctx);
+        ctx.lineWidth = this._lineWidth;
+        ctx.lineCap = this._cap;
+        ctx.lineJoin = this._join;
+        ctx.miterLimit = this._miterLimit;
+        var fillColor = updateColor(this, this.optns.fillColor, 'fill');
+        var lineColor = updateColor(this, this.optns.lineColor, 'line');
+        ctx.fillStyle = fillColor.val;
+        ctx.strokeStyle = lineColor.val;
+    };
+jCanvaScript.Proto.Shape.prototype.afterDraw = function(optns) {
+        optns.ctx.fill();
+        optns.ctx.stroke();
+        jCanvaScript.Proto.Object.prototype.afterDraw.call(this, optns);
+    };
 
 
-proto.layer=function()
-{
-	this.position=function(){
-		var objs=this.objs,
-		points,point,i,
-		limit=objs.length;
-		for(i=0;i<limit;i++)
-		{
-			point=objs[i].position();
-			if(points===undefined)points=point;
-			if(points.x>point.x)points.x=point.x;
-			if(points.y>point.y)points.y=point.y;
-		}
-		return points;
-	}
-	this.getRect=function(type){
-		var objs=this.objs,
-		points,rect,i,
-		limit=objs.length;
-		if (objs.length==0)return false;
-		if(type=='coords')
-		{
-			for(i=0;i<limit;i++)
-			{
-				rect=objs[i].getRect(type);
-				if(points===undefined)points=rect;
-				if(points[0][0]>rect[0][0])points[0][0]=rect[0][0];
-				if(points[0][1]>rect[0][1])points[0][1]=rect[0][1];
-				if(points[1][0]<rect[1][0])points[1][0]=rect[1][0];
-				if(points[1][1]>rect[1][1])points[1][1]=rect[1][1];
-				if(points[2][0]>rect[2][0])points[2][0]=rect[2][0];
-				if(points[2][1]<rect[2][1])points[2][1]=rect[2][1];
-				if(points[3][0]<rect[3][0])points[3][0]=rect[3][0];
-				if(points[3][1]<rect[3][1])points[3][1]=rect[3][1];
-			}
-			return points;
-		}
-		for(i=0;i<limit;i++)
-		{
-			rect=objs[i].getRect(type);
-			rect.right=rect.width+rect.x;
-			rect.bottom=rect.height+rect.y;
-			if(points===undefined)points=rect;
-			if(points.x>rect.x)points.x=rect.x;
-			if(points.y>rect.y)points.y=rect.y;
-			if(points.right<rect.right)points.right=rect.right;
-			if(points.bottom<rect.bottom)points.bottom=rect.bottom;
-		}
-		points.width=points.right-points.x;
-		points.height=points.bottom-points.y;
-		return points;
-	}
-	this.canvas=function(idCanvas)
-	{
-		if (idCanvas===undefined)return this.idCanvas;
-		if(this.optns.canvas.id==idCanvas)return this;
-		var newCanvas=-1,oldCanvas=0,limitC=canvases.length;
-		for(var i=0;i<limitC;i++)
-		{
-			var idCanvasItem=canvases[i].optns.id;
-			if (idCanvasItem==idCanvas)newCanvas=i;
-			if (idCanvasItem==this.optns.canvas.id)oldCanvas=i;
-		}
-		if(newCanvas<0){newCanvas=canvases.length;jCanvaScript.canvas(idCanvas);}
-		this.optns.canvas.id=idCanvas;
-		this.optns.canvas.number=newCanvas;
-		canvases[oldCanvas].layers.splice(this.optns.number,1);
-		var layersArray=canvases[newCanvas].layers;
-		this._level=this.optns.number=layersArray.length;
-		layersArray[this._level]=this;
-		setLayerAndCanvasToArray(this.objs,this.optns.id,this._level,idCanvas,newCanvas);
-		setLayerAndCanvasToArray(this.grdntsnptrns,this.optns.id,this._level,idCanvas,newCanvas);
-		canvases[newCanvas].optns.redraw=1;
-		return this;
-	}
-	this.up=function(n)
-	{
-		if(n === undefined)n=1;
-		if(n=='top')this.level(n);
-		else {
-			var next=objectCanvas(this).layers[this.optns.number+n];
-			if(next!==undefined)
-			{
-				n=next._level+1-this._level;
-			}
-			this.level(this._level+n);
-		}
-		return this;
-	}
-	this.down=function(n)
-	{
-		if(n == undefined)n=1;
-		if(n == 'bottom')this.level(n);
-		else {
-			var previous=objectCanvas(this).layers[this.optns.number-n];
-			if(previous!==undefined)
-			{
-				n=this._level-(previous._level-1);
-			}
-			this.level(this._level-n);
-		}
-		return this;
-	}
-	this.level=function(n)
-	{
-		if(n == undefined)return this._level;
-		var canvas=objectCanvas(this),
-			optns=canvas.optns;
-		if(n=='bottom')
-			if(this.optns.number==0)n=this._level;
-			else n=canvas.layers[0]._level-1;
-		if(n=='top')
-			if(this.optns.number==canvas.layers.length-1)n=this._level;
-			else n=canvas.layers[canvas.layers.length-1]._level+1;
-		this._level=n;
-		optns.anyLayerLevelChanged = true;
-		optns.redraw=1;
-		return this;
-	}
-	this.del=function()
-	{
-		var optns=objectCanvas(this).optns;
-		optns.anyLayerDeleted = true;
-		this.draw = false;
-		optns.redraw=1;
-		return;
-	}
-	this.setOptns=function(ctx)
-	{
-		ctx.setTransform(1,0,0,1,0,0);
-		proto.layer.prototype.setOptns.call(this,ctx);
-		return this;
-	}
-	this.afterDraw=function(optns)
-	{
-		optns.ctx.closePath();
-		optns.ctx.restore();
-		if(this.optns.clipObject)
-		{
-			proto.layer.prototype.afterDraw.call(this.optns.clipObject,optns);
-		}
-	}
-	this.clone=function(idLayer,params)
-	{
-		var clone=jCanvaScript.layer(idLayer);
-		take(clone,this);
-		take(clone.optns.transformMatrix,this.optns.transformMatrix);
-		take(clone.optns.translateMatrix,this.optns.translateMatrix);
-		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
-		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
-		clone.canvas(objectCanvas(this).optns.id);
-		if(params===undefined) return clone;
-		return clone.animate(params);
-	}
-	this.isPointIn=function(x,y,global)
-	{
-		var objs=this.objs,i;
-		for(i=0;i<objs.length;i++)
-			if(objs[i].isPointIn(x,y,global))
-				return true;
-		return false;
-	}
-	this.opacity=function(n)
-	{
-		var objs=this.objs;
-		for(var i=0;i<objs.length;i++)
-			objs[i].attr('opacity',n);
-		return this;
-	}
-	this.fadeTo=function(val,duration,easing,onstep,fn)
-	{
-		if(duration===undefined)duration=600;
-		var objs=this.objs;
-		for(var i=0;i<objs.length;i++)
-			objs[i].animate({opacity:val},duration,easing,onstep,fn);
-		return this;
-	}
-	this.draw=function(canvasOptns)
-	{
-		var optns=this.optns,
-			bufOptns=optns.buffer,
-			ctx=canvasOptns.ctx;
-		if(bufOptns.val)
-		{
-			ctx.drawImage(bufOptns.cnv,bufOptns.x,bufOptns.y);
-			return this;
-		}
-		for(var i=0;i<this.grdntsnptrns.length;i++)
-			this.grdntsnptrns[i].create(canvasOptns);
-		if(optns.anyObjLevelChanged)
-		{
-			levelChanger(this.objs);
-			optns.anyObjLevelChanged = false;
-		}
-		if(optns.anyObjDeleted)
-		{
-			objDeleter(this.objs);
-			optns.anyObjDeleted = false;
-		}
-		ctx.globalCompositeOperation = optns.gCO;
-		for(i=0;i<this.objs.length;i++)
-		{
-			var object=this.objs[i];
-			if(typeof (object.draw)=='function')
-			{
-				this.setOptns(ctx);
-				if(object.beforeDraw(canvasOptns))
-				{
-					if(typeof (object.draw)=='function')
-					{
-						var objBufOptns=object.optns.buffer;
-						if(objBufOptns.val)
-							ctx.drawImage(objBufOptns.cnv,objBufOptns.x,objBufOptns.y);
-						else
-							object.draw(ctx);
-						if(bufOptns.optns)
-							object.afterDraw(bufOptns.optns);
-						else
-							object.afterDraw(canvasOptns);
-					}
-				}
-			}
-		}
-		return this;
-	}
-	this.objects=function(map)
-	{
-		var myGroup=group(),i=0;
-		while(this.objs[i]!==undefined)
-				myGroup.elements[i]=this.objs[i++];
-		if(map!==undefined)
-			return myGroup.find(map);
-		return myGroup;
-	}
-	this.base=function(idLayer)
-	{
-		var canvas=canvases[lastCanvas],
-		lastCanvasLayers=canvas.layers,
-		lastCanvasOptns=canvas.optns;
-		proto.layer.prototype.base.call(this,0,0,true);
-		var limit=lastCanvasLayers.length;
-		lastCanvasLayers[limit]=this;
-		this.objs = [];
-		this.grdntsnptrns = [];
-		this._level=limit?(lastCanvasLayers[limit-1]._level+1):0;
-		this.optns.number=limit;
-		this.optns.id=idLayer;
-		var thisOptns=this.optns
-		thisOptns.anyObjDeleted= false;
-		thisOptns.anyObjLevelChanged= false;
-		thisOptns.gCO= lastCanvasOptns.gCO;
-		thisOptns.canvas.id=lastCanvasOptns.id;
-		thisOptns.canvas.number=lastCanvas;
-		return this;
-	}
-	this._proto='layer';
-}
-proto.layer.prototype=new proto.object;
-function layers(idLayer)
-{
-	var layer=new proto.layer();
-	return layer.base(idLayer);
-}
-
-proto.groups=function()
-{
-	for(var Class in proto)
-	{
-		if(Class=='group'||Class=='groups')continue;
-		var tmp=new proto[Class];
-		for(var key in tmp)
-		{
-			if(typeof tmp[key]=='function' && this[key]===undefined)
-			{
-				(function(group,key)
-				{
-				group[key]=function(){
-					var argumentsClone=[];
-					var args=[];
-					var i=0;
-					while(arguments[i]!==undefined)
-						args[i]=arguments[i++];
-					for(i=0;i<this.elements.length;i++)
-					{
-						var element=this.elements[i];
-						take(argumentsClone,args);
-						if(typeof element[key]=='function')
-						{
-							element[key].apply(element,argumentsClone);
-						}
-					}
-					return this;
-				}
-				})(this,key);
-			}
-		}
-	}
-	this.reverse=function(){
-		var tmpArray=this.elements;
-		this.elements=this.unmatchedElements;
-		this.unmatchedElements=tmpArray;
-		return this;
-	}
-	this.end=function(n){
-		if(this.previousGroup===undefined || n===0)return this;
-		if(n!==undefined)n--;
-		return this.previousGroup.end(n);
-	}
-	this.find=function(map){
-		var subgroup=group(),
-			attrs=map.attrs,
-			fns=map.fns||[],
-			i,j,
-			element,rel,fn,value1,value2;
-		subgroup.previousGroup=this;
-		for(i=0;i<this.elements.length;i++)
-		{
-			subgroup.elements[i]=this.elements[i];
-		}
-		if(attrs!==undefined)
-		{
-			for(j in attrs)
-			{
-				if(attrs.hasOwnProperty(j))
-				{
-					if(typeof attrs[j]!='object')
-					{
-						attrs[j]={val:attrs[j],rel:'=='};
-					}
-					fns[fns.length]={
-						fn:'attr',
-						args:[j],
-						val:attrs[j].val,
-						rel:attrs[j].rel
-					};
-				}
-			}
-		}
-		if(fns.length)
-		{
-			for(i=0;i<subgroup.elements.length;i++)
-			{
-				element=subgroup.elements[i];
-				for(j=0;j<fns.length;j++)
-				{
-					fn=fns[j];
-					value2=fn.val;
-					rel=fn.rel;
-					if(typeof element[fn.fn]=='function')
-						value1=element[fn.fn].apply(element,fn.args);
-					else rel='del';
-					switch(rel)
-					{
-						case '!=':
-							if(!(value1!=value2))rel='del';
-							break;
-						case '!==':
-							if(!(value1!==value2))rel='del';
-							break;
-						case '==':
-							if(!(value1==value2))rel='del';
-							break;
-						case '===':
-							if(!(value1===value2))rel='del';
-							break;
-						case '>=':
-							if(!(value1>=value2))rel='del';
-							break;
-						case '<=':
-							if(!(value1<=value2))rel='del';
-							break;
-						case '>':
-							if(!(value1>value2))rel='del';
-							break;
-						case '<':
-							if(!(value1<value2))rel='del';
-							break;
-						case 'typeof':
-							if(!(typeof value1==value2))rel='del';
-							break;
-					}
-					if(rel=='del')
-					{
-						subgroup.unmatchedElements[subgroup.unmatchedElements.length]=element;
-						subgroup.elements.splice(i,1);
-						i--;
-						break;
-					}
-				}
-			}
-		}
-		return subgroup;
-	}
-	this.base=function(){
-		this.elements=[];
-		this.unmatchedElements=[];
-		return this;
-	}
-}
+proto.groups = function() {
+    for (var Class in proto) {
+        if (Class == 'group' || Class == 'groups')continue;
+        var tmp = Object.create(proto[Class].prototype);
+        for (var key in tmp) {
+            if (typeof tmp[key] == 'function' && this[key] === undefined) {
+                (function(group, key) {
+                    group[key] = function() {
+                        var argumentsClone = [];
+                        var args = [];
+                        var i = 0;
+                        while (arguments[i] !== undefined)
+                            args[i] = arguments[i++];
+                        for (i = 0; i < this.elements.length; i++) {
+                            var element = this.elements[i];
+                            take(argumentsClone, args);
+                            if (typeof element[key] == 'function') {
+                                element[key].apply(element, argumentsClone);
+                            }
+                        }
+                        return this;
+                    }
+                })(this, key);
+            }
+        }
+    }
+    this.reverse = function() {
+        var tmpArray = this.elements;
+        this.elements = this.unmatchedElements;
+        this.unmatchedElements = tmpArray;
+        return this;
+    };
+    this.end = function(n) {
+        if (this.previousGroup === undefined || n === 0)return this;
+        if (n !== undefined)n--;
+        return this.previousGroup.end(n);
+    };
+    this.find = function(map) {
+        var subgroup = group(),
+            attrs = map.attrs,
+            fns = map.fns || [],
+            i,j,
+            element,rel,fn,value1,value2;
+        subgroup.previousGroup = this;
+        for (i = 0; i < this.elements.length; i++) {
+            subgroup.elements[i] = this.elements[i];
+        }
+        if (attrs !== undefined) {
+            for (j in attrs) {
+                if (attrs.hasOwnProperty(j)) {
+                    if (typeof attrs[j] != 'object') {
+                        attrs[j] = {val:attrs[j],rel:'=='};
+                    }
+                    fns[fns.length] = {
+                        fn:'attr',
+                        args:[j],
+                        val:attrs[j].val,
+                        rel:attrs[j].rel
+                    };
+                }
+            }
+        }
+        if (fns.length) {
+            for (i = 0; i < subgroup.elements.length; i++) {
+                element = subgroup.elements[i];
+                for (j = 0; j < fns.length; j++) {
+                    fn = fns[j];
+                    value2 = fn.val;
+                    rel = fn.rel;
+                    if (typeof element[fn.fn] == 'function')
+                        value1 = element[fn.fn].apply(element, fn.args);
+                    else rel = 'del';
+                    switch (rel) {
+                        case '!=':
+                            if (!(value1 != value2))rel = 'del';
+                            break;
+                        case '!==':
+                            if (!(value1 !== value2))rel = 'del';
+                            break;
+                        case '==':
+                            if (!(value1 == value2))rel = 'del';
+                            break;
+                        case '===':
+                            if (!(value1 === value2))rel = 'del';
+                            break;
+                        case '>=':
+                            if (!(value1 >= value2))rel = 'del';
+                            break;
+                        case '<=':
+                            if (!(value1 <= value2))rel = 'del';
+                            break;
+                        case '>':
+                            if (!(value1 > value2))rel = 'del';
+                            break;
+                        case '<':
+                            if (!(value1 < value2))rel = 'del';
+                            break;
+                        case 'typeof':
+                            if (!(typeof value1 == value2))rel = 'del';
+                            break;
+                    }
+                    if (rel == 'del') {
+                        subgroup.unmatchedElements[subgroup.unmatchedElements.length] = element;
+                        subgroup.elements.splice(i, 1);
+                        i--;
+                        break;
+                    }
+                }
+            }
+        }
+        return subgroup;
+    };
+    this.base = function() {
+        this.elements = [];
+        this.unmatchedElements = [];
+        return this;
+    }
+};
 proto.group=function()
 {
 	this._proto='group';
@@ -2276,46 +1702,60 @@ function group()
 }
 
 	
-jCanvaScript.addFunction=function(name,fn,prototype)
-{
-	proto[prototype||'object'].prototype[name]=fn;
-	return this;
-}
-jCanvaScript.addObject=function(name,constructor,parent,abstraction)
-{
-	proto[name]=constructor;
-	var protoItem=proto[name];
-	if(parent===undefined)parent='shape';
-	protoItem.prototype=new proto[parent];
-	if(!abstraction)
-	{
-		(function(name)
-		{
-			jCanvaScript[name]=function()
-			{
-				var object=new proto[name];
-				return object.base.apply(object,arguments);
-			}
-		})(name);
-	}
-	return this;
-}
-jCanvaScript.addAnimateFunction=function(name,fn)
-{
-	animateFunctions[name]=fn;
-	return this;
-}
-jCanvaScript.addImageDataFilter=function(name,properties)
-{
-	if(imageDataFilters[name]===undefined)imageDataFilters[name]={};
-	if(properties.fn!==undefined)imageDataFilters[name].fn=properties.fn;
-	if(properties.matrix!==undefined && properties.type===undefined)imageDataFilters[name].matrix=properties.matrix;
-	if(properties.type!==undefined)imageDataFilters[name].matrix[type]=properties.matrix;
-	return jCanvaScript;
-}
-jCanvaScript.getProto=function(name){
-	return proto[name].prototype;
-}
+jCanvaScript.addFunction = function(name, fn, prototype) {
+    proto[prototype || 'object'].prototype[name] = fn;
+    return this;
+};
+jCanvaScript.addObject = function(parameters) {
+ /*   var parent = parameters.parent || 'shape',
+        name = parameters.name,
+        protoObject = parameters.proto,
+        abstraction = parameters.abstraction;
+
+    proto[name] = function(){};
+    if (typeof parent !== 'object'){
+        proto[name].prototype = Object.create(proto[parent].prototype);
+        proto[name].proto = parent;
+    }
+    else{
+        for(var key in parent)
+        {
+            if(!parent.hasOwnProperty(key))continue;
+            proto[name].prototype[key]=proto[key].prototype[parent[key]];
+        }
+    }
+    for(var key in protoObject){
+        if(!protoObject.hasOwnProperty(key))continue;
+        proto[name].prototype[key]=protoObject[key];
+    }
+    proto[name].prototype._proto = name;
+    if (!abstraction) {
+        (function(name) {
+            jCanvaScript[name] = function() {
+                var object = Object.create(proto[name].prototype);
+                return object.base.apply(object, arguments);
+            }
+        })(name);
+    }
+    return jCanvaScript[name];*/
+};
+jCanvaScript.addAnimateFunction = function(name, fn) {
+    animateFunctions[name] = fn;
+    return this;
+};
+jCanvaScript.addImageDataFilter = function(name, properties) {
+    if (imageDataFilters[name] === undefined)imageDataFilters[name] = {};
+    if (properties.fn !== undefined)imageDataFilters[name].fn = properties.fn;
+    if (properties.matrix !== undefined && properties.type === undefined)imageDataFilters[name].matrix = properties.matrix;
+    if (properties.type !== undefined)imageDataFilters[name].matrix[type] = properties.matrix;
+    return jCanvaScript;
+};
+jCanvaScript.getProto = function(name) {
+    return proto[name].prototype;
+};
+jCanvaScript.getProtoConstructor = function(name) {
+    return proto[name];
+};
 jCanvaScript.getCenter = getCenter;
 jCanvaScript.getRect = getRect;
 jCanvaScript.checkDefaults = checkDefaults;
@@ -2323,584 +1763,736 @@ jCanvaScript.parseColor = parseColor;
 jCanvaScript.imageDataFilters = imageDataFilters;
 jCanvaScript.multiplyPointM = multiplyPointM;
 jCanvaScript.multiplyM = multiplyM;
-jCanvaScript.constants={
-	PIx2:pi2,
-	radian:radian,
-	regNumsWithMeasure:regNumsWithMeasure
-}
-jCanvaScript.clear=function(idCanvas)
-{
-	if(canvases[0]===undefined)return jCanvaScript;
-	if(idCanvas===undefined){canvases[0].clear();return jCanvaScript;}
-	jCanvaScript.canvas(idCanvas).clear();
-	return jCanvaScript;
-}
-jCanvaScript.pause=function(idCanvas)
-{
-	if(idCanvas===undefined){canvases[0].pause();return jCanvaScript;}
-	jCanvaScript.canvas(idCanvas).pause();
-	return jCanvaScript;
-}
-jCanvaScript.start=function(idCanvas,isAnimated)
-{
-	jCanvaScript.canvas(idCanvas).start(isAnimated);
-	return jCanvaScript;
-}
+jCanvaScript.canvases = canvases;
+jCanvaScript.animating = animating;
+jCanvaScript._lastCanvas = 0;
+jCanvaScript.objectCanvas = canvas;
+jCanvaScript.objectLayer = layer;
+jCanvaScript.constants = {
+    PIx2: Math.PI * 2,
+    radian: 180 / Math.PI,
+    regNumsWithMeasure: /\d.\w\w/
+};
+jCanvaScript.clear = function(idCanvas) {
+    if (canvases[0] === undefined)return jCanvaScript;
+    if (idCanvas === undefined) {
+        canvases[0].clear();
+        return jCanvaScript;
+    }
+    jCanvaScript.canvas(idCanvas).clear();
+    return jCanvaScript;
+};
+jCanvaScript.pause = function(idCanvas) {
+    if (idCanvas === undefined) {
+        canvases[0].pause();
+        return jCanvaScript;
+    }
+    jCanvaScript.canvas(idCanvas).pause();
+    return jCanvaScript;
+};
+jCanvaScript.start = function(idCanvas, isAnimated) {
+    jCanvaScript.canvas(idCanvas).start(isAnimated);
+    return jCanvaScript;
+};
 
 	
-
-jCanvaScript.pattern = function(img,type)
-{
-	var pattern = new proto.pattern;
-	return pattern.base(img,type);
-}
-
-jCanvaScript.lGradient=function(x1,y1,x2,y2,colors)
-{
-	var lGrad = new proto.lGradient;
-	return lGrad.base(x1,y1,x2,y2,colors);
-}
-jCanvaScript.rGradient=function(x1,y1,r1,x2,y2,r2,colors)
-{
-	var rGrad = new proto.rGradient;
-	return rGrad.base(x1,y1,r1,x2,y2,r2,colors);
-}
-
-	
-jCanvaScript.canvas = function(idCanvas)
-{
-	if(idCanvas===undefined)return canvases[0];
-	var limit=canvases.length;
-	for (var i=0;i<limit;i++)
-		if(canvases[i].optns)
-			if(canvases[i].optns.id==idCanvas)return canvases[i];
-	var canvas={
-		id:function(id)
-		{
-			if(id===undefined)return this.optns.id;
-			this.optns.id=id;
-			return this;
-		}
-	};
-	canvases[limit]=canvas;
-	lastCanvas=limit;
-	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v')
-	{
-		if(typeof G_vmlCanvasManager!=='undefined')
-			G_vmlCanvasManager.initElement(canvas.cnv);
-		if(typeof FlashCanvas !=='undefined')
-			FlashCanvas.initElement(canvas.cnv);
-	}
-	canvas.optns =
-	{
-		id:idCanvas,
-		number:lastCanvas,
-		ctx: canvas.cnv.getContext('2d'),
-		width: canvas.cnv.offsetWidth||canvas.cnv.width,
-		height: canvas.cnv.offsetHeight||canvas.cnv.height,
-		anyLayerDeleted: false,
-		anyLayerLevelChanged:false,
-		keyDown:{val:false,code:false},
-		keyUp:{val:false,code:false},
-		keyPress:{val:false,code:false},
-		mousemove:{val:false,x:false,y:false,object:false},
-		click:{val:false,x:false,y:false,objects:[]},
-		dblclick:{val:false,x:false,y:false,objects:[]},
-		mouseup:{val:false,x:false,y:false,objects:[]},
-		mousedown:{val:false,x:false,y:false,objects:[]},
-		drag:{object:false,x:0,y:0},
-		gCO: 'source-over',
-		redraw:1
-	}
-	canvas.toDataURL=function(){return canvas.cnv.toDataURL.apply(canvas.cnv,arguments);}
-	canvas.layers=[];
-	canvas.interval=0;
-	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
-	canvas.start=function(isAnimated)
-	{
-		lastCanvas=this.optns.number;
-		if(isAnimated)
-		{
-			if(this.interval)return this;
-			this.isAnimated=isAnimated;
-			var offset=getOffset(this.cnv);
-			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
-			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
-			var canvas=canvases[this.optns.number],
-			optns=canvas.optns;
-			this.cnv.onclick=function(e){
-				mouseEvent(e,'click',optns);
-			}
-			this.cnv.ondblclick=function(e){
-				mouseEvent(e,'dblclick',optns);
-				var tmp=optns.mousemove.val;
-				optns.mousemove.val=true;
-				setTimeout(function(){optns.mousemove.val=tmp;},3000);
-			}
-			this.cnv.onmousedown=function(e){
-				mouseEvent(e,'mousedown',optns);
-			}
-			this.cnv.onmouseup=function(e){
-				mouseEvent(e,'mouseup',optns);
-			}
-			this.cnv.onkeyup=function(e){
-				keyEvent(e,'keyUp',optns);
-			}
-			this.cnv.onkeydown=function(e)
-			{
-				keyEvent(e,'keyDown',optns);
-			}
-			this.cnv.onkeypress=function(e)
-			{
-				keyEvent(e,'keyPress',optns);
-			}
-			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
-			{
-				mouseEvent(e,'mousemove',optns);
-			};
-			optns.timeLast=new Date();
-			this.interval=requestAnimFrame(function(time){
-					canvas.interval=canvas.interval||1;
-					canvas.frame(time);},
-				this.cnv);
-		}
-		else return this.frame();
-		return this;
-	}
-	canvas.pause=function()
-	{
-		cancelRequestAnimFrame(this.interval);
-		this.interval=0;
-	}
-	canvas.del=function()
-	{
-		cancelRequestAnimFrame(this.interval);
-		this.layers=[];
-		canvases.splice(this.optns.number,1);
-		for(var i=0;i<canvases.length;i++)
-		{
-			var canvas=canvases[i],
-			layers=canvas.layers,
-			limitL=layers.length;
-			canvas.optns.number=i;
-			for(var j=0;j<limitL;j++)
-			{
-				var layer=layers[j];
-				layer.optns.canvas.number=i;
-				setLayerAndCanvasToArray(layer.objs,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
-				setLayerAndCanvasToArray(layer.grdntsnptrns,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
-			}
-		}
-		if(this.cnv.parentNode)this.cnv.parentNode.removeChild(this.cnv);
-		lastCanvas=0;
-		return false;
-	}
-	canvas.clear=function()
-	{
-		cancelRequestAnimFrame(this.interval);
-		this.interval=0;
-		this.layers=[];
-		jCanvaScript.layer(this.optns.id+'Layer_0').canvas(this.optns.id);
-		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
-		this.optns.redraw++;
-		return this;
-	}
-	canvas.frame=function(time)
-	{
-		var optns=this.optns,thisCanvas=this;
-		time=time||(new Date());
-		optns.timeDiff=time-optns.timeLast;
-		optns.timeLast=time;
-		if(this.interval)
-		{
-			this.interval=requestAnimFrame(function(time){thisCanvas.frame(time);},thisCanvas.cnv);
-			this.interval=this.interval||1;
-		}
-		if(!optns.redraw)return this;
-		optns.redraw--;
-		optns.ctx.clearRect(0,0,optns.width,optns.height);
-		if(this.layers.length==0)return this;
-		limit=this.layers.length;
-		if(optns.anyLayerLevelChanged)
-			limit=levelChanger(this.layers);
-		if(optns.anyLayerDeleted)
-			limit=objDeleter(this.layers);
-		if(optns.anyLayerLevelChanged || optns.anyLayerDeleted)
-		{
-			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
-			for(var i=0;i<limit;i++)
-			{
-				var layer=this.layers[i],layerOptns=layer.optns;
-				setLayerAndCanvasToArray(layer.objs,layerOptns.id,layerOptns.number,this.optns.id,this.optns.number);
-				setLayerAndCanvasToArray(layer.grdntsnptrns,layerOptns.id,layerOptns.number,idCanvas,this.optns.number);
-			}
-		}
-		for(i=0;i<limit;i++)
-		{
-			var object=this.layers[i];
-			if(typeof (object.draw)=='function')
-				if(object.beforeDraw(optns))
-				{
-					if(typeof (object.draw)=='function')
-					{
-						object.draw(optns);
-						object.afterDraw(optns);
-					}
-				}
-		}
-		var mm=optns.mousemove;
-		var mouseDown=optns.mousedown;
-		var mouseUp=optns.mouseup;
-		var click=this.optns.click;
-		var dblClick=this.optns.dblclick;
-		if(mm.x!=false)
-		{
-			if(optns.drag.object!=false)
-			{
-				var drag=optns.drag,
-					dobject=drag.object;
-				dobject.translate(mm.x-drag.x,mm.y-drag.y);
-				drag.x=mm.x;
-				drag.y=mm.y;
-				if(drag.drag)drag.drag.call(dobject,{x:mm.x,y:mm.y});
-			}
-			var point = this.optns.point||{};
-			point.event=mm.event;
-			if(mm.object!=false)
-			{
-				var mousemoveObject=mm.object;
-				if(underMouse===mousemoveObject)
-				{
-					if(typeof mousemoveObject.onmousemove=='function')
-						mousemoveObject.onmousemove(point);
-				}
-				else
-				{
-					if(underMouse!=false)
-						if(typeof underMouse.onmouseout=='function')
-							underMouse.onmouseout(point);
-					if(typeof mousemoveObject.onmouseover=='function')
-						mousemoveObject.onmouseover(point);
-					underMouse=mousemoveObject;
-				}
-			}
-			else
-			{
-				if(underMouse!==false)
-				{
-					if(typeof underMouse.onmouseout=='function')
-					{
-						underMouse.onmouseout(point);
-					}
-					underMouse=false;
-				}
-			}
-			optns.mousemove.object=false;
-		}
-		if(mouseDown.objects.length)
-		{
-			mdCicle:
-			for(i=mouseDown.objects.length-1;i>-1;i--)
-			{
-				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
-				for(var j=0;j<2;j++)
-				{
-					mdObject=mouseDownObjects[j];
-					if(mdObject.optns.drag.val==true && mdObject.optns.drag.disabled==false)
-					{
-						drag=optns.drag;
-						dobject=drag.object=mdObject.optns.drag.object.visible(true);
-						drag.drag=mdObject.optns.drag.drag;
-						drag.init=mdObject;
-						var initoptns=drag.init.optns;
-						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
-						drag.x=drag.startX=mouseDown.x;
-						drag.y=drag.startY=mouseDown.y;
-						if(dobject!=drag.init && initoptns.drag.type!='clone')
-						{
-							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
-							dobject.translate(point.x-dobject._x,point.y-dobject._y);
-						}
-						dobject.translate(initoptns.drag.shiftX,initoptns.drag.shiftY);
-						if(typeof initoptns.drag.start=='function')
-							initoptns.drag.start.call(dobject,{x:mouseDown.x,y:mouseDown.y});
-					}
-					if(typeof mdObject.onmousedown=='function')
-						if(mdObject.onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event})===false)
-							break mdCicle;
-				}
-			}
-			mouseDown.objects=[];
-		}
-		if(mouseUp.objects.length)
-		{
-			muCicle:
-			for(i=mouseUp.objects.length-1;i>-1;i--)
-			{
-				var mouseUpObjects=[mouseUp.objects[i],objectLayer(mouseUp.objects[i])],muObject;
-				drag=optns.drag;
-				for(j=0;j<2;j++)
-				{
-					muObject=mouseUpObjects[j];
-					if(optns.drag.init!==undefined)
-					{
-						if(muObject.optns.drop.val==true)
-						{
-
-							if(drag.init==drag.object)
-								drag.init.visible(true);
-							if(typeof muObject.optns.drop.fn=='function')
-								muObject.optns.drop.fn.call(muObject,drag.init);
-						}
-						else
-						{
-							drag.object.visible(false);
-							drag.init.visible(true);
-							drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
-							drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
-							changeMatrix(drag.init);
-							if(drag.object!=drag.init)drag.object.visible(false);
-							if(typeof drag.init.optns.drag.stop=='function')
-								drag.init.optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
-						}
-						if(drag.x!=drag.startX || drag.y!==drag.startY)click.objects=[];
-					}
-					if(typeof muObject.onmouseup=='function')
-						if(muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
-							break muCicle;
-				}
-			}
-			this.optns.drag={object:false,x:0,y:0};
-			mouseUp.objects=[];
-		}
-		if(click.objects.length)
-		{
-			cCicle:
-			for(i=click.objects.length-1;i>-1;i--)
-			{
-				var mouseClickObjects=[click.objects[i],objectLayer(click.objects[i])];
-				for(j=0;j<2;j++)
-				{
-					if(typeof mouseClickObjects[j].onclick == 'function')
-						if(mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event})===false)
-							break cCicle;
-				}
-			}
-			click.objects=[];
-		}
-		if(dblClick.objects.length)
-        {
-			dcCicle:
-			for(i=dblClick.objects.length-1;i>-1;i--)
-			{
-				var mouseDblClickObjects=[dblClick.objects[i],objectLayer(dblClick.objects[i])];
-				for(j=0;j<2;j++)
-				{
-					if(typeof mouseDblClickObjects[j].ondblclick == 'function')
-						if(mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event})===false)
-							break dcCicle;
-				}
-			}
-            dblClick.objects=[];
+jCanvaScript.canvas = function(idCanvas) {
+    if (idCanvas === undefined)return canvases[0];
+    var limit = canvases.length;
+    for (var i = 0; i < limit; i++)
+        if (canvases[i].optns)
+            if (canvases[i].optns.id == idCanvas)return canvases[i];
+    var canvas = {
+        id:function(id) {
+            if (id === undefined)return this.optns.id;
+            this.optns.id = id;
+            return this;
         }
-		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=click.x=dblClick.x=mouseUp.x=mouseDown.x=mm.x=false;
-		return this;
-	}
-	return canvas;
-}
+    };
+    canvases[limit] = canvas;
+    jCanvaScript._lastCanvas = limit;
+    canvas.cnv = document.getElementById(idCanvas);
+    if ('\v' == 'v') {
+        if (typeof G_vmlCanvasManager !== 'undefined')
+            G_vmlCanvasManager.initElement(canvas.cnv);
+        if (typeof FlashCanvas !== 'undefined')
+            FlashCanvas.initElement(canvas.cnv);
+    }
+    canvas.optns =
+    {
+        id:idCanvas,
+        number:jCanvaScript._lastCanvas,
+        ctx: canvas.cnv.getContext('2d'),
+        width: canvas.cnv.offsetWidth || canvas.cnv.width,
+        height: canvas.cnv.offsetHeight || canvas.cnv.height,
+        anyLayerDeleted: false,
+        anyLayerLevelChanged:false,
+        keyDown:{val:false,code:false},
+        keyUp:{val:false,code:false},
+        keyPress:{val:false,code:false},
+        mousemove:{val:false,x:false,y:false,object:false},
+        click:{val:false,x:false,y:false,objects:[]},
+        dblclick:{val:false,x:false,y:false,objects:[]},
+        mouseup:{val:false,x:false,y:false,objects:[]},
+        mousedown:{val:false,x:false,y:false,objects:[]},
+        drag:{object:false,x:0,y:0},
+        gCO: 'source-over',
+        redraw:1
+    };
+    canvas.toDataURL = function() {
+        return canvas.cnv.toDataURL.apply(canvas.cnv, arguments);
+    };
+    canvas.layers = [];
+    canvas.interval = 0;
+    jCanvaScript.layer(idCanvas + 'Layer_0').canvas(idCanvas);
+    canvas.start = function(isAnimated) {
+        jCanvaScript._lastCanvas = this.optns.number;
+        if (isAnimated) {
+            if (this.interval)return this;
+            this.isAnimated = isAnimated;
+            var offset = getOffset(this.cnv);
+            this.optns.x = offset.left + (parseInt(this.cnv.style.borderTopWidth) || 0);
+            this.optns.y = offset.top + (parseInt(this.cnv.style.borderLeftWidth) || 0);
+            var canvas = canvases[this.optns.number],
+                optns = canvas.optns;
+            this.cnv.onclick = function(e) {
+                mouseEvent(e, 'click', optns);
+            };
+            this.cnv.ondblclick = function(e) {
+                mouseEvent(e, 'dblclick', optns);
+                var tmp = optns.mousemove.val;
+                optns.mousemove.val = true;
+                setTimeout(function() {
+                    optns.mousemove.val = tmp;
+                }, 3000);
+            };
+            this.cnv.onmousedown = function(e) {
+                mouseEvent(e, 'mousedown', optns);
+            };
+            this.cnv.onmouseup = function(e) {
+                mouseEvent(e, 'mouseup', optns);
+            };
+            this.cnv.onkeyup = function(e) {
+                keyEvent(e, 'keyUp', optns);
+            };
+            this.cnv.onkeydown = function(e) {
+                keyEvent(e, 'keyDown', optns);
+            };
+            this.cnv.onkeypress = function(e) {
+                keyEvent(e, 'keyPress', optns);
+            };
+            this.cnv.onmouseout = this.cnv.onmousemove = function(e) {
+                mouseEvent(e, 'mousemove', optns);
+            };
+            optns.timeLast = new Date();
+            this.interval = requestAnimFrame(function(time) {
+                    canvas.interval = canvas.interval || 1;
+                    canvas.frame(time);
+                },
+                this.cnv);
+        }
+        else return this.frame();
+        return this;
+    };
+    canvas.pause = function() {
+        cancelRequestAnimFrame(this.interval);
+        this.interval = 0;
+    };
+    canvas.del = function() {
+        cancelRequestAnimFrame(this.interval);
+        this.layers = [];
+        canvases.splice(this.optns.number, 1);
+        for (var i = 0; i < canvases.length; i++) {
+            var canvas = canvases[i],
+                layers = canvas.layers,
+                limitL = layers.length;
+            canvas.optns.number = i;
+            for (var j = 0; j < limitL; j++) {
+                var layer = layers[j];
+                layer.optns.canvas.number = i;
+                setLayerAndCanvasToArray(layer.objs, layer.optns.id, layer.optns.number, canvas.optns.id, canvas.optns.number);
+                setLayerAndCanvasToArray(layer.grdntsnptrns, layer.optns.id, layer.optns.number, canvas.optns.id, canvas.optns.number);
+            }
+        }
+        if (this.cnv.parentNode)this.cnv.parentNode.removeChild(this.cnv);
+        jCanvaScript._lastCanvas = 0;
+        return false;
+    };
+    canvas.clear = function() {
+        cancelRequestAnimFrame(this.interval);
+        this.interval = 0;
+        this.layers = [];
+        jCanvaScript.layer(this.optns.id + 'Layer_0').canvas(this.optns.id);
+        this.optns.ctx.clearRect(0, 0, this.optns.width, this.optns.height);
+        this.optns.redraw++;
+        return this;
+    };
+    canvas.frame = function(time) {
+        var optns = this.optns,thisCanvas = this;
+        time = time || (new Date());
+        optns.timeDiff = time - optns.timeLast;
+        optns.timeLast = time;
+        if (this.interval) {
+            this.interval = requestAnimFrame(function(time) {
+                thisCanvas.frame(time);
+            }, thisCanvas.cnv);
+            this.interval = this.interval || 1;
+        }
+        if (!optns.redraw)return this;
+        optns.redraw--;
+        optns.ctx.clearRect(0, 0, optns.width, optns.height);
+        if (this.layers.length == 0)return this;
+        limit = this.layers.length;
+        if (optns.anyLayerLevelChanged)
+            limit = levelChanger(this.layers);
+        if (optns.anyLayerDeleted)
+            limit = objDeleter(this.layers);
+        if (optns.anyLayerLevelChanged || optns.anyLayerDeleted) {
+            optns.anyLayerLevelChanged = optns.anyLayerDeleted = false;
+            for (var i = 0; i < limit; i++) {
+                var layer = this.layers[i],layerOptns = layer.optns;
+                setLayerAndCanvasToArray(layer.objs, layerOptns.id, layerOptns.number, this.optns.id, this.optns.number);
+                setLayerAndCanvasToArray(layer.grdntsnptrns, layerOptns.id, layerOptns.number, idCanvas, this.optns.number);
+            }
+        }
+        for (i = 0; i < limit; i++) {
+            var object = this.layers[i];
+            if (typeof (object.draw) == 'function')
+                if (object.beforeDraw(optns)) {
+                    if (typeof (object.draw) == 'function') {
+                        object.draw(optns);
+                        object.afterDraw(optns);
+                    }
+                }
+        }
+        var mm = optns.mousemove;
+        var mouseDown = optns.mousedown;
+        var mouseUp = optns.mouseup;
+        var click = this.optns.click;
+        var dblClick = this.optns.dblclick;
+        if (mm.x != false) {
+            if (optns.drag.object != false) {
+                var drag = optns.drag,
+                    dobject = drag.object;
+                dobject.translate(mm.x - drag.x, mm.y - drag.y);
+                drag.x = mm.x;
+                drag.y = mm.y;
+                if (drag.drag)drag.drag.call(dobject, {x:mm.x,y:mm.y});
+            }
+            var point = this.optns.point || {};
+            point.event = mm.event;
+            if (mm.object != false) {
+                var mousemoveObject = mm.object;
+                if (underMouse === mousemoveObject) {
+                    if (typeof mousemoveObject.onmousemove == 'function')
+                        mousemoveObject.onmousemove(point);
+                }
+                else {
+                    if (underMouse != false)
+                        if (typeof underMouse.onmouseout == 'function')
+                            underMouse.onmouseout(point);
+                    if (typeof mousemoveObject.onmouseover == 'function')
+                        mousemoveObject.onmouseover(point);
+                    underMouse = mousemoveObject;
+                }
+            }
+            else {
+                if (underMouse !== false) {
+                    if (typeof underMouse.onmouseout == 'function') {
+                        underMouse.onmouseout(point);
+                    }
+                    underMouse = false;
+                }
+            }
+            optns.mousemove.object = false;
+        }
+        if (mouseDown.objects.length) {
+            mdCicle:
+                for (i = mouseDown.objects.length - 1; i > -1; i--) {
+                    var mouseDownObjects = [mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
+                    for (var j = 0; j < 2; j++) {
+                        mdObject = mouseDownObjects[j];
+                        if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled) {
+                            drag = optns.drag;
+                            dobject = drag.object = mdObject.optns.drag.object.visible(true);
+                            drag.drag = mdObject.optns.drag.drag;
+                            drag.init = mdObject;
+                            var initoptns = drag.init.optns;
+                            if (initoptns.drag.params !== undefined)dobject.animate(initoptns.drag.params);
+                            drag.x = drag.startX = mouseDown.x;
+                            drag.y = drag.startY = mouseDown.y;
+                            if (dobject != drag.init && initoptns.drag.type != 'clone') {
+                                point = transformPoint(mouseDown.x, mouseDown.y, dobject.matrix());
+                                dobject.translate(point.x - dobject._x, point.y - dobject._y);
+                            }
+                            dobject.translate(initoptns.drag.shiftX, initoptns.drag.shiftY);
+                            if (typeof initoptns.drag.start == 'function')
+                                initoptns.drag.start.call(dobject, {x:mouseDown.x,y:mouseDown.y});
+                        }
+                        if (typeof mdObject.onmousedown == 'function')
+                            if (mdObject.onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event}) === false)
+                                break mdCicle;
+                    }
+                }
+            mouseDown.objects = [];
+        }
+        if (mouseUp.objects.length) {
+            muCicle:
+                for (i = mouseUp.objects.length - 1; i > -1; i--) {
+                    var mouseUpObjects = [mouseUp.objects[i],objectLayer(mouseUp.objects[i])],muObject;
+                    drag = optns.drag;
+                    for (j = 0; j < 2; j++) {
+                        muObject = mouseUpObjects[j];
+                        if (optns.drag.init !== undefined) {
+                            if (muObject.optns.drop.val) {
 
-jCanvaScript.layer=function(idLayer)
-{
-	if(idLayer===undefined)return canvases[0].layers[0];
-	for(var i=0;i<canvases.length;i++)
-	{
-		var layersArray=canvases[i].layers;
-		for (var j=0;j<layersArray.length;j++)
-			if(layersArray[j].optns.id==idLayer)
-				return layersArray[j];
-	}
-	return layers(idLayer);
+                                if (drag.init == drag.object)
+                                    drag.init.visible(true);
+                                if (typeof muObject.optns.drop.fn == 'function')
+                                    muObject.optns.drop.fn.call(muObject, drag.init);
+                            }
+                            else {
+                                drag.object.visible(false);
+                                drag.init.visible(true);
+                                drag.init.optns.translateMatrix[0][2] = drag.object.optns.translateMatrix[0][2];
+                                drag.init.optns.translateMatrix[1][2] = drag.object.optns.translateMatrix[1][2];
+                                changeMatrix(drag.init);
+                                if (drag.object != drag.init)drag.object.visible(false);
+                                if (typeof drag.init.optns.drag.stop == 'function')
+                                    drag.init.optns.drag.stop.call(drag.init, {x:mouseUp.x,y:mouseUp.y});
+                            }
+                            if (drag.x != drag.startX || drag.y !== drag.startY)click.objects = [];
+                        }
+                        if (typeof muObject.onmouseup == 'function')
+                            if (muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event}) === false)
+                                break muCicle;
+                    }
+                }
+            this.optns.drag = {object:false,x:0,y:0};
+            mouseUp.objects = [];
+        }
+        if (click.objects.length) {
+            cCicle:
+                for (i = click.objects.length - 1; i > -1; i--) {
+                    var mouseClickObjects = [click.objects[i],objectLayer(click.objects[i])];
+                    for (j = 0; j < 2; j++) {
+                        if (typeof mouseClickObjects[j].onclick == 'function')
+                            if (mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event}) === false)
+                                break cCicle;
+                    }
+                }
+            click.objects = [];
+        }
+        if (dblClick.objects.length) {
+            dcCicle:
+                for (i = dblClick.objects.length - 1; i > -1; i--) {
+                    var mouseDblClickObjects = [dblClick.objects[i],objectLayer(dblClick.objects[i])];
+                    for (j = 0; j < 2; j++) {
+                        if (typeof mouseDblClickObjects[j].ondblclick == 'function')
+                            if (mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event}) === false)
+                                break dcCicle;
+                    }
+                }
+            dblClick.objects = [];
+        }
+        optns.keyUp.val = optns.keyDown.val = optns.keyPress.val = click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
+        return this;
+    };
+    return canvas;
+};
+
+jCanvaScript.Proto.Layer =function(idLayer) {
+    this._proto = 'layer';
+    var canvas = canvases[jCanvaScript._lastCanvas],
+        lastCanvasLayers = canvas.layers,
+        lastCanvasOptns = canvas.optns;
+    jCanvaScript.Proto.Object.prototype.constructor.call(this, 0, 0, true);
+    var limit = lastCanvasLayers.length;
+    lastCanvasLayers[limit] = this;
+    this.objs = [];
+    this.grdntsnptrns = [];
+    this._level = limit ? (lastCanvasLayers[limit - 1]._level + 1) : 0;
+    this.optns.number = limit;
+    this.optns.id = idLayer;
+    var thisOptns = this.optns;
+    thisOptns.anyObjDeleted = false;
+    thisOptns.anyObjLevelChanged = false;
+    thisOptns.gCO = lastCanvasOptns.gCO;
+    thisOptns.canvas.id = lastCanvasOptns.id;
+    thisOptns.canvas.number = jCanvaScript._lastCanvas;
+    return this;
 }
+jCanvaScript.Proto.Layer.prototype = Object.create(jCanvaScript.Proto.Object.prototype);
+jCanvaScript.Proto.Layer.prototype.position = function() {
+        var objs = this.objs,
+            points,point,i,
+            limit = objs.length;
+        for (i = 0; i < limit; i++) {
+            point = objs[i].position();
+            if (points === undefined)points = point;
+            if (points.x > point.x)points.x = point.x;
+            if (points.y > point.y)points.y = point.y;
+        }
+        return points;
+    };
+jCanvaScript.Proto.Layer.prototype.getRect = function(type) {
+        var objs = this.objs,
+            points,rect,i,
+            limit = objs.length;
+        if (objs.length == 0)return false;
+        if (type == 'coords') {
+            for (i = 0; i < limit; i++) {
+                rect = objs[i].getRect(type);
+                if (points === undefined)points = rect;
+                if (points[0][0] > rect[0][0])points[0][0] = rect[0][0];
+                if (points[0][1] > rect[0][1])points[0][1] = rect[0][1];
+                if (points[1][0] < rect[1][0])points[1][0] = rect[1][0];
+                if (points[1][1] > rect[1][1])points[1][1] = rect[1][1];
+                if (points[2][0] > rect[2][0])points[2][0] = rect[2][0];
+                if (points[2][1] < rect[2][1])points[2][1] = rect[2][1];
+                if (points[3][0] < rect[3][0])points[3][0] = rect[3][0];
+                if (points[3][1] < rect[3][1])points[3][1] = rect[3][1];
+            }
+            return points;
+        }
+        for (i = 0; i < limit; i++) {
+            rect = objs[i].getRect(type);
+            rect.right = rect.width + rect.x;
+            rect.bottom = rect.height + rect.y;
+            if (points === undefined)points = rect;
+            if (points.x > rect.x)points.x = rect.x;
+            if (points.y > rect.y)points.y = rect.y;
+            if (points.right < rect.right)points.right = rect.right;
+            if (points.bottom < rect.bottom)points.bottom = rect.bottom;
+        }
+        points.width = points.right - points.x;
+        points.height = points.bottom - points.y;
+        return points;
+    };
+jCanvaScript.Proto.Layer.prototype.canvas = function(idCanvas) {
+        if (idCanvas === undefined)return this.idCanvas;
+        if (this.optns.canvas.id == idCanvas)return this;
+        var newCanvas = -1,oldCanvas = 0,limitC = canvases.length;
+        for (var i = 0; i < limitC; i++) {
+            var idCanvasItem = canvases[i].optns.id;
+            if (idCanvasItem == idCanvas)newCanvas = i;
+            if (idCanvasItem == this.optns.canvas.id)oldCanvas = i;
+        }
+        if (newCanvas < 0) {
+            newCanvas = canvases.length;
+            jCanvaScript.canvas(idCanvas);
+        }
+        this.optns.canvas.id = idCanvas;
+        this.optns.canvas.number = newCanvas;
+        canvases[oldCanvas].layers.splice(this.optns.number, 1);
+        var layersArray = canvases[newCanvas].layers;
+        this._level = this.optns.number = layersArray.length;
+        layersArray[this._level] = this;
+        setLayerAndCanvasToArray(this.objs, this.optns.id, this._level, idCanvas, newCanvas);
+        setLayerAndCanvasToArray(this.grdntsnptrns, this.optns.id, this._level, idCanvas, newCanvas);
+        canvases[newCanvas].optns.redraw = 1;
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.up = function(n) {
+        if (n === undefined)n = 1;
+        if (n == 'top')this.level(n);
+        else {
+            var next = objectCanvas(this).layers[this.optns.number + n];
+            if (next !== undefined) {
+                n = next._level + 1 - this._level;
+            }
+            this.level(this._level + n);
+        }
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.down = function(n) {
+        if (n == undefined)n = 1;
+        if (n == 'bottom')this.level(n);
+        else {
+            var previous = objectCanvas(this).layers[this.optns.number - n];
+            if (previous !== undefined) {
+                n = this._level - (previous._level - 1);
+            }
+            this.level(this._level - n);
+        }
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.level = function(n) {
+        if (n == undefined)return this._level;
+        var canvas = objectCanvas(this),
+            optns = canvas.optns;
+        if (n == 'bottom')
+            if (this.optns.number == 0)n = this._level;
+            else n = canvas.layers[0]._level - 1;
+        if (n == 'top')
+            if (this.optns.number == canvas.layers.length - 1)n = this._level;
+            else n = canvas.layers[canvas.layers.length - 1]._level + 1;
+        this._level = n;
+        optns.anyLayerLevelChanged = true;
+        optns.redraw = 1;
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.del = function() {
+        var optns = objectCanvas(this).optns;
+        optns.anyLayerDeleted = true;
+        this.draw = false;
+        optns.redraw = 1;
+    };
+jCanvaScript.Proto.Layer.prototype.setOptns = function(ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+       jCanvaScript.Proto.Object.prototype.setOptns.call(this, ctx);
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.afterDraw = function(optns) {
+        optns.ctx.closePath();
+        optns.ctx.restore();
+        if (this.optns.clipObject) {
+            jCanvaScript.Proto.Object.prototype.afterDraw.call(this.optns.clipObject, optns);
+        }
+    };
+jCanvaScript.Proto.Layer.prototype.clone = function(idLayer, params) {
+        var clone = jCanvaScript.layer(idLayer);
+        take(clone, this);
+        take(clone.optns.transformMatrix, this.optns.transformMatrix);
+        take(clone.optns.translateMatrix, this.optns.translateMatrix);
+        take(clone.optns.scaleMatrix, this.optns.scaleMatrix);
+        take(clone.optns.rotateMatrix, this.optns.rotateMatrix);
+        clone.canvas(objectCanvas(this).optns.id);
+        if (params === undefined) return clone;
+        return clone.animate(params);
+    };
+jCanvaScript.Proto.Layer.prototype.isPointIn = function(x, y, global) {
+        var objs = this.objs,i;
+        for (i = 0; i < objs.length; i++)
+            if (objs[i].isPointIn(x, y, global))
+                return true;
+        return false;
+    };
+jCanvaScript.Proto.Layer.prototype.opacity = function(n) {
+        var objs = this.objs;
+        for (var i = 0; i < objs.length; i++)
+            objs[i].attr('opacity', n);
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.fadeTo = function(val, duration, easing, onstep, fn) {
+        if (duration === undefined)duration = 600;
+        var objs = this.objs;
+        for (var i = 0; i < objs.length; i++)
+            objs[i].animate({opacity:val}, duration, easing, onstep, fn);
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.draw = function(canvasOptns) {
+        var optns = this.optns,
+            bufOptns = optns.buffer,
+            ctx = canvasOptns.ctx;
+        if (bufOptns.val) {
+            ctx.drawImage(bufOptns.cnv, bufOptns.x, bufOptns.y);
+            return this;
+        }
+        for (var i = 0; i < this.grdntsnptrns.length; i++)
+            this.grdntsnptrns[i].create(canvasOptns);
+        if (optns.anyObjLevelChanged) {
+            levelChanger(this.objs);
+            optns.anyObjLevelChanged = false;
+        }
+        if (optns.anyObjDeleted) {
+            objDeleter(this.objs);
+            optns.anyObjDeleted = false;
+        }
+        ctx.globalCompositeOperation = optns.gCO;
+        for (i = 0; i < this.objs.length; i++) {
+            var object = this.objs[i];
+            if (typeof (object.draw) == 'function') {
+                this.setOptns(ctx);
+                if (object.beforeDraw(canvasOptns)) {
+                    if (typeof (object.draw) == 'function') {
+                        var objBufOptns = object.optns.buffer;
+                        if (objBufOptns.val)
+                            ctx.drawImage(objBufOptns.cnv, objBufOptns.x, objBufOptns.y);
+                        else
+                            object.draw(ctx);
+                        if (bufOptns.optns)
+                            object.afterDraw(bufOptns.optns);
+                        else
+                            object.afterDraw(canvasOptns);
+                    }
+                }
+            }
+        }
+        return this;
+    };
+jCanvaScript.Proto.Layer.prototype.objects = function(map) {
+        var myGroup = group(),i = 0;
+        while (this.objs[i] !== undefined)
+            myGroup.elements[i] = this.objs[i++];
+        if (map !== undefined)
+            return myGroup.find(map);
+        return myGroup;
+    };
+jCanvaScript.layer = function(idLayer) {
+    if (idLayer === undefined)return canvases[0].layers[0];
+    for (var i = 0; i < canvases.length; i++) {
+        var layersArray = canvases[i].layers;
+        for (var j = 0; j < layersArray.length; j++)
+            if (layersArray[j].optns.id == idLayer)
+                return layersArray[j];
+    }
+    return new jCanvaScript.Proto.Layer(idLayer);
+};
 
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
 
 jCanvaScript.addObject('arc', function(){
 
-	this.base = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor)
-	{
-		var options = x;
-		if(anticlockwise !== undefined)
-		{
-			if(anticlockwise.charAt){
-				fillColor = lineColor;
-				lineColor = anticlockwise;
-				anticlockwise = true;
-			}
-			if(anticlockwise)anticlockwise = true;
-			else anticlockwise = false;
-		}
-		if(typeof options != 'object')
-			options = {x:x, y:y, radius:radius, startAngle:startAngle, endAngle:endAngle, anticlockwise:anticlockwise, lineColor:lineColor, fillColor:fillColor};
-		options = jCanvaScript.checkDefaults(options, {radius:0, startAngle:0, endAngle:0, anticlockwise:true});
-		this.protobase(options);
-		this._radius = options.radius;
-		this._startAngle = options.startAngle;
-		this._endAngle = options.endAngle;
-		this._anticlockwise = options.anticlockwise;
-		return this;
-	}
+	this.base = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor) {
+        var options = x;
+        if (anticlockwise !== undefined) {
+            if (anticlockwise.charAt) {
+                fillColor = lineColor;
+                lineColor = anticlockwise;
+                anticlockwise = true;
+            }
+        }
+        if (typeof options != 'object')
+            options = {x:x, y:y, radius:radius, startAngle:startAngle, endAngle:endAngle, anticlockwise:anticlockwise, lineColor:lineColor, fillColor:fillColor};
+        options = jCanvaScript.checkDefaults(options, {radius:0, startAngle:0, endAngle:0, anticlockwise:true});
+        this.protobase(options);
+        this._radius = options.radius;
+        this._startAngle = options.startAngle;
+        this._endAngle = options.endAngle;
+        this._anticlockwise = options.anticlockwise;
+        return this;
+    };
 
-	this.draw = function(ctx)
-	{
-		var radian = jCanvaScript.constants.radian;
-		ctx.arc(this._x, this._y, this._radius, this._startAngle/radian, this._endAngle/radian, this._anticlockwise);
-	}
+	this.draw = function(ctx) {
+        var radian = jCanvaScript.constants.radian;
+        ctx.arc(this._x, this._y, this._radius, this._startAngle / radian, this._endAngle / radian, this._anticlockwise);
+    };
 
-	this.getRect = function(type)
-	{
-		var 
-			radian = jCanvaScript.constants.radian,
-			points = {x:this._x, y:this._y},
-			startAngle = this._startAngle, endAngle=this._endAngle, radius=this._radius,
-			startY = m_floor(m_sin(startAngle/radian)*radius), startX=m_floor(m_cos(startAngle/radian)*radius),
-			endY = m_floor(m_sin(endAngle/radian)*radius), endX=m_floor(m_cos(endAngle/radian)*radius),
-			positiveXs = startX > 0 && endX > 0, negtiveXs = startX < 0 && endX < 0,
-			positiveYs = startY > 0 && endY > 0,negtiveYs = startY < 0 && endY < 0;
+	this.getRect = function(type) {
+        var
+            radian = jCanvaScript.constants.radian,
+            points = {x:this._x, y:this._y},
+            startAngle = this._startAngle, endAngle = this._endAngle, radius = this._radius,
+            startY = m_floor(m_sin(startAngle / radian) * radius), startX = m_floor(m_cos(startAngle / radian) * radius),
+            endY = m_floor(m_sin(endAngle / radian) * radius), endX = m_floor(m_cos(endAngle / radian) * radius),
+            positiveXs = startX > 0 && endX > 0, negtiveXs = startX < 0 && endX < 0,
+            positiveYs = startY > 0 && endY > 0,negtiveYs = startY < 0 && endY < 0;
 
-		points.width = points.height = radius;
+        points.width = points.height = radius;
 
-		if((this._anticlockwise && startAngle < endAngle) || (!this._anticlockwise && startAngle > endAngle))
-		{
-			if(((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX == 0 && endX == 0))
-			{
-				points.y -= radius;
-				points.height += radius;
-			}
-			else
-			{
-				if(positiveXs && endY < 0 && startY > 0)
-				{
-					points.y += endY;
-					points.height += endY;
-				}
-				else
-				if(endX > 0 && endY < 0 && startX < 0)
-				{
-					points.y += m_min(endY,startY);
-					points.height -= m_min(endY,startY);
-				}
-				else
-				{
-					if(negtiveYs)points.y -= m_max(endY,startY);
-					else points.y -= radius;
-					points.height += m_max(endY,startY);
-				}
-			}
-			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY == 0 && endY == 0))
-			{
-				points.x -= radius;
-				points.width += radius;
-			}
-			else
-			{
-				if(endY < 0 && startY > 0)
-				{
-					points.x += m_min(endX, startX);
-					points.width -= m_min(endX, startX);
-				}
-				else
-				{
-					if(negtiveXs)points.x -= m_max(endX, startX);
-					else points.x -= radius;
-					points.width += m_max(endX, startX);
-				}
-			}
-		}
-		else
-		{
-			positiveXs = startX >= 0 && endX >= 0;
-			positiveYs = startY >= 0 && endY >= 0;
-			negtiveXs  = startX <= 0 && endX <= 0;
-			negtiveYs  = startY <= 0 && endY <= 0;
-			if(negtiveYs && positiveXs)
-			{
-				points.x      += m_min(endX, startX);
-				points.width  -= m_min(endX, startX);
-				points.y      += m_min(endY, startY);
-				points.height += m_max(endY, startY);
-			}
-			else if (negtiveYs && negtiveXs)
-			{
-				points.x      += m_min(endX, startX);
-				points.width  += m_max(endX, startX);
-				points.y      += m_min(endY, startY);
-				points.height += m_max(endY, startY);
-			}
-			else if (negtiveYs)
-			{
-				points.x      += m_min(endX,startX);
-				points.width  += m_max(endX,startX);
-				points.y      -= radius;
-				points.height += m_max(endY,startY);
-			}
-			else if (positiveXs && positiveYs)
-			{
-				points.x      += m_min(endX, startX);
-				points.width  =  m_abs(endX - startX);
-				points.y      += m_min(endY, startY);
-				points.height -= m_min(endY, startY);
-			}
-			else if (positiveYs)
-			{
-				points.x      += m_min(endX, startX);
-				points.width  =  m_abs(endX) + m_abs(startX);
-				points.y      += m_min(endY,startY);
-				points.height -= m_min(endY, startY);
-			}
-			else if (negtiveXs)
-			{
-				points.x      -= radius;
-				points.width  += m_max(endX, startX);
-				points.y      -= radius;
-				points.height += m_max(endY, startY);
-			}
-			else if (positiveXs)
-			{
-				points.x      -= radius;
-				points.width  += m_max(endX, startX);
-				points.y      -= radius;
-				points.height += radius;
-			}
-		}
-		return jCanvaScript.getRect(this, points, type);
-	}
+        if ((this._anticlockwise && startAngle < endAngle) || (!this._anticlockwise && startAngle > endAngle)) {
+            if (((negtiveXs || (positiveXs && (negtiveYs || positiveYs)))) || (startX == 0 && endX == 0)) {
+                points.y -= radius;
+                points.height += radius;
+            }
+            else {
+                if (positiveXs && endY < 0 && startY > 0) {
+                    points.y += endY;
+                    points.height += endY;
+                }
+                else
+                if (endX > 0 && endY < 0 && startX < 0) {
+                    points.y += m_min(endY, startY);
+                    points.height -= m_min(endY, startY);
+                }
+                else {
+                    if (negtiveYs)points.y -= m_max(endY, startY);
+                    else points.y -= radius;
+                    points.height += m_max(endY, startY);
+                }
+            }
+            if (((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY == 0 && endY == 0)) {
+                points.x -= radius;
+                points.width += radius;
+            }
+            else {
+                if (endY < 0 && startY > 0) {
+                    points.x += m_min(endX, startX);
+                    points.width -= m_min(endX, startX);
+                }
+                else {
+                    if (negtiveXs)points.x -= m_max(endX, startX);
+                    else points.x -= radius;
+                    points.width += m_max(endX, startX);
+                }
+            }
+        }
+        else {
+            positiveXs = startX >= 0 && endX >= 0;
+            positiveYs = startY >= 0 && endY >= 0;
+            negtiveXs = startX <= 0 && endX <= 0;
+            negtiveYs = startY <= 0 && endY <= 0;
+            if (negtiveYs && positiveXs) {
+                points.x += m_min(endX, startX);
+                points.width -= m_min(endX, startX);
+                points.y += m_min(endY, startY);
+                points.height += m_max(endY, startY);
+            }
+            else if (negtiveYs && negtiveXs) {
+                points.x += m_min(endX, startX);
+                points.width += m_max(endX, startX);
+                points.y += m_min(endY, startY);
+                points.height += m_max(endY, startY);
+            }
+            else if (negtiveYs) {
+                points.x += m_min(endX, startX);
+                points.width += m_max(endX, startX);
+                points.y -= radius;
+                points.height += m_max(endY, startY);
+            }
+            else if (positiveXs && positiveYs) {
+                points.x += m_min(endX, startX);
+                points.width = m_abs(endX - startX);
+                points.y += m_min(endY, startY);
+                points.height -= m_min(endY, startY);
+            }
+            else if (positiveYs) {
+                points.x += m_min(endX, startX);
+                points.width = m_abs(endX) + m_abs(startX);
+                points.y += m_min(endY, startY);
+                points.height -= m_min(endY, startY);
+            }
+            else if (negtiveXs) {
+                points.x -= radius;
+                points.width += m_max(endX, startX);
+                points.y -= radius;
+                points.height += m_max(endY, startY);
+            }
+            else if (positiveXs) {
+                points.x -= radius;
+                points.width += m_max(endX, startX);
+                points.y -= radius;
+                points.height += radius;
+            }
+        }
+        return jCanvaScript.getRect(this, points, type);
+    };
 	this._proto='arc';
 });
 
 jCanvaScript.addObject('circle', function()
 {
-	this.base = function(x, y, radius, lineColor, fillColor)
-	{
-		var options = x;
-		if(typeof options != 'object')
-			options = {x:x, y:y, radius:radius, lineColor:lineColor, fillColor:fillColor};
-		options = jCanvaScript.checkDefaults(options, {radius:0});
-		this.protobase(options);
-		this._radius = options.radius;
-		return this;
-	}
+	this.base = function(x, y, radius, lineColor, fillColor) {
+        var options = x;
+        if (typeof options != 'object')
+            options = {x:x, y:y, radius:radius, lineColor:lineColor, fillColor:fillColor};
+        options = jCanvaScript.checkDefaults(options, {radius:0});
+        this.protobase(options);
+        this._radius = options.radius;
+        return this;
+    };
 
-	this.draw = function(ctx){
-		ctx.arc(this._x, this._y, this._radius, 0, jCanvaScript.constants.PIx2,true);
-	}
+	this.draw = function(ctx) {
+        ctx.arc(this._x, this._y, this._radius, 0, jCanvaScript.constants.PIx2, true);
+    };
 
-	this.getRect = function(type){
-		var points = {x:this._x-this._radius, y:this._y-this._radius};
-		points.width = points.height = this._radius*2;
-		return jCanvaScript.getRect(this, points, type);
-	}
+	this.getRect = function(type) {
+        var points = {x:this._x - this._radius, y:this._y - this._radius};
+        points.width = points.height = this._radius * 2;
+        return jCanvaScript.getRect(this, points, type);
+    };
 
 	this._proto = 'circle';
 	
@@ -2910,7 +2502,7 @@ jCanvaScript.addObject('circle', function()
 });
 
 
-jCanvaScript.addObject('ellipse',function(){
+/*jCanvaScript.addObject('ellipse',function(){
 	this.draw=function(ctx)
 	{
 		 var kappa = .5522848,
@@ -2928,135 +2520,119 @@ jCanvaScript.addObject('ellipse',function(){
 		 points.push([xm, y, x, ym - oy, xm - ox, y]);
 		 ellipse.base(points,color,fill);
 	}
-});
+});*/
 
 jCanvaScript.addObject('rect', function(){
 
-	this.base = function(x, y, width, height, lineColor, fillColor)
-	{
-		var options = x;
-		if(typeof options != 'object')
-			options = {x:x, y:y, width:width, height:height, lineColor:lineColor, fillColor:fillColor};
-		options = jCanvaScript.checkDefaults(options, {width:0, height:0});
-		this.protobase(options);
-		this._width = options.width;
-		this._height = options.height;
-		return this;
-	}
+	this.base = function(x, y, width, height, lineColor, fillColor) {
+        var options = x;
+        if (typeof options != 'object')
+            options = {x:x, y:y, width:width, height:height, lineColor:lineColor, fillColor:fillColor};
+        options = jCanvaScript.checkDefaults(options, {width:0, height:0});
+        this.protobase(options);
+        this._width = options.width;
+        this._height = options.height;
+        return this;
+    };
 
-	this.draw = function(ctx)
-	{
-		ctx.rect(this._x, this._y, this._width, this._height);
-	}
+	this.draw = function(ctx) {
+        ctx.rect(this._x, this._y, this._width, this._height);
+    };
 
-	this.getRect = function(type)
-	{
-		return jCanvaScript.getRect(this, {x:this._x, y:this._y, width:this._width, height:this._height}, type);
-	}
+	this.getRect = function(type) {
+        return jCanvaScript.getRect(this, {x:this._x, y:this._y, width:this._width, height:this._height}, type);
+    };
 
 	this._proto = 'rect';
 });
 
 jCanvaScript.addObject('text', function()
 {
-	this.base = function(string, x, y, maxWidth, lineColor, fillColor)
-	{
-		var options = string;
-		if (maxWidth !== undefined)
-		{
-			if (maxWidth.charAt)
-			{
-				fillColor = lineColor;
-				lineColor = maxWidth;
-				maxWidth = false;
-			}
-		}
-		if(typeof options != 'object')
-			options = {string:string, x:x, y:y, maxWidth:maxWidth, lineColor:lineColor, fillColor:fillColor};
-		options = jCanvaScript.checkDefaults(options, {string:'', maxWidth:false});
-		this.protobase(options);
-		this._string = options.string;
-		this._maxWidth = options.maxWidth;
-		return this;
-	}
+	this.base = function(string, x, y, maxWidth, lineColor, fillColor) {
+        var options = string;
+        if (maxWidth !== undefined) {
+            if (maxWidth.charAt) {
+                fillColor = lineColor;
+                lineColor = maxWidth;
+                maxWidth = false;
+            }
+        }
+        if (typeof options != 'object')
+            options = {string:string, x:x, y:y, maxWidth:maxWidth, lineColor:lineColor, fillColor:fillColor};
+        options = jCanvaScript.checkDefaults(options, {string:'', maxWidth:false});
+        this.protobase(options);
+        this._string = options.string;
+        this._maxWidth = options.maxWidth;
+        return this;
+    };
 
-	this.setOptns = function(ctx)
-	{
-		this.proto().setOptns.call(this,ctx);
-		ctx.textBaseline = this._baseline;
-		ctx.font = this._font;
-		ctx.textAlign = this._align;
-		return this;
-	}
+	this.setOptns = function(ctx) {
+        this.proto().setOptns.call(this, ctx);
+        ctx.textBaseline = this._baseline;
+        ctx.font = this._font;
+        ctx.textAlign = this._align;
+        return this;
+    };
 
-	this.draw = function(ctx)
-	{
-		if(this._maxWidth === false)
-		{
-			if(this._fillColorA)ctx.fillText(this._string, this._x, this._y);
-			if(this._lineColorA)ctx.strokeText(this._string, this._x, this._y);
-		}
-		else
-		{
-			if(this._fillColorA) ctx.fillText(this._string, this._x, this._y, this._maxWidth);
-			if(this._lineColorA) ctx.strokeText(this._string, this._x, this._y, this._maxWidth);
-		}
-	}
+	this.draw = function(ctx) {
+        if (this._maxWidth === false) {
+            if (this._fillColorA)ctx.fillText(this._string, this._x, this._y);
+            if (this._lineColorA)ctx.strokeText(this._string, this._x, this._y);
+        }
+        else {
+            if (this._fillColorA) ctx.fillText(this._string, this._x, this._y, this._maxWidth);
+            if (this._lineColorA) ctx.strokeText(this._string, this._x, this._y, this._maxWidth);
+        }
+    };
 
-	this.getRect = function(type)
-	{
-		var 
-			points = {x:this._x, y:this._y},
-			ctx = jCanvaScript.objectCanvas(this).optns.ctx;
-		points.height = parseInt(this._font.match(jCanvaScript.constants.regNumsWithMeasure)[0]);
-		points.y -= points.height;
-		ctx.save();
-		ctx.textBaseline = this._baseline;
-		ctx.font = this._font;
-		ctx.textAlign = this._align;
-		points.width = ctx.measureText(this._string).width;
-		if(this._align == 'center')points.x -= points.width/2;
-		if(this._align == 'right')points.x -= points.width;
-		ctx.restore();
-		return jCanvaScript.getRect(this, points, type);
-	}
+	this.getRect = function(type) {
+        var
+            points = {x:this._x, y:this._y},
+            ctx = this.canvas().optns.ctx;
+        points.height = parseInt(this._font.match(jCanvaScript.constants.regNumsWithMeasure)[0]);
+        points.y -= points.height;
+        ctx.save();
+        ctx.textBaseline = this._baseline;
+        ctx.font = this._font;
+        ctx.textAlign = this._align;
+        points.width = ctx.measureText(this._string).width;
+        if (this._align == 'center')points.x -= points.width / 2;
+        if (this._align == 'right')points.x -= points.width;
+        ctx.restore();
+        return jCanvaScript.getRect(this, points, type);
+    };
 
 	this._proto='text';
 
-	this.position=function()
-	{
-		var points = {x:this._x, y:this._y},
-			ctx = this.canvas().optns.ctx;
-		points.height = parseInt(this._font.match(jCanvaScript.constants.regNumsWithMeasure)[0]);
-		points.y -= points.height;
-		ctx.save();
-		ctx.textBaseline = this._baseline;
-		ctx.font = this._font;
-		ctx.textAlign = this._align;
-		points.width = ctx.measureText(this._string).width;
-		ctx.restore();
-		return jCanvaScript.getRect(this,points);
-	}
+	this.position = function() {
+        var points = {x:this._x, y:this._y},
+            ctx = this.canvas().optns.ctx;
+        points.height = parseInt(this._font.match(jCanvaScript.constants.regNumsWithMeasure)[0]);
+        points.y -= points.height;
+        ctx.save();
+        ctx.textBaseline = this._baseline;
+        ctx.font = this._font;
+        ctx.textAlign = this._align;
+        points.width = ctx.measureText(this._string).width;
+        ctx.restore();
+        return jCanvaScript.getRect(this, points);
+    };
 
-	this.font = function(font)
-	{
-		return this.attr('font', font);
-	}
+	this.font = function(font) {
+        return this.attr('font', font);
+    };
 
-	this.align = function(align)
-	{
-		return this.attr('align', align);
-	}
+	this.align = function(align) {
+        return this.attr('align', align);
+    };
 
-	this.baseline = function(baseline)
-	{
-		return this.attr('baseline', baseline);
-	}
+	this.baseline = function(baseline) {
+        return this.attr('baseline', baseline);
+    };
 
-	this.string = function(string)
-	{
-		return this.attr('string', string);
-	}
+	this.string = function(string) {
+        return this.attr('string', string);
+    };
 
 	this._font = "10px sans-serif";
 
@@ -3066,341 +2642,301 @@ jCanvaScript.addObject('text', function()
 });
 
 
-jCanvaScript.addObject('image', function()
-{
-	this.base = function(image, x, y, width, height, sx, sy, swidth, sheight)
-	{
-		var options = image;
-		if(typeof image != 'object' || image.src !== undefined)
-			options = {image:image, x:x, y:y, width:width, height:height, sx:sx, sy:sy, swidth:swidth, sheight:sheight};
-		options = jCanvaScript.checkDefaults(options, {width:false, height:false, sx:0, sy:0, swidth:false, sheight:false});
-		if(options.width === false)
-		{
-			options.width  = options.image.width;
-			options.height = options.image.height;
-		}
-		if(options.swidth === false)
-		{
-			options.swidth  = options.image.width;
-			options.sheight = options.image.height;
-		}
-		this.protobase(options);
-		this._img     = options.image;
-		this._width   = options.width;
-		this._height  = options.height;
-		this._sx      = options.sx;
-		this._sy      = options.sy;
-		this._swidth  = options.swidth;
-		this._sheight = options.sheight;
-		return this;
-	}
+jCanvaScript.addObject('image', function() {
+    this.base = function(image, x, y, width, height, sx, sy, swidth, sheight) {
+        var options = image;
+        if (typeof image != 'object' || image.src !== undefined)
+            options = {image:image, x:x, y:y, width:width, height:height, sx:sx, sy:sy, swidth:swidth, sheight:sheight};
+        options = jCanvaScript.checkDefaults(options, {width:false, height:false, sx:0, sy:0, swidth:false, sheight:false});
+        if (options.width === false) {
+            options.width = options.image.width;
+            options.height = options.image.height;
+        }
+        if (options.swidth === false) {
+            options.swidth = options.image.width;
+            options.sheight = options.image.height;
+        }
+        this.protobase(options);
+        this._img = options.image;
+        this._width = options.width;
+        this._height = options.height;
+        this._sx = options.sx;
+        this._sy = options.sy;
+        this._swidth = options.swidth;
+        this._sheight = options.sheight;
+        return this;
+    };
 
-	this.draw = function(ctx)
-	{
-		ctx.drawImage(this._img, this._sx, this._sy, this._swidth, this._sheight, this._x, this._y, this._width, this._height);
-	}
+    this.draw = function(ctx) {
+        ctx.drawImage(this._img, this._sx, this._sy, this._swidth, this._sheight, this._x, this._y, this._width, this._height);
+    };
 
-	this.getRect = function(type)
-	{
-		var points = {x:this._x, y:this._y, width:this._width, height:this._height};
-		return jCanvaScript.getRect(this, points, type);
-	}
-	
-	this._proto='image';
-},'object')
+    this.getRect = function(type) {
+        var points = {x:this._x, y:this._y, width:this._width, height:this._height};
+        return jCanvaScript.getRect(this, points, type);
+    };
+
+    this._proto = 'image';
+}, 'object');
 
 jCanvaScript.addObject('imageData', function()
 {
-	this.base = function(width, height)
-	{
-		this.protobase();
-		if(height === undefined)
-		{
-			var oldImageData = width;
-			if(oldImageData._width !== undefined)
-			{
-				width = oldImageData._width;
-				height = oldImageData._height;
-			}
-			else
-			{
-				width = jCanvaScript.checkDefaults(width, {width:0, height:0});
-				height = width.height;
-				width = width.width;
-			}
-		}
-		this._width = width;
-		this._height = height;
-		this._data = [];
-		for(var i = 0; i < this._width; i++)
-		for(var j = 0; j < this._height; j++)
-		{
-			var index = (i + j * this._width) * 4;
-			this._data[index + 0] = 0;
-			this._data[index + 1] = 0;
-			this._data[index + 2] = 0;
-			this._data[index + 3] = 0;
-		}
-		return this;
-	}
+	this.base = function(width, height) {
+        this.protobase();
+        if (height === undefined) {
+            var oldImageData = width;
+            if (oldImageData._width !== undefined) {
+                width = oldImageData._width;
+                height = oldImageData._height;
+            }
+            else {
+                width = jCanvaScript.checkDefaults(width, {width:0, height:0});
+                height = width.height;
+                width = width.width;
+            }
+        }
+        this._width = width;
+        this._height = height;
+        this._data = [];
+        for (var i = 0; i < this._width; i++)
+            for (var j = 0; j < this._height; j++) {
+                var index = (i + j * this._width) * 4;
+                this._data[index + 0] = 0;
+                this._data[index + 1] = 0;
+                this._data[index + 2] = 0;
+                this._data[index + 3] = 0;
+            }
+        return this;
+    };
 
-	this.draw = function(ctx)
-	{
-		if(this._imgData === undefined)
-		{
-			this._imgData = ctx.createImageData(this._width, this._height);
-			for(var i = 0; i < this._width * this._height * 4; i++)
-				this._imgData.data[i] = this._data[i];
-			this._data = this._imgData.data;
-		}
-		if(this._putData)
-			ctx.putImageData(this._imgData, this._x, this._y);
-	}
+	this.draw = function(ctx) {
+        if (this._imgData === undefined) {
+            this._imgData = ctx.createImageData(this._width, this._height);
+            for (var i = 0; i < this._width * this._height * 4; i++)
+                this._imgData.data[i] = this._data[i];
+            this._data = this._imgData.data;
+        }
+        if (this._putData)
+            ctx.putImageData(this._imgData, this._x, this._y);
+    };
 
-	this.getRect = function(type)
-	{
-		var points = {x:this._x, y:this._y, width:this._width, height:this._height};
-		return getRect(this, points, type);
-	}
+	this.getRect = function(type) {
+        var points = {x:this._x, y:this._y, width:this._width, height:this._height};
+        return jCanvaScript.getRect(this, points, type);
+    };
 
-	this.setPixel = function(x, y, color)
-	{
-		var
-			colorKeeper,
-			index = (x + y * this._width) * 4;
-		if (color.r !== undefined) colorKeeper=color;
-		else if (color[0] !== undefined)
-			if (!color.charAt) colorKeeper = {r:color[0], g:color[1], b:color[2], a:color[3]};
-			else colorKeeper = jCanvaScript.parseColor(color);
-		this._data[index + 0] = colorKeeper.r;
-		this._data[index + 1] = colorKeeper.g;
-		this._data[index + 2] = colorKeeper.b;
-		this._data[index + 3] = colorKeeper.a*255;
-		this.redraw()
-		return this;
-	}
+	this.setPixel = function(x, y, color) {
+        var
+            colorKeeper,
+            index = (x + y * this._width) * 4;
+        if (color.r !== undefined) colorKeeper = color;
+        else if (color[0] !== undefined)
+            if (!color.charAt) colorKeeper = {r:color[0], g:color[1], b:color[2], a:color[3]};
+            else colorKeeper = jCanvaScript.parseColor(color);
+        this._data[index + 0] = colorKeeper.r;
+        this._data[index + 1] = colorKeeper.g;
+        this._data[index + 2] = colorKeeper.b;
+        this._data[index + 3] = colorKeeper.a * 255;
+        this.redraw();
+        return this;
+    };
 
-	this.getPixel = function(x, y)
-	{
-		var index = (x + y * this._width) * 4;
-		return [this._data[index + 0], this._data[index + 1], this._data[index + 2], this._data[index + 3] / 255];
-	}
+	this.getPixel = function(x, y) {
+        var index = (x + y * this._width) * 4;
+        return [this._data[index + 0], this._data[index + 1], this._data[index + 2], this._data[index + 3] / 255];
+    };
 
 	this._getX = 0;
 
 	this._getY = 0;
 
-	this.getData = function(x, y, width, height)
-	{
-		this._getX = x;
-		this._getY = y;
-		this._width = width;
-		this._height = height;
-		var ctx = objectCanvas(this).optns.ctx;
-		try{
-			this._imgData = ctx.getImageData(this._getX, this._getY, this._width, this._height);
-		}catch(e){
-			netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-			this._imgData = ctx.getImageData(this._getX, this._getY, this._width, this._height);
-		}
-		this._data = this._imgData.data;
-		this.redraw();
-		return this;
-	}
+	this.getData = function(x, y, width, height) {
+        this._getX = x;
+        this._getY = y;
+        this._width = width;
+        this._height = height;
+        var ctx = objectCanvas(this).optns.ctx;
+        try {
+            this._imgData = ctx.getImageData(this._getX, this._getY, this._width, this._height);
+        } catch(e) {
+            netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+            this._imgData = ctx.getImageData(this._getX, this._getY, this._width, this._height);
+        }
+        this._data = this._imgData.data;
+        this.redraw();
+        return this;
+    };
 
-	this.putData = function(x, y)
-	{
-		if(x !== undefined)this._x = x;
-		if(y !== undefined)this._y = y;
-		this._putData = true;
-		this.redraw();
-		return this;
-	}
+	this.putData = function(x, y) {
+        if (x !== undefined)this._x = x;
+        if (y !== undefined)this._y = y;
+        this._putData = true;
+        this.redraw();
+        return this;
+    };
 
-	this.clone = function()
-	{
-		var clone = this.proto().clone.call(this);
-		clone._imgData = undefined;
-		return clone;
-	}
+	this.clone = function() {
+        var clone = this.proto().clone.call(this);
+        clone._imgData = undefined;
+        return clone;
+    };
 
-	this.filter = function(filterName, filterType)
-	{
-		var filter = jCanvaScript.imageDataFilters[filterName];
-		filter.fn.call(this, this._width, this._height, filter.matrix, filterType);
-		return this;
-	}
+	this.filter = function(filterName, filterType) {
+        var filter = jCanvaScript.imageDataFilters[filterName];
+        filter.fn.call(this, this._width, this._height, filter.matrix, filterType);
+        return this;
+    };
 
 	this._putData = false;
 	this._proto = 'imageData';
 },'object');
 
 
-jCanvaScript.addObject('lines', function()
-{
-	this.base = function(points, lineColor, fillColor)
-	{
-		var options = points;
-		if(options !== undefined)
-		{
-			if(typeof options.pop == 'function')
-				options = {points: points, lineColor: lineColor, fillColor: fillColor};
-			this.shapesCount = 0;
-		}
-		jCanvaScript.getProto('lines').base.call(this, options);
-		if(options.points !== undefined)
-			this.points(options.points);
-		return this;
-	}
+jCanvaScript.Proto.Lines = function(points, lineColor, fillColor) {
+        var options = points;
+        if (options !== undefined) {
+            if (typeof options.pop == 'function')
+                options = {points: points, lineColor: lineColor, fillColor: fillColor};
+            this.shapesCount = 0;
+        }
+        jCanvaScript.Proto.Shape.call(this,options);
+        if (options.points !== undefined)
+            this.points(options.points);
+        return this;
+    };
+jCanvaScript.Proto.Lines.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.Proto.Lines.prototype.getCenter = function(type) {
+        var point = {
+            x: this._x0,
+            y: this._y0
+        };
+        for (var i = 1; i < this.shapesCount; i++) {
+            point.x += this['_x' + i];
+            point.y += this['_y' + i];
+        }
+        point.x = point.x / this.shapesCount;
+        point.y = point.y / this.shapesCount;
+        return jCanvaScript.getCenter(this, point, type);
+    };
+jCanvaScript.Proto.Lines.prototype.position = function() {
+        return jCanvaScript.multiplyPointM(this._x0, this._y0, jCanvaScript.multiplyM(this.matrix(), this.layer().matrix()));
+    };
+jCanvaScript.Proto.Lines.prototype.getRect = function(type) {
+        var
+            minX,
+            minY,
+            maxX = minX = this._x0,
+            maxY = minY = this._y0,
+            points;
+        for (var i = 1; i < this.shapesCount; i++) {
+            if (maxX < this['_x' + i]) maxX = this['_x' + i];
+            if (maxY < this['_y' + i]) maxY = this['_y' + i];
+            if (minX > this['_x' + i]) minX = this['_x' + i];
+            if (minY > this['_y' + i]) minY = this['_y' + i];
+        }
+        points = {x: minX, y:minY, width: maxX - minX, height: maxY - minY};
+        return jCanvaScript.getRect(this, points, type);
+    };
+jCanvaScript.Proto.Lines.prototype.addPoint = function() {
+        this.redraw();
+        var names = this._pointNames;
+        for (var i = 0; i < names.length; i++)
+            this[names[i] + this.shapesCount] = arguments[i];
+        this.shapesCount++;
+        return this;
+    };
+jCanvaScript.Proto.Lines.prototype.delPoint = function(x, y, radius) {
+        this.redraw();
+        if (y === undefined) {
+            var points = this.points();
+            points.splice(x, 1);
+            this.points(points);
+        }
+        else {
+            radius = radius || 0;
+            for (var j = 0; j < this.shapesCount; j++)
+                if (this['_x' + j] < x + radius && this['_x' + j] > x - radius && this['_y' + j] < y + radius && this['_y' + j] < y + radius) {
+                    this.delPoint(j);
+                    j--;
+                }
+        }
+        return this;
+    };
+jCanvaScript.Proto.Lines.prototype.points = function(points) {
+        var names = this._pointNames;
+        if (points === undefined) {
+            points = [];
+            for (var j = 0; j < this.shapesCount; j++) {
+                points[j] = [];
+                for (var i = 0; i < names.length; i++)
+                    points[j][i] = this[names[i] + j];
+            }
+            return points;
+        }
+        this.redraw();
+        var oldCount = this.shapesCount;
+        this.shapesCount = points.length;
+        for (j = 0; j < this.shapesCount; j++)
+            for (i = 0; i < names.length; i++)
+                this[names[i] + j] = points[j][i];
+        for (j = this.shapesCount; j < oldCount; j++)
+            for (i = 0; i < names.length; i++)
+                this[names[i] + j] = undefined;
+        return this;
+    }
 
-	this.getCenter = function(type)
-	{
-		var point={
-			x: this._x0,
-			y: this._y0
-		}
-		for(var i = 1; i < this.shapesCount; i++)
-		{
-			point.x += this['_x' + i];
-			point.y += this['_y' + i];
-		}
-		point.x = point.x / this.shapesCount;
-		point.y = point.y / this.shapesCount;
-		return getCenter(this, point, type);
-	}
+/*
+* @class
+* */
+jCanvaScript.bCurve=jCanvaScript.addObject('bCurve', function() {
+    this.draw = function(ctx) {
+        if (this._x0 === undefined) return;
+        ctx.moveTo(this._x0, this._y0);
+        for (var j = 1; j < this.shapesCount; j++) {
+            ctx.bezierCurveTo(this['_cp1x' + j], this['_cp1y' + j], this['_cp2x' + j], this['_cp2y' + j], this['_x' + j], this['_y' + j]);
+        }
+    };
 
-	this.position = function(){
-		return jCanvaScript.multiplyPointM(this._x0, this._y0, jCanvaScript.multiplyM(this.matrix(), this.layer().matrix()));
-	}
+    this._proto = 'bCurve';
 
-	this.getRect = function(type)
-	{
-		var 
-			minX,
-			minY,
-			maxX = minX = this._x0,
-			maxY = minY = this._y0,
-			points;
-		for(var i = 1; i < this.shapesCount; i++)
-		{
-			if( maxX < this['_x' + i] ) maxX = this['_x' + i];
-			if( maxY < this['_y' + i] ) maxY = this['_y' + i];
-			if( minX > this['_x' + i] ) minX = this['_x' + i];
-			if( minY > this['_y' + i] ) minY = this['_y' + i];
-		}
-		points = {x: minX, y:minY, width: maxX - minX, height: maxY - minY};
-		return jCanvaScript.getRect(this, points, type);
-	}
-
-	this.addPoint = function()
-	{
-		this.redraw();
-		var names = this.pointNames;
-		for(var i = 0; i < names.length; i++)
-			this[names[i] + this.shapesCount] = arguments[i];
-		this.shapesCount++;
-		return this;
-	}
-
-	this.delPoint = function(x, y, radius){
-		this.redraw();
-		if(y === undefined)
-		{
-			var points = this.points();
-			points.splice(x, 1)
-			this.points(points);
-		}
-		else{
-			radius = radius || 0;
-			for(var j = 0; j < this.shapesCount; j++)
-				if(this['_x' + j] < x + radius && this['_x'+j] > x - radius && this['_y' + j] < y + radius && this['_y' + j] < y + radius)
-				{
-					this.delPoint(j);
-					j--;
-				}
-		}
-		return this;
-	}
-
-	this.points=function(points)
-	{
-		var names = this.pointNames;
-		if(points === undefined){
-			points = [];
-			for(var j = 0; j < this.shapesCount; j++)
-			{
-				points[j] = [];
-				for(var i = 0; i < names.length; i++)
-					points[j][i] = this[names[i] + j];
-			}
-			return points;
-		}
-		this.redraw();
-		var oldCount = this.shapesCount;
-		this.shapesCount = points.length;
-		for(j = 0; j < this.shapesCount; j++)
-			for(i = 0; i < names.length; i++)
-				this[names[i] + j] = points[j][i];
-		for(j = this.shapesCount; j < oldCount; j++)
-			for(i = 0; i < names.length; i++)
-				this[names[i] + j] = undefined;
-		return this;
-	}
-
-	this._proto = 'lines';
-
-}, 'shape', true);
-
-jCanvaScript.addObject('bCurve', function()
-{
-	this.draw = function(ctx)
-	{
-		if(this._x0 === undefined) return;
-		ctx.moveTo(this._x0, this._y0);
-		for(var j = 1; j < this.shapesCount; j++)
-		{
-			ctx.bezierCurveTo(this['_cp1x' + j], this['_cp1y' + j], this['_cp2x' + j], this['_cp2y' + j], this['_x' + j], this['_y' + j]);
-		}
-	}
-
-	this._proto = 'bCurve';
-
-	this.pointNames=['_x', '_y', '_cp1x', '_cp1y', '_cp2x', '_cp2y'];
-
-}, 'lines')
-
-jCanvaScript.addObject('line', function()
-{
-	this.draw = function(ctx)
-	{
-		if(this._x0 === undefined)return;
-		ctx.moveTo(this._x0, this._y0);
-		for(var j = 1; j < this.shapesCount; j++)
-		{
-			ctx.lineTo(this['_x' + j], this['_y' + j]);
-		}
-	}
-
-	this._proto = 'line';
-
-	this.pointNames = ['_x', '_y'];
+    this.pointNames = ['_x', '_y', '_cp1x', '_cp1y', '_cp2x', '_cp2y'];
 
 }, 'lines');
 
-jCanvaScript.addObject('qCurve', function()
-{
-	this.draw = function(ctx)
-	{
-		if(this._x0 === undefined) return;
-		ctx.moveTo(this._x0, this._y0);
-		for(var j = 1; j < this.shapesCount; j++)
-		{
-			ctx.quadraticCurveTo(this['_cp1x' + j], this['_cp1y' + j], this['_x' + j], this['_y' + j]);
-		}
-	}
+jCanvaScript.Proto.Line = function(points, lineColor, fillColor){
+    this._pointNames = ['_x', '_y'];
+    jCanvaScript.Proto.Lines.call(this,points, lineColor, fillColor);
+};
 
-	this._proto = 'qCurve';
+jCanvaScript.Proto.Line.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
 
-	this.pointNames=['_x', '_y', '_cp1x', '_cp1y'];
+jCanvaScript.Proto.Line.prototype.draw = function(ctx) {
+        if (this._x0 === undefined)return;
+        ctx.moveTo(this._x0, this._y0);
+        for (var j = 1; j < this.shapesCount; j++) {
+            ctx.lineTo(this['_x' + j], this['_y' + j]);
+        }
+    }
 
-}, 'lines')
+jCanvaScript.line = function(points, lineColor, fillColor){
+    return new jCanvaScript.Proto.Line(points, lineColor, fillColor);
+}
+
+jCanvaScript.addObject('qCurve', function() {
+    this.draw = function(ctx) {
+        if (this._x0 === undefined) return;
+        ctx.moveTo(this._x0, this._y0);
+        for (var j = 1; j < this.shapesCount; j++) {
+            ctx.quadraticCurveTo(this['_cp1x' + j], this['_cp1y' + j], this['_x' + j], this['_y' + j]);
+        }
+    };
+
+    this._proto = 'qCurve';
+
+    this.pointNames = ['_x', '_y', '_cp1x', '_cp1y'];
+
+}, 'lines');
+
+/*
+<inc lude src="gradientsAndPatterns"/>
+*/

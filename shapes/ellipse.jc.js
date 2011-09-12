@@ -1,4 +1,4 @@
-jCanvaScript.addObject('ellipse',function(){
+/*jCanvaScript.addObject('ellipse',function(){
 	this.draw=function(ctx)
 	{
 		 var kappa = .5522848,
@@ -16,4 +16,4 @@ jCanvaScript.addObject('ellipse',function(){
 		 points.push([xm, y, x, ym - oy, xm - ox, y]);
 		 ellipse.base(points,color,fill);
 	}
-});
+});*/

@@ -140,101 +140,101 @@ function setKeyEvent(fn,eventName)
 	else this[eventName] = fn;
 	return this;
 }
-var animateFunctions={
-	linear:function(progress,params){
-		return progress;
-	},
-	exp:function(progress,params){
-		var n=params.n||2;
-		return m_pow(progress,n);
-	},
-	circ:function(progress,params){
-		return 1 - m_sqrt(1-progress*progress);
-	},
-	sine:function(progress,params){
-		return 1 - m_sin((1 - progress) * m_pi/2);
-	},
-	back:function(progress,params){
-		var n=params.n||2;
-		var x=params.x||1.5;
-		return m_pow(progress, n) * ((x + 1) * progress - x);
-	},
-	elastic:function(progress,params){
-		var n=params.n||2;
-		var m=params.m||20;
-		var k=params.k||3;
-		var x=params.x||1.5;
-		return m_pow(n,10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
-	},
-	bounce:function(progress,params)
-	{
-		var n=params.n||4;
-		var b=params.b||0.25;
-		var sum = [1];
-		for(var i=1; i<n; i++) sum[i] = sum[i-1] + m_pow(b, i/2);
-		var x = 2*sum[n-1]-1;
-		for(i=0; i<n; i++)
-		{
-			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
-				return m_pow(x*(progress-(2*sum[i]-1-m_pow(b, i/2))/x), 2)+1-m_pow(b, i);
-		}
-		return 1;
-	}
+var animateFunctions = {
+    linear:function(progress, params) {
+        return progress;
+    },
+    exp:function(progress, params) {
+        var n = params.n || 2;
+        return m_pow(progress, n);
+    },
+    circ:function(progress, params) {
+        return 1 - m_sqrt(1 - progress * progress);
+    },
+    sine:function(progress, params) {
+        return 1 - m_sin((1 - progress) * m_pi / 2);
+    },
+    back:function(progress, params) {
+        var n = params.n || 2;
+        var x = params.x || 1.5;
+        return m_pow(progress, n) * ((x + 1) * progress - x);
+    },
+    elastic:function(progress, params) {
+        var n = params.n || 2;
+        var m = params.m || 20;
+        var k = params.k || 3;
+        var x = params.x || 1.5;
+        return m_pow(n, 10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
+    },
+    bounce:function(progress, params) {
+        var n = params.n || 4;
+        var b = params.b || 0.25;
+        var sum = [1];
+        for (var i = 1; i < n; i++) sum[i] = sum[i - 1] + m_pow(b, i / 2);
+        var x = 2 * sum[n - 1] - 1;
+        for (i = 0; i < n; i++) {
+            if (x * progress >= (i > 0 ? 2 * sum[i - 1] - 1 : 0) && x * progress <= 2 * sum[i] - 1)
+                return m_pow(x * (progress - (2 * sum[i] - 1 - m_pow(b, i / 2)) / x), 2) + 1 - m_pow(b, i);
+        }
+        return 1;
+    }
 },
-imageDataFilters={
-	color:{fn:function(width,height,matrix,type){
-		var old,i,j;
-		matrix=matrix[type];
-		for(i=0;i<width;i++)
-		for(j=0;j<height;j++)
-		{
-			old=this.getPixel(i,j);
-			old[matrix[0]]=old[matrix[0]]*2-old[matrix[1]]-old[matrix[2]];
-			old[matrix[1]]=0;
-			old[matrix[2]]=0;
-			old[matrix[0]]=old[matrix[0]]>255?255:old[matrix[0]];
-			this.setPixel(i,j,old);
-		}
-	},matrix:
-		{
-			red:[0,1,2],
-			green:[1,0,2],
-			blue:[2,0,1]
-		}},
-	linear:{fn:function(width,height,matrix,type){
-		var newMatrix=[],old,i,j,k,m,n;
-		matrix=matrix[type];
-		m=matrix.length;
-		n=matrix[0].length;
-			for(i=0;i<width;i++)
-			{
-				newMatrix[i]=[];
-				for(j=0;j<height;j++)
-				{
-					newMatrix[i][j]=[0,0,0,1];
-					for(m=0;m<3;m++)
-					for(n=0;n<3;n++)
-					{
-						old=this.getPixel(i-parseInt(m/2),j-parseInt(n/2));
-						for(k=0;k<3;k++)
-						{
-							newMatrix[i][j][k]+=old[k]*matrix[m][n];
-						}
-					}
-				}
-			}
-			for(i=0;i<width;i++)
-			{
-				for(j=0;j<height;j++)
-					this.setPixel(i,j,newMatrix[i][j]);
-			}
-	},
-		matrix:{
-			sharp:[[-0.375,-0.375,-0.375],[-0.375,4,-0.375],[-0.375,-0.375,-0.375]],
-			blur:[[0.111,0.111,0.111],[0.111,0.111,0.111],[0.111,0.111,0.111]]
-		}
-	}
-}
+    imageDataFilters = {
+        color:{fn:function(width, height, matrix, type) {
+            var old,i,j;
+            matrix = matrix[type];
+            for (i = 0; i < width; i++)
+                for (j = 0; j < height; j++) {
+                    old = this.getPixel(i, j);
+                    old[matrix[0]] = old[matrix[0]] * 2 - old[matrix[1]] - old[matrix[2]];
+                    old[matrix[1]] = 0;
+                    old[matrix[2]] = 0;
+                    old[matrix[0]] = old[matrix[0]] > 255 ? 255 : old[matrix[0]];
+                    this.setPixel(i, j, old);
+                }
+        },matrix:
+        {
+            red:[0,1,2],
+            green:[1,0,2],
+            blue:[2,0,1]
+        }},
+        linear:{fn:function(width, height, matrix, type) {
+            var newMatrix = [],old,i,j,k,m,n;
+            matrix = matrix[type];
+            m = matrix.length;
+            n = matrix[0].length;
+            for (i = 0; i < width; i++) {
+                newMatrix[i] = [];
+                for (j = 0; j < height; j++) {
+                    newMatrix[i][j] = [0,0,0,1];
+                    for (m = 0; m < 3; m++)
+                        for (n = 0; n < 3; n++) {
+                            old = this.getPixel(i - parseInt(m / 2), j - parseInt(n / 2));
+                            for (k = 0; k < 3; k++) {
+                                newMatrix[i][j][k] += old[k] * matrix[m][n];
+                            }
+                        }
+                }
+            }
+            for (i = 0; i < width; i++) {
+                for (j = 0; j < height; j++)
+                    this.setPixel(i, j, newMatrix[i][j]);
+            }
+        },
+            matrix:{
+                sharp:[
+                    [-0.375,-0.375,-0.375],
+                    [-0.375,4,-0.375],
+                    [-0.375,-0.375,-0.375]
+                ],
+                blur:[
+                    [0.111,0.111,0.111],
+                    [0.111,0.111,0.111],
+                    [0.111,0.111,0.111]
+                ]
+            }
+        }
+    };
 
 function multiplyM(m1,m2)
 {
@@ -295,20 +295,20 @@ function parseColor(color)
 		a:1};
 	if(color.id!==undefined)
 	{
-		colorKeeper.color.notColor={
-			level:color._level,
-			canvas:color.optns.canvas.number,
-			layer:color.optns.layer.number
-		}
+		colorKeeper.color.notColor = {
+            level:color._level,
+            canvas:color.optns.canvas.number,
+            layer:color.optns.layer.number
+        };
 		return colorKeeper;
 	}
 	if(color.r!==undefined)
 	{
 		colorKeeper=checkDefaults(color,{r:0,g:0,b:0,a:1});
-		colorKeeper.color={
-			val:'rgba('+colorKeeper.r+','+colorKeeper.g+','+colorKeeper.b+','+colorKeeper.a+')',
-			notColor:undefined
-		}
+		colorKeeper.color = {
+            val:'rgba(' + colorKeeper.r + ',' + colorKeeper.g + ',' + colorKeeper.b + ',' + colorKeeper.a + ')',
+            notColor:undefined
+        };
 		return colorKeeper;
 	}
 	if(color.charAt(0)=='#')
@@ -350,10 +350,10 @@ function getOffset(elem) {
 }
 
 function getOffsetSum(elem) {
-	var top=0, left=0
+	var top = 0, left = 0;
 	while(elem) {
-		top = top + parseInt(elem.offsetTop)
-		left = left + parseInt(elem.offsetLeft)
+		top = top + parseInt(elem.offsetTop);
+		left = left + parseInt(elem.offsetLeft);
 		elem = elem.offsetParent
 	}
 	return {
@@ -363,15 +363,15 @@ function getOffsetSum(elem) {
 }
 
 function getOffsetRect(elem) {
-	var box = elem.getBoundingClientRect()
+	var box = elem.getBoundingClientRect();
 	var body = document.body||{};
-	var docElem = document.documentElement
-	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop
-	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft
-	var clientTop = docElem.clientTop || body.clientTop || 0
-	var clientLeft = docElem.clientLeft || body.clientLeft || 0
-	var top  = box.top +  scrollTop - clientTop
-	var left = box.left + scrollLeft - clientLeft
+	var docElem = document.documentElement;
+	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+	var clientTop = docElem.clientTop || body.clientTop || 0;
+	var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+	var top = box.top + scrollTop - clientTop;
+	var left = box.left + scrollLeft - clientLeft;
 	return {
 		top: m_round(top),
 		left: m_round(left)
@@ -593,4 +593,8 @@ function objDeleter(array)
 	normalizeLevels(array);
 	return array.length;
 }
-var proto={};
+/*
+@namespace
+ */
+jCanvaScript.Proto={};
+proto = {};
