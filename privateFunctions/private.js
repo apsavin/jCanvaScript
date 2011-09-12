@@ -593,3 +593,27 @@ function objDeleter(array)
 	normalizeLevels(array);
 	return array.length;
 }
+
+jCanvaScript.addAnimateFunction = function(name, fn) {
+    animateFunctions[name] = fn;
+    return this;
+};
+jCanvaScript.addImageDataFilter = function(name, properties) {
+    if (imageDataFilters[name] === undefined)imageDataFilters[name] = {};
+    if (properties.fn !== undefined)imageDataFilters[name].fn = properties.fn;
+    if (properties.matrix !== undefined && properties.type === undefined)imageDataFilters[name].matrix = properties.matrix;
+    if (properties.type !== undefined)imageDataFilters[name].matrix[type] = properties.matrix;
+    return jCanvaScript;
+};
+jCanvaScript.getCenter = getCenter;
+jCanvaScript.getRect = getRect;
+jCanvaScript.checkDefaults = checkDefaults;
+jCanvaScript.parseColor = parseColor;
+jCanvaScript.imageDataFilters = imageDataFilters;
+jCanvaScript.multiplyPointM = multiplyPointM;
+jCanvaScript.multiplyM = multiplyM;
+jCanvaScript.canvases = canvases;
+jCanvaScript.animating = animating;
+jCanvaScript._lastCanvas = 0;
+jCanvaScript.objectCanvas = canvas;
+jCanvaScript.objectLayer = layer;

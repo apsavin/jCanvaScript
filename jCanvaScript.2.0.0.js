@@ -181,7 +181,6 @@
 	<include src="serviceObjects"/>
 window.jCanvaScript=window.jc=jCanvaScript;})(window, undefined);
 
-<include src="privateObjects"/>
 <include src="publicFunctions"/>
 <include src="shapes"/>
 <include src="rasters"/>

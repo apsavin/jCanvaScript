@@ -1,4 +1,4 @@
-jCanvaScript.Proto.Group = function() {
+jCanvaScript.Proto.Group = function(elements) {
     for (var Class in jCanvaScript.Proto)if (jCanvaScript.Proto.hasOwnProperty(Class)){
         if (Class == 'Group')continue;
         var tmp = jCanvaScript.Proto[Class].prototype;
@@ -24,7 +24,7 @@ jCanvaScript.Proto.Group = function() {
             }
         }
     }
-    this.elements = [];
+    this.elements = elements || [];
     this.unmatchedElements = [];
     this._proto='group';
 };
@@ -114,7 +114,7 @@ jCanvaScript.Proto.Group.prototype.find = function(map) {
     }
     return subgroup;
 };
-jCanvaScript.group = function()
+jCanvaScript.group = function(elements)
 {
-	return new jCanvaScript.Proto.Group();
+	return new jCanvaScript.Proto.Group(elements);
 }
