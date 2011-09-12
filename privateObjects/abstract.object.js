@@ -1,82 +1,82 @@
 jCanvaScript.Proto.Object = function(x, y, service) {
-this._visible = true;
-this._composite = 'source-over';
-this._name = "";
-this._opacity = 1;
-this._shadowX = 0;
-this._shadowY = 0;
-this._shadowBlur = 0;
-this._shadowColorR = 0;
-this._shadowColorG = 0;
-this._shadowColorB = 0;
-this._shadowColorA = 0;
-this._translateX = 0;
-this._translateY = 0;
-this._scaleX = 1;
-this._scaleY = 1;
-this._rotateAngle = 0;
-this._rotateX = 0;
-this._rotateY = 0;
-this._transform11 = 1;
-this._transform12 = 0;
-this._transform21 = 0;
-this._transform22 = 1;
-this._transformdx = 0;
-this._transformdy = 0;
-this._matrixChanged = false;
-var options = x;
-if (typeof options == 'object') {
-    options = checkDefaults(options, {x:0,y:0,service:false});
-    service = options.service;
-    y = options.y;
-    x = options.x;
-}
-else {
-    if (service === undefined)service = false;
-}
-var canvasItem = canvases[jCanvaScript._lastCanvas];
-this.optns = {
-    animated:false,
-    clipObject:false,
-    drop:{val:false,fn:function() {
-    }},
-    drag:{val:false},
-    layer:{id:canvasItem.optns.id + "Layer0",number:0},
-    canvas:{number:0},
-    focused:false,
-    buffer:{val:false},
-    rotateMatrix:[
-        [1,0,0],
-        [0,1,0]
-    ],
-    scaleMatrix:[
-        [1,0,0],
-        [0,1,0]
-    ],
-    translateMatrix:[
-        [1,0,0],
-        [0,1,0]
-    ],
-    transformMatrix:[
-        [1,0,0],
-        [0,1,0]
-    ],
-    shadowColor:{val:'rgba(0,0,0,0)',notColor:undefined}
-};
-this.animateQueue = [];
-this._x = x;
-this._y = y;
-if (!service && canvasItem !== undefined && canvasItem.layers[0] !== undefined) {
-    this.optns.layer.number = 0;
-    this.optns.canvas.number = jCanvaScript._lastCanvas;
-    var layer = objectLayer(this),
-        limit = layer.objs.length;
-    this.optns.number = limit;
-    this._level = limit ? (layer.objs[limit - 1]._level + 1) : 0;
-    layer.objs[limit] = this;
-    this.optns.layer.id = layer.optns.id;
-    this.redraw();
-}
+    this._visible = true;
+    this._composite = 'source-over';
+    this._name = "";
+    this._opacity = 1;
+    this._shadowX = 0;
+    this._shadowY = 0;
+    this._shadowBlur = 0;
+    this._shadowColorR = 0;
+    this._shadowColorG = 0;
+    this._shadowColorB = 0;
+    this._shadowColorA = 0;
+    this._translateX = 0;
+    this._translateY = 0;
+    this._scaleX = 1;
+    this._scaleY = 1;
+    this._rotateAngle = 0;
+    this._rotateX = 0;
+    this._rotateY = 0;
+    this._transform11 = 1;
+    this._transform12 = 0;
+    this._transform21 = 0;
+    this._transform22 = 1;
+    this._transformdx = 0;
+    this._transformdy = 0;
+    this._matrixChanged = false;
+    var options = x;
+    if (typeof options == 'object') {
+        options = checkDefaults(options, {x:0,y:0,service:false});
+        service = options.service;
+        y = options.y;
+        x = options.x;
+    }
+    else {
+        if (service === undefined)service = false;
+    }
+    var canvasItem = canvases[jCanvaScript._lastCanvas];
+    this.optns = {
+        animated:false,
+        clipObject:false,
+        drop:{val:false,fn:function() {
+        }},
+        drag:{val:false},
+        layer:{id:canvasItem.optns.id + "Layer0",number:0},
+        canvas:{number:0},
+        focused:false,
+        buffer:{val:false},
+        rotateMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        scaleMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        translateMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        transformMatrix:[
+            [1,0,0],
+            [0,1,0]
+        ],
+        shadowColor:{val:'rgba(0,0,0,0)',notColor:undefined}
+    };
+    this.animateQueue = [];
+    this._x = x;
+    this._y = y;
+    if (!service && canvasItem !== undefined && canvasItem.layers[0] !== undefined) {
+        this.optns.layer.number = 0;
+        this.optns.canvas.number = jCanvaScript._lastCanvas;
+        var layer = objectLayer(this),
+            limit = layer.objs.length;
+        this.optns.number = limit;
+        this._level = limit ? (layer.objs[limit - 1]._level + 1) : 0;
+        layer.objs[limit] = this;
+        this.optns.layer.id = layer.optns.id;
+        this.redraw();
+    }
 };
 jCanvaScript.Proto.Object.prototype.getCenter = function(type) {
     var rect = this.getRect('poor'),

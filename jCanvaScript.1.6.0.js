@@ -1,10 +1,3 @@
-/*!
- * jCanvaScript JavaScript Library v 1.6.0
- * http://jcscript.com/
- *
- * Copyright 2011, Alexander Savin
- * Dual licensed under the MIT or GPL Version 2 licenses.
- */
 (function (window, undefined)
 {
 	var canvases = [],

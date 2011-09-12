@@ -187,7 +187,7 @@ jCanvaScript.Proto.Layer.prototype.draw = function(canvasOptns) {
         return this;
     }
     for (var i = 0; i < this.grdntsnptrns.length; i++)
-        this.grdntsnptrns[i].create(canvasOptns);
+        this.grdntsnptrns[i].draw(canvasOptns);
     if (optns.anyObjLevelChanged) {
         levelChanger(this.objs);
         optns.anyObjLevelChanged = false;
