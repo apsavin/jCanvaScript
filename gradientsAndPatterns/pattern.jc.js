@@ -17,7 +17,11 @@ jCanvaScript.Proto.Pattern = function(image, type) {
 };
 jCanvaScript.Proto.Pattern.prototype = Object.create(jCanvaScript.Proto.GradientsAndPatterns.prototype);
 /*@private*/
-jCanvaScript.Proto.Pattern.prototype.create = function(canvasOptions) {
-    if (this.optns.animated) jCanvaScript.animating.call(this, canvasOptions);
+jCanvaScript.Proto.Pattern.prototype.draw = function(canvasOptions) {
+    if (this.optns.animated) jCanvaScript._helpers.animating.call(this, canvasOptions);
     this.val = canvasOptions.ctx.createPattern(this._img, this._type);
 };
+
+jCanvaScript.pattern = function(image, type) {
+    return new jCanvaScript.Proto.Pattern(image, type);
+}

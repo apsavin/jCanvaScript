@@ -19,7 +19,7 @@ jCanvaScript.Proto.Image = function(image, x, y, width, height, sx, sy, swidth, 
     this._sy = options.sy;
     this._swidth = options.swidth;
     this._sheight = options.sheight;
-    this._proto = 'image';
+    this._proto = 'Image';
     return this;
 };
 
@@ -31,7 +31,7 @@ jCanvaScript.Proto.Image.prototype.draw = function(ctx) {
 
 jCanvaScript.Proto.Image.prototype.getRect = function(type) {
     var points = {x:this._x, y:this._y, width:this._width, height:this._height};
-    return jCanvaScript.getRect(this, points, type);
+    return jCanvaScript._helpers.getRect(this, points, type);
 };
 
 jCanvaScript.image = function(image, x, y, width, height, sx, sy, swidth, sheight){

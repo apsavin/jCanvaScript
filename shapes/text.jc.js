@@ -10,13 +10,13 @@ jCanvaScript.Proto.Text = function(string, x, y, maxWidth, lineColor, fillColor)
     if (typeof options != 'object')
         options = {string:string, x:x, y:y, maxWidth:maxWidth, lineColor:lineColor, fillColor:fillColor};
     options = jCanvaScript.checkDefaults(options, {string:'', maxWidth:false});
-    this.protobase(options);
+    jCanvaScript.Proto.Shape.call(this,options);
     this._string = options.string;
     this._maxWidth = options.maxWidth;
     this._font = "10px sans-serif";
     this._align = "start";
     this._baseline = "alphabetic";
-    this._proto='text';
+    this._proto='Text';
     return this;
 };
 
@@ -55,7 +55,7 @@ jCanvaScript.Proto.Text.prototype.getRect = function(type) {
     if (this._align == 'center')points.x -= points.width / 2;
     if (this._align == 'right')points.x -= points.width;
     ctx.restore();
-    return jCanvaScript.getRect(this, points, type);
+    return jCanvaScript._helpers.getRect(this, points, type);
 };
 
 jCanvaScript.Proto.Text.prototype.position = function() {
@@ -69,7 +69,7 @@ jCanvaScript.Proto.Text.prototype.position = function() {
     ctx.textAlign = this._align;
     points.width = ctx.measureText(this._string).width;
     ctx.restore();
-    return jCanvaScript.getRect(this, points);
+    return jCanvaScript._helpers.getRect(this, points);
 };
 
 jCanvaScript.Proto.Text.prototype.font = function(font) {

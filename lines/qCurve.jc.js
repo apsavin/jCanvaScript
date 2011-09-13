@@ -1,5 +1,5 @@
-jCanvaScript.Proto.QCurve = function() {
-    this.pointNames = ['_x', '_y', '_cp1x', '_cp1y'];
+jCanvaScript.Proto.QCurve = function(points, lineColor, fillColor) {
+    this._pointNames = ['_x', '_y', '_cp1x', '_cp1y'];
     this._proto = 'QCurve';
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 }

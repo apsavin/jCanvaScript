@@ -24,6 +24,7 @@ jCanvaScript.Proto.Object = function(x, y, service) {
     this._transformdx = 0;
     this._transformdy = 0;
     this._matrixChanged = false;
+    this._arrayName = 'objs';
     var options = x;
     if (typeof options == 'object') {
         options = jCanvaScript.checkDefaults(options, {x:0,y:0,service:false});
@@ -41,7 +42,7 @@ jCanvaScript.Proto.Object = function(x, y, service) {
         drop:{val:false,fn:function() {
         }},
         drag:{val:false},
-        layer:{id:canvasItem.optns.id + "Layer0",number:0},
+        layer:{id:canvasItem.optns.id + "_default",number:0},
         canvas:{number:0},
         focused:false,
         buffer:{val:false},
@@ -84,7 +85,7 @@ jCanvaScript.Proto.Object.prototype.getCenter = function(type) {
             x:(rect.x * 2 + rect.width) / 2,
             y:(rect.y * 2 + rect.height) / 2
         };
-    return getCenter(this, point, type);
+    return jCanvaScript._helpers.getCenter(this, point, type);
 };
 jCanvaScript.Proto.Object.prototype.position = function() {
     return jCanvaScript.Matrix.multiplyPointMatrix(this._x, this._y, jCanvaScript.Matrix.multiplyMatrixAndMatrix(this.matrix(), this.layer().matrix()));
@@ -124,8 +125,7 @@ jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
     return this;
 };
 jCanvaScript.Proto.Object.prototype.clone = function(params) {
-    var clone = new proto[this._proto];
-    proto[this._proto].prototype.base.call(clone);
+    var clone = new jCanvaScript.Proto[this._proto];
     take(clone, this);
     clone.layer(this.layer().optns.id);
     take(clone.optns.transformMatrix, this.optns.transformMatrix);
@@ -412,7 +412,7 @@ jCanvaScript.Proto.Object.prototype.animate = function(options, duration, easing
         if (colorArray[0] != "" && colorArray[1] == "") {
             var
                 color = options[key],
-                colorKeeper = parseColor(color);
+                colorKeeper = jCanvaScript.parseColor(color);
             if (colorKeeper.color.notColor)
                 this.optns[key].notColor = colorKeeper.color.notColor;
             else {
@@ -488,7 +488,7 @@ jCanvaScript.Proto.Object.prototype.translateTo = function(newX, newY, duration,
 jCanvaScript.Proto.Object.prototype.translate = function(x, y, duration, easing, onstep, fn) {
     if (duration !== undefined)
         return this.animate({translate:{x:x,y:y}}, duration, easing, onstep, fn);
-    this.optns.translateMatrix = multiplyM(this.optns.translateMatrix, [
+    this.optns.translateMatrix = jCanvaScript.Matrix.multiplyMatrix(this.optns.translateMatrix, [
         [1,0,x],
         [0,1,y]
     ]);
@@ -499,7 +499,7 @@ jCanvaScript.Proto.Object.prototype.scale = function(x, y, duration, easing, ons
     if (duration !== undefined)
         return this.animate({scale:{x:x,y:y}}, duration, easing, onstep, fn);
     if (y === undefined)y = x;
-    this.optns.scaleMatrix = multiplyM(this.optns.scaleMatrix, [
+    this.optns.scaleMatrix = jCanvaScript.Matrix.multiplyMatrix(this.optns.scaleMatrix, [
         [x,0,this._x * (1 - x)],
         [0,y,this._y * (1 - y)]
     ]);
@@ -509,9 +509,9 @@ jCanvaScript.Proto.Object.prototype.scale = function(x, y, duration, easing, ons
 jCanvaScript.Proto.Object.prototype.rotate = function(x, x1, y1, duration, easing, onstep, fn) {
     if (duration !== undefined)
         return this.animate({rotate:{angle:x,x:x1,y:y1}}, duration, easing, onstep, fn);
-    x = x / radian;
-    var cos = m_cos(x),
-        sin = m_sin(x),
+    x = x / jCanvaScript.constants.radian;
+    var cos = Math.cos(x),
+        sin = Math.sin(x),
         translateX = 0,
         translateY = 0;
     if (x1 !== undefined) {
@@ -529,7 +529,7 @@ jCanvaScript.Proto.Object.prototype.rotate = function(x, x1, y1, duration, easin
         translateX = -x1 * (cos - 1) + y1 * sin;
         translateY = -y1 * (cos - 1) - x1 * sin;
     }
-    this.optns.rotateMatrix = multiplyM(this.optns.rotateMatrix, [
+    this.optns.rotateMatrix = jCanvaScript.Matrix.multiplyMatrix(this.optns.rotateMatrix, [
         [cos,-sin,translateX],
         [sin,cos,translateY]
     ]);
@@ -573,14 +573,14 @@ jCanvaScript.Proto.Object.prototype.beforeDraw = function(canvasOptns) {
     if (this.optns.clipObject) {
         var clipObject = this.optns.clipObject;
         clipObject._visible = true;
-        if (clipObject.optns.animated)animating.call(clipObject, canvasOptns);
+        if (clipObject.optns.animated)jCanvaScript._helpers.animating.call(clipObject, canvasOptns);
         clipObject.setOptns(ctx);
         ctx.beginPath();
         clipObject.draw(ctx);
         ctx.clip();
     }
     this.setOptns(ctx);
-    if (this.optns.animated)animating.call(this, canvasOptns);
+    if (this.optns.animated)jCanvaScript._helpers.animating.call(this, canvasOptns);
     ctx.beginPath();
     return true;
 };
@@ -634,10 +634,10 @@ jCanvaScript.Proto.Object.prototype.isPointIn = function(x, y, global) {
 
 };
 jCanvaScript.Proto.Object.prototype.layer = function(idLayer) {
-    return layer(idLayer, this, 'objs');
+    return layer.call(this,idLayer, this._arrayName);
 };
 jCanvaScript.Proto.Object.prototype.canvas = function(idCanvas) {
-    return canvas(idCanvas, this, 'objs');
+    return canvas.call(this, idCanvas, this._arrayName);
 };
 jCanvaScript.Proto.Object.prototype.draggable = function(object, params, drag) {
     if (params === undefined && typeof object == 'object' && object.optns === undefined) {
@@ -733,16 +733,7 @@ jCanvaScript.Proto.Object.prototype.fadeToggle = function(duration, easing, onst
         this.fadeIn(duration, easing, onstep, fn);
     return this;
 };
-jCanvaScript.Proto.Object.prototype.proto = function() {
-    return proto[this._proto].prototype;
-};
-jCanvaScript.Proto.Object.prototype.superclass = function() {
-    return  jCanvaScript.getProto(jCanvaScript.getProtoConstructor(this._proto).proto)
-};
-jCanvaScript.Proto.Object.prototype.protobase = function(options) {
-    return this.superclass().base.call(this, options);
-};
 jCanvaScript.Proto.Object.prototype.instanceOf = function(name) {
     if (name === undefined)return this._proto;
-    return ((this instanceof proto[name]) == true);
+    return ((this instanceof jCanvaScript.Proto[name]) == true);
 };

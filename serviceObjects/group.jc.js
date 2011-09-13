@@ -26,7 +26,7 @@ jCanvaScript.Proto.Group = function(elements) {
     }
     this.elements = elements || [];
     this.unmatchedElements = [];
-    this._proto='group';
+    this._proto='Group';
 };
 jCanvaScript.Proto.Group.prototype.reverse = function() {
     var tmpArray = this.elements;

@@ -5,7 +5,7 @@ jCanvaScript.Proto.Circle = function(x, y, radius, lineColor, fillColor) {
     options = jCanvaScript.checkDefaults(options, {radius:0});
     jCanvaScript.Proto.Shape.call(this, options);
     this._radius = options.radius;
-    this._proto = 'circle';
+    this._proto = 'Circle';
     return this;
 };
 
@@ -18,11 +18,11 @@ jCanvaScript.Proto.Circle.prototype.draw = function(ctx) {
 jCanvaScript.Proto.Circle.prototype.getRect = function(type) {
     var points = {x:this._x - this._radius, y:this._y - this._radius};
     points.width = points.height = this._radius * 2;
-    return jCanvaScript.getRect(this, points, type);
+    return jCanvaScript._helpers.getRect(this, points, type);
 };
 
 jCanvaScript.Proto.Circle.prototype.getCenter = function(type){
-    return jCanvaScript.getCenter(this, {x:this._x, y:this._y}, type);
+    return jCanvaScript._helpers.getCenter(this, {x:this._x, y:this._y}, type);
 }
 
 jCanvaScript.circle = function(x, y, radius, lineColor, fillColor){

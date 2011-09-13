@@ -30,8 +30,8 @@ function getOffsetRect(elem) {
 	var top = box.top + scrollTop - clientTop;
 	var left = box.left + scrollLeft - clientLeft;
 	return {
-		top: m_round(top),
-		left: m_round(left)
+		top: Math.round(top),
+		left: Math.round(left)
 	}
 }
 function checkEvents(object,optns)
@@ -56,13 +56,13 @@ function isPointInPath(object,x,y)
 	point.y=y;
 	if(FireFox)
 	{
-		point=transformPoint(x,y,layer.matrix());
-		point=transformPoint(point.x,point.y,object.matrix());
+		point=jCanvaScript.Matrix.transformPoint(x,y,layer.matrix());
+		point=jCanvaScript.Matrix.transformPoint(point.x,point.y,object.matrix());
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=object.getRect('poor');
-		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
+		point=transformPoint(x,y,jCanvaScript.Matrix.multiplyMatrixAndMatrix(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
 	else
@@ -128,35 +128,6 @@ function checkMouseEvents(object,optns)
 	}
 }
 
-
-function layer(idLayer,object,array)
-{
-	var objectCanvas=object.optns.canvas;
-	var objectLayer=object.optns.layer;
-	if (idLayer===undefined)return objectLayer;
-	object.redraw();
-	if(objectLayer.id==idLayer)return object;
-	var oldIndex={
-		i:objectCanvas.number,
-		j:objectLayer.number
-	};
-	objectLayer.id=idLayer;
-	var newLayer=jCanvaScript.layer(idLayer);
-	var newIndex={
-		i:newLayer.optns.canvas.number,
-		j:newLayer.optns.number
-	};
-	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
-	oldArray.splice(object.optns.number,1);
-	object._level=object.optns.number=newArray.length;
-	newArray[object._level]=object;
-	objectLayer.number=newIndex.j;
-	objectCanvas.number=newIndex.i;
-	objectCanvas.id=newLayer.optns.canvas.id;
-	object.redraw();
-	return object;
-}
-
 function take(f,s) {
 	for(var key in s)
 	{
@@ -187,37 +158,14 @@ function take(f,s) {
 		}
 	}
 }
-function canvas(idCanvas,object,array)
+
+function changeMatrix(object)
 {
-	var objectCanvas=object.optns.canvas;
-	var objectLayer=object.optns.layer;
-	if(idCanvas===undefined)return canvases[objectCanvas.number];
+	var optns=object.optns;
+	object.matrix(jCanvaScript.Matrix.multiplyMatrix(optns.transformMatrix,optns.translateMatrix,optns.scaleMatrix,optns.rotateMatrix));
 	object.redraw();
-	if(canvases[objectCanvas.number].optns.id==idCanvas)return object;
-	var oldIndex={
-		i:objectCanvas.number,
-		j:objectLayer.number
-	};
-	jCanvaScript.canvas(idCanvas);
-	for(var i=0;i<canvases.length;i++)
-	{
-		var canvasItem=canvases[i];
-		if(canvasItem.optns.id==idCanvas)
-		{
-			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
-			oldArray.splice(object.optns.number,1);
-			normalizeLevels(oldArray);
-			object._level=object.optns.number=newArray.length;
-			newArray[object._level]=object;
-			objectLayer.number=0;
-			objectCanvas.number=i;
-			objectCanvas.id=canvasItem.optns.id;
-			objectLayer.id=canvasItem.layers[0].optns.id;
-		}
-	}
-	object.redraw();
-	return object;
 }
+
 function normalizeLevels(array)
 {
 	for(var i=0;i<array.length;i++)
@@ -242,7 +190,7 @@ function setLayerAndCanvasToArray(array,newLayerId,newLayerNumber,newCanvasId,ne
 }
 function levelChanger(array)
 {
-	array.sort(function(a,b){
+	array.sort(function sort(a,b){
 		if(a._level>b._level)return 1;
 		if(a._level<b._level)return -1;
 		return 0;
@@ -266,6 +214,66 @@ function objDeleter(array)
 	}while(isAnyObjectDeleted);
 	normalizeLevels(array);
 	return array.length;
+}
+
+function canvas(idCanvas,array)
+{
+	var thisCanvas=this.optns.canvas;
+	var thisLayer=this.optns.layer;
+	if(idCanvas===undefined)return jCanvaScript.canvases[thisCanvas.number];
+	this.redraw();
+	if(canvases[thisCanvas.number].optns.id==idCanvas)return this;
+	var oldIndex={
+		i:thisCanvas.number,
+		j:thisLayer.number
+	};
+	jCanvaScript.canvas(idCanvas);
+	for(var i=0;i<canvases.length;i++)
+	{
+		var canvasItem=canvases[i];
+		if(canvasItem.optns.id==idCanvas)
+		{
+			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
+			oldArray.splice(this.optns.number,1);
+			normalizeLevels(oldArray);
+			this._level=this.optns.number=newArray.length;
+			newArray[this._level]=this;
+			thisLayer.number=0;
+			thisCanvas.number=i;
+			thisCanvas.id=canvasItem.optns.id;
+			thisLayer.id=canvasItem.layers[0].optns.id;
+		}
+	}
+	this.redraw();
+	return this;
+}
+
+function layer(idLayer,array)
+{
+	var thisCanvas=this.optns.canvas;
+	var thisLayer=this.optns.layer;
+	if (idLayer===undefined)return jCanvaScript.canvases[thisCanvas.number].layers[thisLayer.number];
+	this.redraw();
+	if(thisLayer.id==idLayer)return this;
+	var oldIndex={
+		i:thisCanvas.number,
+		j:thisLayer.number
+	};
+	thisLayer.id=idLayer;
+	var newLayer=jCanvaScript.layer(idLayer);
+	var newIndex={
+		i:newLayer.optns.canvas.number,
+		j:newLayer.optns.number
+	};
+	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
+	oldArray.splice(this.optns.number,1);
+	this._level=this.optns.number=newArray.length;
+	newArray[this._level]=this;
+	thisLayer.number=newIndex.j;
+	thisCanvas.number=newIndex.i;
+	thisCanvas.id=newLayer.optns.canvas.id;
+	this.redraw();
+	return this;
 }
 jCanvaScript.canvases = canvases;
 jCanvaScript._lastCanvas = 0;

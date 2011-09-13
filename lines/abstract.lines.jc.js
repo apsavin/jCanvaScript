@@ -22,7 +22,7 @@ jCanvaScript.Proto.Lines.prototype.getCenter = function(type) {
     }
     point.x = point.x / this.shapesCount;
     point.y = point.y / this.shapesCount;
-    return jCanvaScript.getCenter(this, point, type);
+    return jCanvaScript._helpers.getCenter(this, point, type);
 };
 jCanvaScript.Proto.Lines.prototype.position = function() {
     return jCanvaScript.multiplyPointM(this._x0, this._y0, jCanvaScript.multiplyM(this.matrix(), this.layer().matrix()));
@@ -41,7 +41,7 @@ jCanvaScript.Proto.Lines.prototype.getRect = function(type) {
         if (minY > this['_y' + i]) minY = this['_y' + i];
     }
     points = {x: minX, y:minY, width: maxX - minX, height: maxY - minY};
-    return jCanvaScript.getRect(this, points, type);
+    return jCanvaScript._helpers.getRect(this, points, type);
 };
 jCanvaScript.Proto.Lines.prototype.addPoint = function() {
     this.redraw();

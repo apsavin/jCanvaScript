@@ -1,5 +1,5 @@
-jCanvaScript.Proto.BCurve = function() {
-    this.pointNames = ['_x', '_y', '_cp1x', '_cp1y', '_cp2x', '_cp2y'];
+jCanvaScript.Proto.BCurve = function(points, lineColor, fillColor) {
+    this._pointNames = ['_x', '_y', '_cp1x', '_cp1y', '_cp2x', '_cp2y'];
     this._proto = 'BCurve';
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 }

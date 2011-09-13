@@ -27,6 +27,7 @@ jCanvaScript.Proto.ImageData = function(width, height) {
             this._data[index + 2] = 0;
             this._data[index + 3] = 0;
         }
+    this._proto = 'ImageData';
     return this;
 };
 
@@ -45,7 +46,7 @@ jCanvaScript.Proto.ImageData.prototype.draw = function(ctx) {
 
 jCanvaScript.Proto.ImageData.prototype.getRect = function(type) {
     var points = {x:this._x, y:this._y, width:this._width, height:this._height};
-    return jCanvaScript.getRect(this, points, type);
+    return jCanvaScript._helpers.getRect(this, points, type);
 };
 
 jCanvaScript.Proto.ImageData.prototype.setPixel = function(x, y, color) {

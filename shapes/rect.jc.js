@@ -6,7 +6,7 @@ jCanvaScript.Proto.Rect = function(x, y, width, height, lineColor, fillColor) {
     jCanvaScript.Proto.Shape.call(this, options);
     this._width = options.width;
     this._height = options.height;
-    this._proto = 'rect';
+    this._proto = 'Rect';
     return this;
 };
 
@@ -17,7 +17,7 @@ jCanvaScript.Proto.Rect.prototype.draw = function(ctx) {
 };
 
 jCanvaScript.Proto.Rect.prototype.getRect = function(type) {
-    return jCanvaScript.getRect(this, {x:this._x, y:this._y, width:this._width, height:this._height}, type);
+    return jCanvaScript._helpers.getRect(this, {x:this._x, y:this._y, width:this._width, height:this._height}, type);
 };
 
 jCanvaScript.rect = function(x, y, width, height, lineColor, fillColor) {

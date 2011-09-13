@@ -2,7 +2,7 @@ jCanvaScript.Proto.Gradients = function(colors) {
     /*@private*/
     this._colorStopsCount = 0;
     /*@private*/
-    this._paramNames = ['_pos','_colorR','_colorG','_colorB','_alpha'];
+    this._paramNames = ['_pos','_colorR','_colorG','_colorB','_colorA'];
     jCanvaScript.Proto.GradientsAndPatterns.call(this);
     if (colors == undefined)
         return this;
@@ -23,7 +23,7 @@ jCanvaScript.Proto.Gradients.prototype.addColorStop = function(pos, color) {
     this['_colorR' + i] = colorKeeper.r;
     this['_colorG' + i] = colorKeeper.g;
     this['_colorB' + i] = colorKeeper.b;
-    this['_alpha' + i] = colorKeeper.a;
+    this['_colorA' + i] = colorKeeper.a;
     this._colorStopsCount++;
     return this;
 };
@@ -43,7 +43,7 @@ jCanvaScript.Proto.Gradients.prototype.animate = function(parameters, duration, 
             parameters['colorR' + i] = colorKeeper.r;
             parameters['colorG' + i] = colorKeeper.g;
             parameters['colorB' + i] = colorKeeper.b;
-            parameters['alpha' + i] = colorKeeper.a;
+            parameters['colorA' + i] = colorKeeper.a;
         }
     }
     jCanvaScript.Proto.GradientsAndPatterns.animate.call(this, parameters, duration, easing, onstep, fn);

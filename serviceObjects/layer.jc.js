@@ -1,9 +1,9 @@
 jCanvaScript.Proto.Layer =function(idLayer) {
-    this._proto = 'layer';
+    this._proto = 'Layer';
     var canvas = canvases[jCanvaScript._lastCanvas],
         lastCanvasLayers = canvas.layers,
         lastCanvasOptns = canvas.optns;
-    jCanvaScript.Proto.Object.prototype.constructor.call(this, 0, 0, true);
+    jCanvaScript.Proto.Object.call(this, 0, 0, true);
     var limit = lastCanvasLayers.length;
     lastCanvasLayers[limit] = this;
     this.objs = [];
@@ -67,7 +67,7 @@ jCanvaScript.Proto.Layer.prototype.getRect = function(type) {
     return points;
 };
 jCanvaScript.Proto.Layer.prototype.canvas = function(idCanvas) {
-    if (idCanvas === undefined)return this.idCanvas;
+    if (idCanvas === undefined)return jCanvaScript.canvases[this.optns.canvas.number];
     if (this.optns.canvas.id == idCanvas)return this;
     var newCanvas = -1,oldCanvas = 0,limitC = canvases.length;
     for (var i = 0; i < limitC; i++) {
@@ -154,7 +154,7 @@ jCanvaScript.Proto.Layer.prototype.clone = function(idLayer, params) {
     take(clone.optns.translateMatrix, this.optns.translateMatrix);
     take(clone.optns.scaleMatrix, this.optns.scaleMatrix);
     take(clone.optns.rotateMatrix, this.optns.rotateMatrix);
-    clone.canvas(objectCanvas(this).optns.id);
+    clone.canvas(this.canvas().optns.id);
     if (params === undefined) return clone;
     return clone.animate(params);
 };

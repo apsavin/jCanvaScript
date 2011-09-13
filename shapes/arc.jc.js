@@ -15,7 +15,7 @@ jCanvaScript.Proto.Arc = function(x, y, radius, startAngle, endAngle, anticlockw
     this._startAngle = options.startAngle;
     this._endAngle = options.endAngle;
     this._anticlockwise = options.anticlockwise;
-    this._proto='arc';
+    this._proto='Arc';
     return this;
 };
 
@@ -123,7 +123,7 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
             points.height += radius;
         }
     }
-    return jCanvaScript.getRect(this, points, type);
+    return jCanvaScript._helpers.getRect(this, points, type);
 };
 
 jCanvaScript.arc = function(x, y, radius, startAngle, endAngle, anticlockwise, lineColor, fillColor) {

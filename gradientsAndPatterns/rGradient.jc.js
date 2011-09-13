@@ -24,7 +24,11 @@ jCanvaScript.Proto.RGradient.prototype = Object.create(jCanvaScript.Proto.Gradie
  * @param {Object} canvasOptions
  */
 jCanvaScript.Proto.RGradient.prototype.draw = function(canvasOptions) {
-    if (this.optns.animated)jCanvaScript.animating.call(this);
+    if (this.optns.animated)jCanvaScript._helpers.animating.call(this);
     this.val = canvasOptions.ctx.createRadialGradient(this._x1, this._y1, this._r1, this._x2, this._y2, this._r2);
     this._createColorStops();
 };
+
+jCanvaScript.rGradient = function(x1, y1, r1, x2, y2, r2, colors){
+    return new jCanvaScript.Proto.RGradient(x1, y1, r1, x2, y2, r2, colors);
+}

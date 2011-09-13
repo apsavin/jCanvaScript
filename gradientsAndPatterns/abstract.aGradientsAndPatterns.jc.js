@@ -17,20 +17,12 @@ jCanvaScript.Proto.GradientsAndPatterns = function() {
     var gradientsAndPatternsArray = jCanvaScript.canvases[jCanvaScript._lastCanvas].layers[0].grdntsnptrns;
     this._level = gradientsAndPatternsArray.length;
     gradientsAndPatternsArray[this._level] = this;
+    this._arrayName = 'grdntsnptrns';
     this.redraw();
 };
-/*
- * @param {String} idLayer
- */
-jCanvaScript.Proto.GradientsAndPatterns.prototype.layer = function(idLayer) {
-    return jCanvaScript.objectlayer(idLayer, this, 'grdntsnptrns');
-};
-/*
- * @param {String} idCanvas
- */
-jCanvaScript.Proto.GradientsAndPatterns.prototype.canvas = function(idCanvas) {
-    return jCanvaScript.objectCanvas(idCanvas, this, 'grdntsnptrns');
-};
+
+jCanvaScript.Proto.GradientsAndPatterns.prototype.layer = jCanvaScript.Proto.Object.prototype.layer;
+jCanvaScript.Proto.GradientsAndPatterns.prototype.canvas = jCanvaScript.Proto.Object.prototype.canvas;
 jCanvaScript.Proto.GradientsAndPatterns.prototype.animate = jCanvaScript.Proto.Object.prototype.animate;
 jCanvaScript.Proto.GradientsAndPatterns.prototype.attr = jCanvaScript.Proto.Object.prototype.attr;
 jCanvaScript.Proto.GradientsAndPatterns.prototype.id = jCanvaScript.Proto.Object.prototype.id;

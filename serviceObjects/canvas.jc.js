@@ -32,7 +32,8 @@ jCanvaScript.Proto.Canvas = function(idCanvas){
     };
     this.layers = [];
     this.interval = 0;
-    jCanvaScript.layer('default').canvas(idCanvas);
+    this._proto = 'Canvas';
+    jCanvaScript.layer(idCanvas+'_default').canvas(idCanvas);
 }
 jCanvaScript.Proto.Canvas.prototype.id = jCanvaScript.Proto.Object.prototype.id
 jCanvaScript.Proto.Canvas.prototype.toDataURL = function() {
@@ -44,7 +45,7 @@ jCanvaScript.Proto.Canvas.prototype.start = function(isAnimated) {
     if (isAnimated) {
         if (this.interval)return this;
         this.isAnimated = isAnimated;
-        var offset = getOffset(this.cnv);
+        var offset = jCanvaScript.getOffset(this.cnv);
         this.optns.x = offset.left + (parseInt(this.cnv.style.borderTopWidth) || 0);
         this.optns.y = offset.top + (parseInt(this.cnv.style.borderLeftWidth) || 0);
         var canvas = canvases[this.optns.number],

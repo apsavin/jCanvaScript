@@ -6,16 +6,10 @@ jCanvaScript._helpers.updateColor = function (object, color, prefix)
 	else
 	{
 		var notColor=color.notColor;
-		var notColorLayer=canvases[notColor.canvas].layers[notColor.layer];
+		var notColorLayer=jCanvaScript.canvases[notColor.canvas].layers[notColor.layer];
 		if(notColorLayer.grdntsnptrns[notColor.level]!==undefined){color.val=notColorLayer.grdntsnptrns[notColor.level].val;}
 	}
 	return color;
-}
-jCanvaScript._helpers.changeMatrix = function(object)
-{
-	var optns=object.optns;
-	object.matrix(jCanvaScript.Matrix.multiplyMatrixes(optns.transformMatrix,optns.translateMatrix,optns.scaleMatrix,optns.rotateMatrix));
-	object.redraw();
 }
 jCanvaScript._helpers.animating = function(canvasOptions)
 {

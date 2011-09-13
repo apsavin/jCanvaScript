@@ -17,7 +17,7 @@ jCanvaScript.Proto.LGradient.prototype = Object.create(jCanvaScript.Proto.Gradie
  * @param {Object} canvasOptions
  */
 jCanvaScript.Proto.LGradient.prototype.draw = function(canvasOptions) {
-    if (this.optns.animated)jCanvaScript.animating.call(this, canvasOptions);
+    if (this.optns.animated)jCanvaScript._helpers.animating.call(this, canvasOptions);
     this.val = canvasOptions.ctx.createLinearGradient(this._x1, this._y1, this._x2, this._y2);
     this._createColorStops();
 };

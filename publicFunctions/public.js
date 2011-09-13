@@ -5,9 +5,9 @@ jCanvaScript.constants = {
 };
 
 jCanvaScript.clear = function(idCanvas) {
-    if (canvases[0] === undefined)return jCanvaScript;
+    if (jCanvaScript.canvases[0] === undefined)return jCanvaScript;
     if (idCanvas === undefined) {
-        canvases[0].clear();
+        jCanvaScript.canvases[0].clear();
         return jCanvaScript;
     }
     jCanvaScript.canvas(idCanvas).clear();
@@ -16,7 +16,7 @@ jCanvaScript.clear = function(idCanvas) {
 
 jCanvaScript.pause = function(idCanvas) {
     if (idCanvas === undefined) {
-        canvases[0].pause();
+        jCanvaScript.canvases[0].pause();
         return jCanvaScript;
     }
     jCanvaScript.canvas(idCanvas).pause();
