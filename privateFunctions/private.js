@@ -1,347 +1,4 @@
-function updateColor(object,color,prefix)
-{
-	if(color.notColor===undefined)
-		color.val='rgba('+parseInt(object['_'+prefix+'ColorR'])+','+parseInt(object['_'+prefix+'ColorG'])+','+parseInt(object['_'+prefix+'ColorB'])+','+parseInt(object['_'+prefix+'ColorA']*100)/100+')';
-	else
-	{
-		var notColor=color.notColor;
-		var notColorLayer=canvases[notColor.canvas].layers[notColor.layer];
-		if(notColorLayer.grdntsnptrns[notColor.level]!==undefined){color.val=notColorLayer.grdntsnptrns[notColor.level].val;}
-	}
-	return color;
-}
-function changeMatrix(object)
-{
-	var optns=object.optns;
-	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
-	object.redraw();
-}
-function checkDefaults(check,def)
-{
-	for(var key in def)
-	{
-		if(check[key]===undefined)check[key]=def[key];
-	}
-	return check;
-}
-
-function animating(canvasOptns)
-{
-	var timeDiff=canvasOptns.timeDiff,
-		progress=1;
-	for(var q=0;q<this.animateQueue.length;q++)
-	{
-		var queue=this.animateQueue[q],
-			duration=queue['duration'],
-			easing=queue['easing'],
-			step=queue.step,
-			onstep=queue['onstep'],
-			easingIn=easing['type']=='in' || (easing['type']=='inOut' && progress<0.5),
-			easingOut=easing['type']=='out' || (easing['type']=='inOut' && progress>0.5);
-			queue['step']+=timeDiff;
-			progress=step/duration;
-		for(var key in queue)
-		{
-			if(this[key]!==undefined && queue[key])
-			{
-				var property=queue[key],
-					to=property['to'],
-					from=property['from'];
-				animateTransforms(key,this,queue);
-				if(easingIn)this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
-				if(easingOut)this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
-				if(onstep)onstep.fn.call(this,onstep);
-				if(step>=duration)
-				{
-					this[key]=to;
-					animateTransforms(key,this,queue);
-					queue[key]=false;
-					queue.animateKeyCount--;
-					if(!queue.animateKeyCount)
-					{
-						if(queue.animateFn)queue.animateFn.apply(this);
-						this.animateQueue.splice(q,1);
-						q--;
-					}
-				}
-			}
-		}
-	}
-	if (this.animateQueue.length)this.redraw();
-	else this.optns.animated=false;
-	return this;
-}
-function animateTransforms(key,object,queue)
-{
-	var val=object[key];
-	var prev=queue[key]['prev'];
-	switch(key)
-	{
-		case '_rotateAngle':
-			object.rotate(val-prev,object._rotateX,object._rotateY);
-			break;
-		case '_translateX':
-			object.translate(val-prev,0);
-			break;
-		case '_translateY':
-			object.translate(0,val-prev);
-			break;
-		case '_translateToX':
-			object.translateTo(val,undefined);
-			break;
-		case '_translateToY':
-			object.translateTo(undefined,val);
-			break;
-		case '_scaleX':
-			if(!prev)prev=1;
-			object.scale(val/prev,1);
-			break;
-		case '_scaleY':
-			if(!prev)prev=1;
-			object.scale(1,val/prev);
-			break;
-		default:
-			return;
-	}
-	queue[key]['prev']=val;
-}
-function keyEvent(e,key,optns)
-{
-	e=e||window.event;
-	optns[key].event=e;
-	optns[key].code=e.charCode||e.keyCode;
-	optns[key].val=true;
-	optns.redraw=1;
-}
-function mouseEvent(e,key,optns)
-{
-	if(!optns[key].val)return;
-	e=e||window.event;
-	var point= {
-		pageX:e.pageX||e.clientX,
-		pageY:e.pageY||e.clientY
-	};
-	optns[key].event=e;
-	optns[key].x=point.pageX - optns.x;
-	optns[key].y=point.pageY - optns.y;
-	optns.redraw=1;
-}
-function setMouseEvent(fn,eventName)
-{
-	if(fn===undefined)this['on'+eventName]();
-	else this['on'+eventName] = fn;
-	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
-	objectCanvas(this).optns[eventName].val=true;
-	return this;
-}
-function setKeyEvent(fn,eventName)
-{
-	if(fn===undefined)this[eventName]();
-	else this[eventName] = fn;
-	return this;
-}
-var animateFunctions = {
-    linear:function(progress, params) {
-        return progress;
-    },
-    exp:function(progress, params) {
-        var n = params.n || 2;
-        return m_pow(progress, n);
-    },
-    circ:function(progress, params) {
-        return 1 - m_sqrt(1 - progress * progress);
-    },
-    sine:function(progress, params) {
-        return 1 - m_sin((1 - progress) * m_pi / 2);
-    },
-    back:function(progress, params) {
-        var n = params.n || 2;
-        var x = params.x || 1.5;
-        return m_pow(progress, n) * ((x + 1) * progress - x);
-    },
-    elastic:function(progress, params) {
-        var n = params.n || 2;
-        var m = params.m || 20;
-        var k = params.k || 3;
-        var x = params.x || 1.5;
-        return m_pow(n, 10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
-    },
-    bounce:function(progress, params) {
-        var n = params.n || 4;
-        var b = params.b || 0.25;
-        var sum = [1];
-        for (var i = 1; i < n; i++) sum[i] = sum[i - 1] + m_pow(b, i / 2);
-        var x = 2 * sum[n - 1] - 1;
-        for (i = 0; i < n; i++) {
-            if (x * progress >= (i > 0 ? 2 * sum[i - 1] - 1 : 0) && x * progress <= 2 * sum[i] - 1)
-                return m_pow(x * (progress - (2 * sum[i] - 1 - m_pow(b, i / 2)) / x), 2) + 1 - m_pow(b, i);
-        }
-        return 1;
-    }
-},
-    imageDataFilters = {
-        color:{fn:function(width, height, matrix, type) {
-            var old,i,j;
-            matrix = matrix[type];
-            for (i = 0; i < width; i++)
-                for (j = 0; j < height; j++) {
-                    old = this.getPixel(i, j);
-                    old[matrix[0]] = old[matrix[0]] * 2 - old[matrix[1]] - old[matrix[2]];
-                    old[matrix[1]] = 0;
-                    old[matrix[2]] = 0;
-                    old[matrix[0]] = old[matrix[0]] > 255 ? 255 : old[matrix[0]];
-                    this.setPixel(i, j, old);
-                }
-        },matrix:
-        {
-            red:[0,1,2],
-            green:[1,0,2],
-            blue:[2,0,1]
-        }},
-        linear:{fn:function(width, height, matrix, type) {
-            var newMatrix = [],old,i,j,k,m,n;
-            matrix = matrix[type];
-            m = matrix.length;
-            n = matrix[0].length;
-            for (i = 0; i < width; i++) {
-                newMatrix[i] = [];
-                for (j = 0; j < height; j++) {
-                    newMatrix[i][j] = [0,0,0,1];
-                    for (m = 0; m < 3; m++)
-                        for (n = 0; n < 3; n++) {
-                            old = this.getPixel(i - parseInt(m / 2), j - parseInt(n / 2));
-                            for (k = 0; k < 3; k++) {
-                                newMatrix[i][j][k] += old[k] * matrix[m][n];
-                            }
-                        }
-                }
-            }
-            for (i = 0; i < width; i++) {
-                for (j = 0; j < height; j++)
-                    this.setPixel(i, j, newMatrix[i][j]);
-            }
-        },
-            matrix:{
-                sharp:[
-                    [-0.375,-0.375,-0.375],
-                    [-0.375,4,-0.375],
-                    [-0.375,-0.375,-0.375]
-                ],
-                blur:[
-                    [0.111,0.111,0.111],
-                    [0.111,0.111,0.111],
-                    [0.111,0.111,0.111]
-                ]
-            }
-        }
-    };
-
-function multiplyM(m1,m2)
-{
-	return [[(m1[0][0]*m2[0][0]+m1[0][1]*m2[1][0]),(m1[0][0]*m2[0][1]+m1[0][1]*m2[1][1]),(m1[0][0]*m2[0][2]+m1[0][1]*m2[1][2]+m1[0][2])],[(m1[1][0]*m2[0][0]+m1[1][1]*m2[1][0]),(m1[1][0]*m2[0][1]+m1[1][1]*m2[1][1]),(m1[1][0]*m2[0][2]+m1[1][1]*m2[1][2]+m1[1][2])]];
-}
-function multiplyPointM(x,y,m)
-{
-	return {
-		x:(x*m[0][0]+y*m[0][1]+m[0][2]),
-		y:(x*m[1][0]+y*m[1][1]+m[1][2])
-	}
-}
-function transformPoint(x,y,m)
-{
-	return{
-		x:(x*m[1][1]-y*m[0][1]+m[0][1]*m[1][2]-m[1][1]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1]),
-		y:(-x*m[1][0]+y*m[0][0]-m[0][0]*m[1][2]+m[1][0]*m[0][2])/(m[0][0]*m[1][1]-m[1][0]*m[0][1])
-	}
-}
-function getRect(object,rect,type)
-{
-	if(type=='poor')return rect;
-	var min={x:rect.x,y:rect.y},max={x:rect.x+rect.width,y:rect.y+rect.height},
-	m=multiplyM(object.matrix(),objectLayer(object).matrix()),
-	lt=multiplyPointM(min.x,min.y,m),
-	rt=multiplyPointM(max.x,min.y,m),
-	lb=multiplyPointM(min.x,max.y,m),
-	rb=multiplyPointM(max.x,max.y,m),
-	coords=[[lt.x,lt.y],[rt.x,rt.y],[lb.x,lb.y],[rb.x,rb.y]];
-	if(type=='coords')return coords;
-	var minX, minY,
-	maxX=minX=lt.x,
-	maxY=minY=lt.y;
-	for(var i=0;i<4;i++)
-	{
-		if(maxX<coords[i][0])maxX=coords[i][0];
-		if(maxY<coords[i][1])maxY=coords[i][1];
-		if(minX>coords[i][0])minX=coords[i][0];
-		if(minY>coords[i][1])minY=coords[i][1];
-	}
-	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
-}
-function getCenter(object,point,type)
-{
-	if(type=='poor')return point;
-	return multiplyPointM(point.x,point.y,multiplyM(object.matrix(),objectLayer(object).matrix()));
-}
-function parseColor(color)
-{
-	var colorKeeper={
-		color:{
-			val:color,
-			notColor:undefined
-		},
-		r:0,
-		g:0,
-		b:0,
-		a:1};
-	if(color.id!==undefined)
-	{
-		colorKeeper.color.notColor = {
-            level:color._level,
-            canvas:color.optns.canvas.number,
-            layer:color.optns.layer.number
-        };
-		return colorKeeper;
-	}
-	if(color.r!==undefined)
-	{
-		colorKeeper=checkDefaults(color,{r:0,g:0,b:0,a:1});
-		colorKeeper.color = {
-            val:'rgba(' + colorKeeper.r + ',' + colorKeeper.g + ',' + colorKeeper.b + ',' + colorKeeper.a + ')',
-            notColor:undefined
-        };
-		return colorKeeper;
-	}
-	if(color.charAt(0)=='#')
-	{
-		colorKeeper.r=parseInt(color.substr(1,2),16);
-		colorKeeper.g=parseInt(color.substr(3,2),16);
-		colorKeeper.b=parseInt(color.substr(5,2),16);
-	}
-	else
-	{
-		var arr=color.split(',');
-		if(arr.length==4)
-		{
-			var colorR = arr[0].split('(');
-			var alpha = arr[3].split(')');
-			colorKeeper.r=parseInt(colorR[1]);
-			colorKeeper.g=parseInt(arr[1]);
-			colorKeeper.b=parseInt(arr[2]);
-			colorKeeper.a=parseFloat(alpha[0]);
-		}
-		if(arr.length==3)
-		{
-			colorR = arr[0].split('(');
-			var colorB = arr[2].split(')');
-			colorKeeper.r=parseInt(colorR[1]);
-			colorKeeper.g=parseInt(arr[1]);
-			colorKeeper.b=parseInt(colorB[0]);
-		}
-	}
-	colorKeeper.color.notColor = undefined;
-	return colorKeeper;
-}
-function getOffset(elem) {
+jCanvaScript.getOffset = function(elem){
 	if (elem.getBoundingClientRect) {
 		return getOffsetRect(elem)
 	} else {
@@ -392,7 +49,7 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
-	var canvas=objectCanvas(object);
+	var canvas=object.canvas();
 	var ctx=canvas.optns.ctx;
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
@@ -416,6 +73,30 @@ function isPointInPath(object,x,y)
 	}
 	return false
 }
+
+function keyEvent(e, key, optns)
+{
+    if(!optns[key].val)return;
+	e=e||window.event;
+	optns[key].event=e;
+	optns[key].code=e.charCode||e.keyCode;
+	optns[key].val=true;
+	optns.redraw=1;
+}
+function mouseEvent(e,key,optns)
+{
+	if(!optns[key].val)return;
+	e=e||window.event;
+	var point= {
+		pageX:e.pageX||e.clientX,
+		pageY:e.pageY||e.clientY
+	};
+	optns[key].event=e;
+	optns[key].x=point.pageX - optns.x;
+	optns[key].y=point.pageY - optns.y;
+	optns.redraw=1;
+}
+
 function checkMouseEvents(object,optns)
 {
 	var point=false,
@@ -447,14 +128,7 @@ function checkMouseEvents(object,optns)
 	}
 }
 
-function objectLayer(object)
-{
-	return objectCanvas(object).layers[object.optns.layer.number];
-}
-function objectCanvas(object)
-{
-	return canvases[object.optns.canvas.number];
-}
+
 function layer(idLayer,object,array)
 {
 	var objectCanvas=object.optns.canvas;
@@ -593,27 +267,5 @@ function objDeleter(array)
 	normalizeLevels(array);
 	return array.length;
 }
-
-jCanvaScript.addAnimateFunction = function(name, fn) {
-    animateFunctions[name] = fn;
-    return this;
-};
-jCanvaScript.addImageDataFilter = function(name, properties) {
-    if (imageDataFilters[name] === undefined)imageDataFilters[name] = {};
-    if (properties.fn !== undefined)imageDataFilters[name].fn = properties.fn;
-    if (properties.matrix !== undefined && properties.type === undefined)imageDataFilters[name].matrix = properties.matrix;
-    if (properties.type !== undefined)imageDataFilters[name].matrix[type] = properties.matrix;
-    return jCanvaScript;
-};
-jCanvaScript.getCenter = getCenter;
-jCanvaScript.getRect = getRect;
-jCanvaScript.checkDefaults = checkDefaults;
-jCanvaScript.parseColor = parseColor;
-jCanvaScript.imageDataFilters = imageDataFilters;
-jCanvaScript.multiplyPointM = multiplyPointM;
-jCanvaScript.multiplyM = multiplyM;
 jCanvaScript.canvases = canvases;
-jCanvaScript.animating = animating;
 jCanvaScript._lastCanvas = 0;
-jCanvaScript.objectCanvas = canvas;
-jCanvaScript.objectLayer = layer;

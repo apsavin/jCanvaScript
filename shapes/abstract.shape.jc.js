@@ -12,15 +12,21 @@ jCanvaScript.Proto.Shape = function(options) {
     this._join = 'miter';
     this._miterLimit = 1;
     if (options === undefined)options = {};
+    if(options.lineColor !== undefined){
+        if(options.lineColor === 0 || options.lineColor === false || options.lineColor === 1 || options.lineColor === true){
+            options.fillColor = options.lineColor;
+            options.lineColor = '#000000';
+        }
+    }
     if(options.fillColor !== undefined){
-        if(options.fillColor === 0){
+        if(options.fillColor === 0 || options.fillColor === false){
             options.fillColor = undefined;
         }
         if(options.fillColor === 1 || options.fillColor === true){
             options.fillColor = options.lineColor;
         }
     }
-    options = checkDefaults(options, {fillColor:'rgba(0,0,0,0)',lineColor:'rgba(0,0,0,0)'});
+    options = jCanvaScript.checkDefaults(options, {fillColor:'rgba(0,0,0,0)',lineColor:'rgba(0,0,0,0)'});
     jCanvaScript.Proto.Object.call(this,options);
     this.optns.fillColor = {val:options.fillColor,notColor:undefined};
     this.optns.lineColor = {val:options.lineColor,notColor:undefined};
@@ -47,8 +53,8 @@ jCanvaScript.Proto.Shape.prototype.setOptns = function(ctx) {
     ctx.lineCap = this._cap;
     ctx.lineJoin = this._join;
     ctx.miterLimit = this._miterLimit;
-    var fillColor = updateColor(this, this.optns.fillColor, 'fill');
-    var lineColor = updateColor(this, this.optns.lineColor, 'line');
+    var fillColor = jCanvaScript._helpers.updateColor(this, this.optns.fillColor, 'fill');
+    var lineColor = jCanvaScript._helpers.updateColor(this, this.optns.lineColor, 'line');
     ctx.fillStyle = fillColor.val;
     ctx.strokeStyle = lineColor.val;
 };

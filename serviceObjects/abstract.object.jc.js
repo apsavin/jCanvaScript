@@ -26,7 +26,7 @@ jCanvaScript.Proto.Object = function(x, y, service) {
     this._matrixChanged = false;
     var options = x;
     if (typeof options == 'object') {
-        options = checkDefaults(options, {x:0,y:0,service:false});
+        options = jCanvaScript.checkDefaults(options, {x:0,y:0,service:false});
         service = options.service;
         y = options.y;
         x = options.x;
@@ -69,7 +69,7 @@ jCanvaScript.Proto.Object = function(x, y, service) {
     if (!service && canvasItem !== undefined && canvasItem.layers[0] !== undefined) {
         this.optns.layer.number = 0;
         this.optns.canvas.number = jCanvaScript._lastCanvas;
-        var layer = objectLayer(this),
+        var layer = this.layer(),
             limit = layer.objs.length;
         this.optns.number = limit;
         this._level = limit ? (layer.objs[limit - 1]._level + 1) : 0;
@@ -87,7 +87,7 @@ jCanvaScript.Proto.Object.prototype.getCenter = function(type) {
     return getCenter(this, point, type);
 };
 jCanvaScript.Proto.Object.prototype.position = function() {
-    return multiplyPointM(this._x, this._y, multiplyM(this.matrix(), objectLayer(this).matrix()));
+    return jCanvaScript.Matrix.multiplyPointMatrix(this._x, this._y, jCanvaScript.Matrix.multiplyMatrixAndMatrix(this.matrix(), this.layer().matrix()));
 };
 jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
     var bufOptns = this.optns.buffer;
@@ -109,7 +109,7 @@ jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
         this._x = this._y = 0;
         this.transform(1, 0, 0, 1, -rect.x + bufOptns.dx, -rect.y + bufOptns.dy, true);
         this.setOptns(ctx);
-        take(bufOptns.optns = {}, objectCanvas(this).optns);
+        take(bufOptns.optns = {}, this.canvas().optns);
         bufOptns.optns.ctx = ctx;
         this.draw(bufOptns.optns);
         this._x = bufOptns.x;
@@ -127,7 +127,7 @@ jCanvaScript.Proto.Object.prototype.clone = function(params) {
     var clone = new proto[this._proto];
     proto[this._proto].prototype.base.call(clone);
     take(clone, this);
-    clone.layer(objectLayer(this).optns.id);
+    clone.layer(this.layer().optns.id);
     take(clone.optns.transformMatrix, this.optns.transformMatrix);
     take(clone.optns.translateMatrix, this.optns.translateMatrix);
     take(clone.optns.scaleMatrix, this.optns.scaleMatrix);
@@ -160,7 +160,7 @@ jCanvaScript.Proto.Object.prototype.setOptns = function(ctx) {
     ctx.shadowOffsetY = this._shadowY;
     ctx.shadowBlur = this._shadowBlur;
     ctx.globalCompositeOperation = this._composite;
-    var shadowColor = updateColor(this, this.optns.shadowColor, 'shadow');
+    var shadowColor = jCanvaScript._helpers.updateColor(this, this.optns.shadowColor, 'shadow');
     ctx.shadowColor = shadowColor.val;
     ctx.transform(this._transform11, this._transform12, this._transform21, this._transform22, this._transformdx, this._transformdy);
     return this;
@@ -169,7 +169,7 @@ jCanvaScript.Proto.Object.prototype.up = function(n) {
     if (n === undefined)n = 1;
     if (n == 'top')this.level(n);
     else {
-        var next = objectLayer(this).objs[this.optns.number + n];
+        var next = this.layer().objs[this.optns.number + n];
         if (next !== undefined) {
             n = next._level + 1 - this._level;
         }
@@ -181,7 +181,7 @@ jCanvaScript.Proto.Object.prototype.down = function(n) {
     if (n == undefined)n = 1;
     if (n == 'bottom')this.level(n);
     else {
-        var previous = objectLayer(this).objs[this.optns.number - n];
+        var previous = this.layer().objs[this.optns.number - n];
         if (previous !== undefined) {
             n = this._level - (previous._level - 1);
         }
@@ -191,7 +191,7 @@ jCanvaScript.Proto.Object.prototype.down = function(n) {
 };
 jCanvaScript.Proto.Object.prototype.level = function(n) {
     if (n == undefined)return this._level;
-    var layer = objectLayer(this);
+    var layer = this.layer();
     if (n == 'bottom') {
         if (this.optns.number == 0)n = this._level;
         else n = layer.objs[0]._level - 1;
@@ -207,7 +207,8 @@ jCanvaScript.Proto.Object.prototype.level = function(n) {
 };
 jCanvaScript.Proto.Object.prototype.del = function() {
     this.optns.deleted = true;
-    objectLayer(this).optns.anyObjDeleted = true;
+    this.layer().optns.anyObjDeleted = true;
+    this.redraw();
     this.redraw();
 };
 jCanvaScript.Proto.Object.prototype.focus = function(fn) {
@@ -226,35 +227,42 @@ jCanvaScript.Proto.Object.prototype.blur = function(fn) {
     else this.onblur = fn;
     return this;
 };
+jCanvaScript.Proto.Object.prototype.on = jCanvaScript.Proto.Object.prototype.addListener = function(eventName, fn) {
+    if(fn===undefined)this['on'+eventName]();
+	else this['on'+eventName] = fn;
+	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
+	this.canvas().optns[eventName].val=true;
+	return this;
+};
 jCanvaScript.Proto.Object.prototype.click = function(fn) {
-    return setMouseEvent.call(this, fn, 'click');
+    return this.on('click', fn);
 };
 jCanvaScript.Proto.Object.prototype.dblclick = function(fn) {
-    return setMouseEvent.call(this, fn, 'dblclick');
+    return this.on('dblclick', fn);
 };
 jCanvaScript.Proto.Object.prototype.keypress = function(fn) {
-    return setKeyEvent.call(this, fn, 'onkeypress');
+    return this.on('keypress', fn);
 };
 jCanvaScript.Proto.Object.prototype.keydown = function(fn) {
-    return setKeyEvent.call(this, fn, 'onkeydown');
+    return this.on('keydown', fn);
 };
 jCanvaScript.Proto.Object.prototype.keyup = function(fn) {
-    return setKeyEvent.call(this, fn, 'onkeyup');
+    return this.on('keyup', fn);
 };
 jCanvaScript.Proto.Object.prototype.mousedown = function(fn) {
-    return setMouseEvent.call(this, fn, 'mousedown');
+    return this.on('mousedown', fn);
 };
 jCanvaScript.Proto.Object.prototype.mouseup = function(fn) {
-    return setMouseEvent.call(this, fn, 'mouseup');
+    return this.on('mouseup', fn);
 };
 jCanvaScript.Proto.Object.prototype.mousemove = function(fn) {
-    return setMouseEvent.call(this, fn, 'mousemove');
+    return this.on('mousemove', fn);
 };
 jCanvaScript.Proto.Object.prototype.mouseover = function(fn) {
-    return setMouseEvent.call(this, fn, 'mouseover');
+    return this.on('mouseover', fn);
 };
 jCanvaScript.Proto.Object.prototype.mouseout = function(fn) {
-    return setMouseEvent.call(this, fn, 'mouseout');
+    return this.on('mouseout', fn);
 };
 jCanvaScript.Proto.Object.prototype.attr = function(parameter, value) {
     if (typeof parameter === 'object')
@@ -578,7 +586,7 @@ jCanvaScript.Proto.Object.prototype.beforeDraw = function(canvasOptns) {
 };
 jCanvaScript.Proto.Object.prototype.clip = function(object) {
     if (object === undefined)return this.optns.clipObject;
-    objectLayer(this).objs.splice(object.optns.number, 1);
+    this.layer().objs.splice(object.optns.number, 1);
     this.optns.clipObject = object;
     return this;
 };
@@ -594,7 +602,7 @@ jCanvaScript.Proto.Object.prototype.redraw = function() {
     this.canvas().optns.redraw = 1;
 };
 jCanvaScript.Proto.Object.prototype.isPointIn = function(x, y, global) {
-    var canvasOptns = objectCanvas(this).optns,
+    var canvasOptns = this.canvas().optns,
         ctx = canvasOptns.ctx,
         thisAnimated = false,
         optns = this.optns,
@@ -680,10 +688,10 @@ jCanvaScript.Proto.Object.prototype.draggable = function(object, params, drag) {
     dragOptns.start = start || false;
     dragOptns.stop = stop || false;
     dragOptns.disabled = disabled || false;
-    var optns = objectCanvas(this).optns;
-    optns.mousemove.val = true;
-    optns.mousedown.val = true;
-    optns.mouseup.val = true;
+    var canvasOptions = this.canvas().optns;
+    canvasOptions.mousemove.val = true;
+    canvasOptions.mousedown.val = true;
+    canvasOptions.mouseup.val = true;
     return this;
 };
 jCanvaScript.Proto.Object.prototype.droppable = function(fn) {

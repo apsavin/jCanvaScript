@@ -1,12 +1,13 @@
 jCanvaScript.Proto.Canvas = function(idCanvas){
-    jCanvaScript.canvases[limit] = canvas;
+    var limit = jCanvaScript.canvases.length;
+    jCanvaScript.canvases[limit] = this;
     jCanvaScript._lastCanvas = limit;
     this.cnv = document.getElementById(idCanvas);
     if ('\v' == 'v') {
         if (typeof G_vmlCanvasManager !== 'undefined')
-            G_vmlCanvasManager.initElement(canvas.cnv);
+            G_vmlCanvasManager.initElement(this.cnv);
         if (typeof FlashCanvas !== 'undefined')
-            FlashCanvas.initElement(canvas.cnv);
+            FlashCanvas.initElement(this.cnv);
     }
     this.optns =
     {
