@@ -55,6 +55,7 @@ jCanvaScript.canvas = function(idCanvas)
 		{
 			if(this.interval)return this;
 			this.isAnimated=isAnimated;
+<<<<<<< HEAD
 			var offset=getOffset(this._cnv);
 			this._optns.x=offset.left+(parseInt(this._cnv.style.borderTopWidth)||0);
 			this._optns.y=offset.top+(parseInt(this._cnv.style.borderLeftWidth)||0);
@@ -71,6 +72,26 @@ jCanvaScript.canvas = function(idCanvas)
 				mouseEvent(e,'mousedown',optns);
 			}
 			this._cnv.onmouseup=function(e){
+=======
+			var offset=getOffset(this.cnv);
+			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
+			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
+			var canvas=canvases[this.optns.number],
+			optns=canvas.optns;
+			this.cnv.onclick=function(e){
+				mouseEvent(e,'click',optns);
+			}
+			this.cnv.ondblclick=function(e){
+				mouseEvent(e,'dblclick',optns);
+				var tmp=optns.mousemove.val;
+				optns.mousemove.val=true;
+				setTimeout(function(){optns.mousemove.val=tmp;},3000);
+			}
+			this.cnv.onmousedown=function(e){
+				mouseEvent(e,'mousedown',optns);
+			}
+			this.cnv.onmouseup=function(e){
+>>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 				mouseEvent(e,'mouseup',optns);
 			}
 			this._cnv.onkeyup=function(e){
@@ -179,9 +200,13 @@ jCanvaScript.canvas = function(idCanvas)
 					}
 				}
 		}
-		if(optns.mousemove.x!=false)
+		var mm=optns.mousemove;
+		var mouseDown=optns.mousedown;
+		var mouseUp=optns.mouseup;
+		var click=this.optns.click;
+		var dblClick=this.optns.dblclick;
+		if(mm.x!=false)
 		{
-			var mm=optns.mousemove;
 			if(optns.drag.object!=false)
 			{
 				var drag=optns.drag,
@@ -224,9 +249,12 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			optns.mousemove.object=false;
 		}
-		if(optns.mousedown.objects.length)
+		if(mouseDown.objects.length)
 		{
+<<<<<<< HEAD
 			var mouseDown=this._optns.mousedown;
+=======
+>>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 			mdCicle:
 			for(i=mouseDown.objects.length-1;i>-1;i--)
 			{
@@ -242,8 +270,8 @@ jCanvaScript.canvas = function(idCanvas)
 						drag.init=mdObject;
 						var initoptns=drag.init._optns;
 						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
-						drag.x=mouseDown.x;
-						drag.y=mouseDown.y;
+						drag.x=drag.startX=mouseDown.x;
+						drag.y=drag.startY=mouseDown.y;
 						if(dobject!=drag.init && initoptns.drag.type!='clone')
 						{
 							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
@@ -260,9 +288,8 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			mouseDown.objects=[];
 		}
-		if(optns.mouseup.objects.length)
+		if(mouseUp.objects.length)
 		{
-			var mouseUp=optns.mouseup;
 			muCicle:
 			for(i=mouseUp.objects.length-1;i>-1;i--)
 			{
@@ -271,6 +298,7 @@ jCanvaScript.canvas = function(idCanvas)
 				for(j=0;j<2;j++)
 				{
 					muObject=mouseUpObjects[j];
+<<<<<<< HEAD
 					if(muObject._optns.drop.val==true && optns.drag.init!==undefined)
 					{
 						if(drag.init==drag.object)
@@ -281,6 +309,19 @@ jCanvaScript.canvas = function(idCanvas)
 					else
 					{
 						if(drag.init!==undefined)
+=======
+					if(optns.drag.init!==undefined)
+					{
+						if(muObject.optns.drop.val==true)
+						{
+
+							if(drag.init==drag.object)
+								drag.init.visible(true);
+							if(typeof muObject.optns.drop.fn=='function')
+								muObject.optns.drop.fn.call(muObject,drag.init);
+						}
+						else
+>>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 						{
 							drag.object.visible(false);
 							drag.init.visible(true);
@@ -291,6 +332,7 @@ jCanvaScript.canvas = function(idCanvas)
 							if(typeof drag.init._optns.drag.stop=='function')
 								drag.init._optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
 						}
+						if(drag.x!=drag.startX || drag.y!==drag.startY)click.objects=[];
 					}
 					if(typeof muObject.onmouseup=='function')
 						if(muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
@@ -300,9 +342,12 @@ jCanvaScript.canvas = function(idCanvas)
 			this._optns.drag={object:false,x:0,y:0};
 			mouseUp.objects=[];
 		}
-		if(optns.click.objects.length)
+		if(click.objects.length)
 		{
+<<<<<<< HEAD
 			var click=this._optns.click;
+=======
+>>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 			cCicle:
 			for(i=click.objects.length-1;i>-1;i--)
 			{
@@ -316,9 +361,12 @@ jCanvaScript.canvas = function(idCanvas)
 			}
 			click.objects=[];
 		}
-		if(optns.dblclick.objects.length)
+		if(dblClick.objects.length)
         {
+<<<<<<< HEAD
             var dblClick=this._optns.dblclick;
+=======
+>>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 			dcCicle:
 			for(i=dblClick.objects.length-1;i>-1;i--)
 			{
@@ -332,7 +380,7 @@ jCanvaScript.canvas = function(idCanvas)
 			}
             dblClick.objects=[];
         }
-		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=optns.click.x=optns.dblclick.x=optns.mouseup.x=optns.mousedown.x=optns.mousemove.x=false;
+		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=click.x=dblClick.x=mouseUp.x=mouseDown.x=mm.x=false;
 		return this;
 	}
 	return canvas;

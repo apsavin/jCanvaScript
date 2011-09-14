@@ -105,7 +105,6 @@ function keyEvent(e,key,optns)
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
 	optns.redraw=1;
-	return false;
 }
 function mouseEvent(e,key,optns)
 {
@@ -119,7 +118,10 @@ function mouseEvent(e,key,optns)
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
 	optns.redraw=1;
+<<<<<<< HEAD
 	return false;
+=======
+>>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 }
 function setMouseEvent(fn,eventName)
 {
@@ -394,7 +396,8 @@ function isPointInPath(object,x,y)
 	point.y=y;
 	if(FireFox)
 	{
-		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
+		point=transformPoint(x,y,layer.matrix());
+		point=transformPoint(point.x,point.y,object.matrix());
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
@@ -412,25 +415,26 @@ function isPointInPath(object,x,y)
 }
 function checkMouseEvents(object,optns)
 {
-	var point=false;
-	var x=optns.mousemove.x||optns.mousedown.x||optns.mouseup.x||optns.dblclick.x||optns.click.x;
-	var y=optns.mousemove.y||optns.mousedown.y||optns.mouseup.y||optns.dblclick.y||optns.click.y;
+	var point=false,
+		mm=optns.mousemove,
+		md=optns.mousedown,
+		mu=optns.mouseup,
+		c=optns.click,
+		dc=optns.dblclick,
+		x=mm.x||md.x||mu.x||dc.x||c.x,
+		y=mm.y||md.y||mu.y||dc.y||c.y;
 	if(x!=false)
 	{
 		point=isPointInPath(object,x,y);
 	}
 	if(point)
 	{
-		var mm=optns.mousemove,
-			md=optns.mousedown,
-			mu=optns.mouseup,
-			c=optns.click,
-			dc=optns.dblclick;
+		
 		if(mm.x!=false)
 			mm.object=object;
 		if(md.x!=false)
 			md.objects[md.objects.length]=object;
-		if(c.x!=false || dc.x!=false)
+		if(c.x!=false)
 			c.objects[c.objects.length]=object;
 		if(dc.x!=false)
             dc.objects[dc.objects.length]=object;
