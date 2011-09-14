@@ -66,11 +66,11 @@ function init(idCanvas) {
 			case 0:
 				jc('.puesto'+counter)
 					.translateTo(50,50,2000);
-				break
+				break;
 			case 1:
 				jc('.puesto'+counter)
 					.scale(1.5,1.5,2000);
-				break
+				break;
 				
 			// WITH LAYERS
 			case 2:

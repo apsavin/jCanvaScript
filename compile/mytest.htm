@@ -1,21 +1,21 @@
 <body onload="start()">
-<script src="jCanvaScript.1.5.9.js" type="text/javascript"></script>
+<script src="jCanvaScript.1.6.0.js" type="text/javascript"></script>
 <script type="text/javascript">
 	function start()
 	{
 		jc.start('myCanvas',true);
 
-		jc.rect(0, 0, 400, 400, '#000', true);
+		jc.rect(0, 0, 400, 400, '#000000', '#000000');
 
 		var objects = [[200, 200], [150, 300]];
 
 		objects.forEach(function(item, index) {
-			var circle_obj = jc.circle(item[0], item[1], 25,'#ffffff', true);
+			var circle_obj = jc.circle(item[0], item[1], 25,'#ff0000').fillColor('#ffffff');
 			circle_obj.click(function(point){
-				this.color('#ff0000');
+				this.fillColor('#ff0000');
 			});
 			circle_obj.dblclick(function(point){
-				this.color('#00ff00');
+				this.fillColor('#00ff00');
 			});
 		});
 

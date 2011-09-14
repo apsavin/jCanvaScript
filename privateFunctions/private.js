@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 function changeMatrix(object)
 {
 	var optns=object._optns;
@@ -339,6 +340,9 @@ function parseColor(color)
 	return colorKeeper;
 }
 function getOffset(elem) {
+=======
+jCanvaScript.getOffset = function(elem){
+>>>>>>> e0e2d8dd77d7a8d6a317ec6dc86c018b213e9434
 	if (elem.getBoundingClientRect) {
 		return getOffsetRect(elem)
 	} else {
@@ -347,10 +351,10 @@ function getOffset(elem) {
 }
 
 function getOffsetSum(elem) {
-	var top=0, left=0
+	var top = 0, left = 0;
 	while(elem) {
-		top = top + parseInt(elem.offsetTop)
-		left = left + parseInt(elem.offsetLeft)
+		top = top + parseInt(elem.offsetTop);
+		left = left + parseInt(elem.offsetLeft);
 		elem = elem.offsetParent
 	}
 	return {
@@ -360,18 +364,18 @@ function getOffsetSum(elem) {
 }
 
 function getOffsetRect(elem) {
-	var box = elem.getBoundingClientRect()
+	var box = elem.getBoundingClientRect();
 	var body = document.body||{};
-	var docElem = document.documentElement
-	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop
-	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft
-	var clientTop = docElem.clientTop || body.clientTop || 0
-	var clientLeft = docElem.clientLeft || body.clientLeft || 0
-	var top  = box.top +  scrollTop - clientTop
-	var left = box.left + scrollLeft - clientLeft
+	var docElem = document.documentElement;
+	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+	var clientTop = docElem.clientTop || body.clientTop || 0;
+	var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+	var top = box.top + scrollTop - clientTop;
+	var left = box.left + scrollLeft - clientLeft;
 	return {
-		top: m_round(top),
-		left: m_round(left)
+		top: Math.round(top),
+		left: Math.round(left)
 	}
 }
 function checkEvents(object,optns)
@@ -389,20 +393,26 @@ function checkKeyboardEvents(object,optns)
 function isPointInPath(object,x,y)
 {
 	var point={};
+<<<<<<< HEAD
 	var canvas=objectCanvas(object);
 	var ctx=canvas._optns.ctx;
 	var layer=canvas.layers[object._optns.layer.number];
+=======
+	var canvas=object.canvas();
+	var ctx=canvas.optns.ctx;
+	var layer=canvas.layers[object.optns.layer.number];
+>>>>>>> e0e2d8dd77d7a8d6a317ec6dc86c018b213e9434
 	point.x=x;
 	point.y=y;
 	if(FireFox)
 	{
-		point=transformPoint(x,y,layer.matrix());
-		point=transformPoint(point.x,point.y,object.matrix());
+		point=jCanvaScript.Matrix.transformPoint(x,y,layer.matrix());
+		point=jCanvaScript.Matrix.transformPoint(point.x,point.y,object.matrix());
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=object.getRect('poor');
-		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
+		point=transformPoint(x,y,jCanvaScript.Matrix.multiplyMatrixAndMatrix(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
 	else
@@ -413,6 +423,30 @@ function isPointInPath(object,x,y)
 	}
 	return false
 }
+
+function keyEvent(e, key, optns)
+{
+    if(!optns[key].val)return;
+	e=e||window.event;
+	optns[key].event=e;
+	optns[key].code=e.charCode||e.keyCode;
+	optns[key].val=true;
+	optns.redraw=1;
+}
+function mouseEvent(e,key,optns)
+{
+	if(!optns[key].val)return;
+	e=e||window.event;
+	var point= {
+		pageX:e.pageX||e.clientX,
+		pageY:e.pageY||e.clientY
+	};
+	optns[key].event=e;
+	optns[key].x=point.pageX - optns.x;
+	optns[key].y=point.pageY - optns.y;
+	optns.redraw=1;
+}
+
 function checkMouseEvents(object,optns)
 {
 	var point=false,
@@ -444,6 +478,7 @@ function checkMouseEvents(object,optns)
 	}
 }
 
+<<<<<<< HEAD
 function objectLayer(object)
 {
 	return objectCanvas(object).layers[object._optns.layer.number];
@@ -480,6 +515,8 @@ function layer(idLayer,object,array)
 	return object;
 }
 
+=======
+>>>>>>> e0e2d8dd77d7a8d6a317ec6dc86c018b213e9434
 function take(f,s) {
 	for(var key in s)
 	{
@@ -510,8 +547,10 @@ function take(f,s) {
 		}
 	}
 }
-function canvas(idCanvas,object,array)
+
+function changeMatrix(object)
 {
+<<<<<<< HEAD
 	redraw(object);
 	var objectCanvas=object._optns.canvas;
 	var objectLayer=object._optns.layer;
@@ -540,7 +579,13 @@ function canvas(idCanvas,object,array)
 	}
 	redraw(object);
 	return object;
+=======
+	var optns=object.optns;
+	object.matrix(jCanvaScript.Matrix.multiplyMatrix(optns.transformMatrix,optns.translateMatrix,optns.scaleMatrix,optns.rotateMatrix));
+	object.redraw();
+>>>>>>> e0e2d8dd77d7a8d6a317ec6dc86c018b213e9434
 }
+
 function normalizeLevels(array)
 {
 	for(var i=0;i<array.length;i++)
@@ -565,7 +610,7 @@ function setLayerAndCanvasToArray(array,newLayerId,newLayerNumber,newCanvasId,ne
 }
 function levelChanger(array)
 {
-	array.sort(function(a,b){
+	array.sort(function sort(a,b){
 		if(a._level>b._level)return 1;
 		if(a._level<b._level)return -1;
 		return 0;
@@ -590,4 +635,65 @@ function objDeleter(array)
 	normalizeLevels(array);
 	return array.length;
 }
-var proto={};
+
+function canvas(idCanvas,array)
+{
+	var thisCanvas=this.optns.canvas;
+	var thisLayer=this.optns.layer;
+	if(idCanvas===undefined)return jCanvaScript.canvases[thisCanvas.number];
+	this.redraw();
+	if(canvases[thisCanvas.number].optns.id==idCanvas)return this;
+	var oldIndex={
+		i:thisCanvas.number,
+		j:thisLayer.number
+	};
+	jCanvaScript.canvas(idCanvas);
+	for(var i=0;i<canvases.length;i++)
+	{
+		var canvasItem=canvases[i];
+		if(canvasItem.optns.id==idCanvas)
+		{
+			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
+			oldArray.splice(this.optns.number,1);
+			normalizeLevels(oldArray);
+			this._level=this.optns.number=newArray.length;
+			newArray[this._level]=this;
+			thisLayer.number=0;
+			thisCanvas.number=i;
+			thisCanvas.id=canvasItem.optns.id;
+			thisLayer.id=canvasItem.layers[0].optns.id;
+		}
+	}
+	this.redraw();
+	return this;
+}
+
+function layer(idLayer,array)
+{
+	var thisCanvas=this.optns.canvas;
+	var thisLayer=this.optns.layer;
+	if (idLayer===undefined)return jCanvaScript.canvases[thisCanvas.number].layers[thisLayer.number];
+	this.redraw();
+	if(thisLayer.id==idLayer)return this;
+	var oldIndex={
+		i:thisCanvas.number,
+		j:thisLayer.number
+	};
+	thisLayer.id=idLayer;
+	var newLayer=jCanvaScript.layer(idLayer);
+	var newIndex={
+		i:newLayer.optns.canvas.number,
+		j:newLayer.optns.number
+	};
+	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
+	oldArray.splice(this.optns.number,1);
+	this._level=this.optns.number=newArray.length;
+	newArray[this._level]=this;
+	thisLayer.number=newIndex.j;
+	thisCanvas.number=newIndex.i;
+	thisCanvas.id=newLayer.optns.canvas.id;
+	this.redraw();
+	return this;
+}
+jCanvaScript.canvases = canvases;
+jCanvaScript._lastCanvas = 0;
