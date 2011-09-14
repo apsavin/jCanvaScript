@@ -1,5 +1,20 @@
 proto.lines=function()
 {
+	this.getCenter=function(type)
+	{
+		var point={
+			x:this._x0,
+			y:this._y0
+		};
+		for(var i=1;i<this.shapesCount;i++)
+		{
+			point.x+=this['_x'+i];
+			point.y+=this['_y'+i];
+		}
+		point.x=point.x/this.shapesCount;
+		point.y=point.y/this.shapesCount;
+		return getCenter(this,point,type);
+	}
 	this.position=function(){
 		return multiplyPointM(this._x0,this._y0,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}

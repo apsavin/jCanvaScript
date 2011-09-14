@@ -1,4 +1,8 @@
 proto.circle=function(){
+	this.getCenter=function(type)
+	{
+		return getCenter(this,{x:this._x,y:this._y},type);
+	}
 	this.getRect=function(type)
 	{
 		var points={x:this._x-this._radius,y:this._y-this._radius};
@@ -7,7 +11,7 @@ proto.circle=function(){
 	}
 	this.draw=function(ctx)
 	{
-		ctx.arc(this._x, this._y, this._radius, 0,pi,true);
+		ctx.arc(this._x, this._y, this._radius, 0,pi2,true);
 	}
 	this.base=function(x,y,radius,color,fill)
 	{
@@ -48,8 +52,8 @@ proto.arc=function(){
 	{
 		var points={x:this._x,y:this._y},
 		startAngle=this._startAngle, endAngle=this._endAngle, radius=this._radius,
-		startY=Math.floor(Math.sin(startAngle/radian)*radius), startX=Math.floor(Math.cos(startAngle/radian)*radius),
-		endY=Math.floor(Math.sin(endAngle/radian)*radius), endX=Math.floor(Math.cos(endAngle/radian)*radius),
+		startY=m_floor(m_sin(startAngle/radian)*radius), startX=m_floor(m_cos(startAngle/radian)*radius),
+		endY=m_floor(m_sin(endAngle/radian)*radius), endX=m_floor(m_cos(endAngle/radian)*radius),
 		positiveXs=startX>0 && endX>0,negtiveXs=startX<0 && endX<0,positiveYs=startY>0 && endY>0,negtiveYs=startY<0 && endY<0;
 		points.width=points.height=radius;
 		if((this._anticlockwise && startAngle<endAngle) || (!this._anticlockwise && startAngle>endAngle))
@@ -69,14 +73,14 @@ proto.arc=function(){
 				else
 				if(endX>0 && endY<0 && startX<0)
 				{
-					points.y+=Math.min(endY,startY);
-					points.height-=Math.min(endY,startY);
+					points.y+=m_min(endY,startY);
+					points.height-=m_min(endY,startY);
 				}
 				else
 				{
-					if(negtiveYs)points.y-=Math.max(endY,startY);
+					if(negtiveYs)points.y-=m_max(endY,startY);
 					else points.y-=radius;
-					points.height+=Math.max(endY,startY);
+					points.height+=m_max(endY,startY);
 				}
 			}
 			if(((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY==0 && endY==0))
@@ -88,14 +92,14 @@ proto.arc=function(){
 			{
 				if(endY<0 && startY>0)
 				{
-					points.x+=Math.min(endX,startX);
-					points.width-=Math.min(endX,startX);
+					points.x+=m_min(endX,startX);
+					points.width-=m_min(endX,startX);
 				}
 				else
 				{
-					if(negtiveXs)points.x-=Math.max(endX,startX);
+					if(negtiveXs)points.x-=m_max(endX,startX);
 					else points.x-=radius;
-					points.width+=Math.max(endX,startX);
+					points.width+=m_max(endX,startX);
 				}
 			}
 		}
@@ -107,50 +111,50 @@ proto.arc=function(){
 			negtiveYs=startY<=0 && endY<=0;
 			if(negtiveYs && positiveXs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width-=Math.min(endX,startX);
-				points.y+=Math.min(endY,startY);
-				points.height+=Math.max(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width-=m_min(endX,startX);
+				points.y+=m_min(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (negtiveYs && negtiveXs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width+=Math.max(endX,startX);
-				points.y+=Math.min(endY,startY);
-				points.height+=Math.max(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width+=m_max(endX,startX);
+				points.y+=m_min(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (negtiveYs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width+=Math.max(endX,startX);
+				points.x+=m_min(endX,startX);
+				points.width+=m_max(endX,startX);
 				points.y-=radius;
-				points.height+=Math.max(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (positiveXs && positiveYs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width=Math.abs(endX-startX);
-				points.y+=Math.min(endY,startY);
-				points.height-=Math.min(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width=m_abs(endX-startX);
+				points.y+=m_min(endY,startY);
+				points.height-=m_min(endY,startY);
 			}
 			else if (positiveYs)
 			{
-				points.x+=Math.min(endX,startX);
-				points.width=Math.abs(endX)+Math.abs(startX);
-				points.y+=Math.min(endY,startY);
-				points.height-=Math.min(endY,startY);
+				points.x+=m_min(endX,startX);
+				points.width=m_abs(endX)+m_abs(startX);
+				points.y+=m_min(endY,startY);
+				points.height-=m_min(endY,startY);
 			}
 			else if (negtiveXs)
 			{
 				points.x-=radius;
-				points.width+=Math.max(endX,startX);
+				points.width+=m_max(endX,startX);
 				points.y-=radius;
-				points.height+=Math.max(endY,startY);
+				points.height+=m_max(endY,startY);
 			}
 			else if (positiveXs)
 			{
 				points.x-=radius;
-				points.width+=Math.max(endX,startX);
+				points.width+=m_max(endX,startX);
 				points.y-=radius;
 				points.height+=radius;
 			}

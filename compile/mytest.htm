@@ -1,42 +1,105 @@
 <body onload="start()">
-<script src="jCanvaScript.1.3.2.js" type="text/javascript"></script>
-<script>
-	function rotateRect(element, rotateAngle, callback)
-	{
-		element.animate({rotate:{x:'center',y:{x:0,y:0},angle: rotateAngle}},50,function(){
-			if(callback!==undefined) callback();
-		});
-	}	
-	function moveRectUp(element, step, callback)
-	{
-		return element.clone().visible(true).animate({translate:{y:-step}},50,function(){
-			if(callback!==undefined) callback();
-		});
-	}
+<script src="jCanvaScript.1.5.7.js" type="text/javascript"></script>
+<script type="text/javascript">
 	function start()
 	{
-		jc.start('myCanvas',30);
-		var startPoint={x:300, y:450};
-		var rectSize={w:30, h:30};
-		var currentPozition=startPoint;
-		var rect = jc.rect(currentPozition.x, currentPozition.y, rectSize.w, rectSize.h).visible(false);
-		var query=[];
-		for(var s = 0; s<4; s++)
-		{
-			for(var i = (s*17); i<(s*17+5); i++) (function(i){query.push(function(){rect=moveRectUp(rect,rectSize.h,(typeof query[i+1] == 'function'?query[i+1]:undefined));});})(i);
-			(function(i){query.push(function(){rotateRect(rect, -90, (typeof query[i+1] == 'function'?query[i+1]:undefined));});})(i); i++;
-			for(var j = i; j<(i+5); j++)(function(j){query.push(function(){rect=moveRectUp(rect,rectSize.h,(typeof query[j+1] == 'function'?query[j+1]:undefined));});})(j); i=i+5;
-			(function(i){query.push(function(){rotateRect(rect, 90, (typeof query[i+1] == 'function'?query[i+1]:undefined));});})(i);i++;
-			for(var k = i; k<(i+4); k++)(function(k){query.push(function(){rect=moveRectUp(rect,rectSize.h,(typeof query[k+1] == 'function'?query[k+1]:undefined));});})(k); i=i+4;
-			(function(i){query.push(function(){rotateRect(rect, 90, (typeof query[i+1] == 'function'?query[i+1]:undefined));});})(i); i++;
-		}
-		query[0]();		
-	}	
+		jc.start('myCanvas',true);
+		jc.rect(50,50,100,100,1)
+				.click(function(){alert(3);}).draggable()
+				.id('myRect').layer('1');
+		jc.rect(0,0,100,80,0)
+				.id('myRect2').layer('1')
+				.click(function(){alert(2);return false;});
+		jc.circle(30,30,20,'#ff0000',0)
+				.click(function(){alert(1);});
+
+	}
+	function up()
+	{
+		jc({canvas:'myCanvas',attrs:{
+				proto:'rect'
+			},
+			fns:[{
+					fn:'isPointIn',
+					rel:'==',
+					val:true,
+					args:[49,50]
+				},
+				{
+					fn:'attr',
+					rel:'>',
+					val:-10,
+					args:['x']
+				}
+			]}).translate(100,100);
+	}
+	function top()
+	{
+		jc.layer('1').objects().find({attrs:{fill:1}}).rotate(30,'center');
+		/*
+		jc({canvas:'myCanvas',attrs:{
+			fill: {val:0,rel:'>'}
+		}}).translate(100,100);*/
+	}
+	function bottom()
+	{
+		jc({canvas:'myCanvas',attrs:{
+			proto: 'rect'
+		}}).translate(100,100);
+	}
+	function left()
+	{
+		jc({canvas:'myCanvas',attrs:{
+			proto: 'rect',
+			fill:1
+		}}).translate(100,100);
+	}
+	function next()
+	{
+		//takes all objects on myCanvas
+		var myGroup=jc({canvas:'myCanvas'});
+		//first find
+		myGroup
+			.find({attrs:{
+					proto:'rect'
+				},
+				fns:[{
+						fn:'isPointIn',
+						rel:'==',
+						val:true,
+						args:[51,51]
+					},{
+						fn:'attr',
+						rel:'>',
+						val:0,
+						args:['x']
+					}
+				]}).translate(100,100)
+			//all unmatched - unfilled rect
+			.reverse().translate(-50,0)
+			//before all finds - all objects
+	/*	.end().translate(0,50);			/**/
+			//or before last find - all rects (you can use not only 1, but any positive number)
+			.end(1).translate(0,50);	/**/
+		//second find
+		myGroup.find({
+			attrs:{
+				proto:'circle'
+			}
+		}).translate(100,50);
+	}
 </script>
 <style>
 	#myCanvas{
 		border:1px solid black;
 	}
 </style>
-<canvas id="myCanvas" width="800px" height="600px"></canvas>
+<div  >
+	<canvas id="myCanvas" width="400px" height="400px"></canvas>
+</div><br/>
+<input type="button" onclick="up()" value="1"/>
+<input type="button" onclick="top()" value="2"/>
+<input type="button" onclick="bottom()" value="3"/>
+<input type="button" onclick="left()" value="4"/>
+<input type="button" onclick="next()" value="5"/>
 </body>

@@ -1,3 +1,9 @@
+function changeMatrix(object)
+{
+	var optns=object._optns;
+	object.matrix(multiplyM(multiplyM(multiplyM(optns.transformMatrix,optns.translateMatrix),optns.scaleMatrix),optns.rotateMatrix));
+	redraw(object);
+}
 function checkDefaults(check,def)
 {
 	for(var key in def)
@@ -9,45 +15,43 @@ function checkDefaults(check,def)
 
 function redraw(object)
 {
-	objectCanvas(object).optns.redraw=1;
+	objectCanvas(object)._optns.redraw=1;
 }
 
-function animating()
+function animating(canvasOptns)
 {
-	var limit=this.animateQueue.length;
-	var progress=1;
-	for(var q=0;q<limit;q++)
+	var timeDiff=canvasOptns.timeDiff,
+		progress=1;
+	for(var q=0;q<this.animateQueue.length;q++)
 	{
-		var queue=this.animateQueue[q];
+		var queue=this.animateQueue[q],
+			duration=queue['duration'],
+			easing=queue['easing'],
+			step=queue.step,
+			onstep=queue['onstep'],
+			easingIn=easing['type']=='in' || (easing['type']=='inOut' && progress<0.5),
+			easingOut=easing['type']=='out' || (easing['type']=='inOut' && progress>0.5);
+			queue['step']+=timeDiff;
+			progress=step/duration;
 		for(var key in queue)
 		{
-			if(this[key]!==undefined)
+			if(this[key]!==undefined && queue[key])
 			{
-				if(queue[key])
+				var property=queue[key],
+					to=property['to'],
+					from=property['from'];
+				animateTransforms(key,this,queue);
+				if(easingIn)this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
+				if(easingOut)this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
+				if(onstep)onstep.fn.call(this,onstep);
+				if(step>=duration)
 				{
-					var property=queue[key];
-					var step=property['step'];
-					var duration=property['duration'];
-					var easing=property['easing'];
-					var to=property['to'];
-					var from=property['from'];
-					property['step']++;
-					progress=step/duration;
+					this[key]=to;
 					animateTransforms(key,this,queue);
-					if(easing['type']=='in' || (easing['type']=='inOut' && progress<0.5))this[key]=(to-from)*animateFunctions[easing['fn']](progress,easing)+from;
-					if(easing['type']=='out' || (easing['type']=='inOut' && progress>0.5))this[key]=(to-from)*(1-animateFunctions[easing['fn']](1-progress,easing))+from;
-					if(property['onstep'])property['onstep'].fn.call(this,property['onstep']);
-					if(step>duration)
+					queue[key]=false;
+					queue.animateKeyCount--;
+					if(!queue.animateKeyCount)
 					{
-						this[key]=to;
-						animateTransforms(key,this,queue);
-						queue[key]=false;
-						queue.animateKeyCount--;
-					}
-				}
-				else
-				{
-					if(!queue.animateKeyCount){
 						if(queue.animateFn)queue.animateFn.apply(this);
 						this.animateQueue.splice(q,1);
 						q--;
@@ -56,8 +60,8 @@ function animating()
 			}
 		}
 	}
-	if (limit==0)this.optns.animated=false;
-	else redraw(this);
+	if (this.animateQueue.length)redraw(this);
+	else this._optns.animated=false;
 	return this;
 }
 function animateTransforms(key,object,queue)
@@ -75,6 +79,12 @@ function animateTransforms(key,object,queue)
 		case '_translateY':
 			object.translate(0,val-prev);
 			break;
+		case '_translateToX':
+			object.translateTo(val,undefined);
+			break;
+		case '_translateToY':
+			object.translateTo(undefined,val);
+			break;
 		case '_scaleX':
 			if(!prev)prev=1;
 			object.scale(val/prev,1);
@@ -91,6 +101,7 @@ function animateTransforms(key,object,queue)
 function keyEvent(e,key,optns)
 {
 	e=e||window.event;
+	optns[key].event=e;
 	optns[key].code=e.charCode||e.keyCode;
 	optns[key].val=true;
 	optns.redraw=1;
@@ -98,14 +109,16 @@ function keyEvent(e,key,optns)
 }
 function mouseEvent(e,key,optns)
 {
+	if(!optns[key].val)return;
 	e=e||window.event;
 	var point= {
 		pageX:e.pageX||e.clientX,
 		pageY:e.pageY||e.clientY
 	};
+	optns[key].event=e;
 	optns[key].x=point.pageX - optns.x;
 	optns[key].y=point.pageY - optns.y;
-	if(optns[key].val)optns.redraw=1;
+	optns.redraw=1;
 	return false;
 }
 function setMouseEvent(fn,eventName)
@@ -113,7 +126,7 @@ function setMouseEvent(fn,eventName)
 	if(fn===undefined)this['on'+eventName]();
 	else this['on'+eventName] = fn;
 	if(eventName=='mouseover'||eventName=='mouseout')eventName='mousemove';
-	objectCanvas(this).optns[eventName].val=true;
+	objectCanvas(this)._optns[eventName].val=true;
 	return this;
 }
 function setKeyEvent(fn,eventName)
@@ -128,37 +141,37 @@ var animateFunctions={
 	},
 	exp:function(progress,params){
 		var n=params.n||2;
-		return Math.pow(progress,n);
+		return m_pow(progress,n);
 	},
 	circ:function(progress,params){
-		return 1 - Math.sqrt(1-progress*progress);
+		return 1 - m_sqrt(1-progress*progress);
 	},
 	sine:function(progress,params){
-		return 1 - Math.sin((1 - progress) * Math.PI/2);
+		return 1 - m_sin((1 - progress) * m_pi/2);
 	},
 	back:function(progress,params){
 		var n=params.n||2;
 		var x=params.x||1.5;
-		return Math.pow(progress, n) * ((x + 1) * progress - x);
+		return m_pow(progress, n) * ((x + 1) * progress - x);
 	},
 	elastic:function(progress,params){
 		var n=params.n||2;
 		var m=params.m||20;
 		var k=params.k||3;
 		var x=params.x||1.5;
-		return Math.pow(n,10 * (progress - 1)) * Math.cos(m * progress * Math.PI * x / k);
+		return m_pow(n,10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
 	},
 	bounce:function(progress,params)
 	{
 		var n=params.n||4;
 		var b=params.b||0.25;
 		var sum = [1];
-		for(var i=1; i<n; i++) sum[i] = sum[i-1] + Math.pow(b, i/2);
+		for(var i=1; i<n; i++) sum[i] = sum[i-1] + m_pow(b, i/2);
 		var x = 2*sum[n-1]-1;
 		for(i=0; i<n; i++)
 		{
 			if(x*progress >= (i>0 ? 2*sum[i-1]-1 : 0) && x*progress <= 2*sum[i]-1)
-				return Math.pow(x*(progress-(2*sum[i]-1-Math.pow(b, i/2))/x), 2)+1-Math.pow(b, i);
+				return m_pow(x*(progress-(2*sum[i]-1-m_pow(b, i/2))/x), 2)+1-m_pow(b, i);
 		}
 		return 1;
 	}
@@ -259,42 +272,10 @@ function getRect(object,rect,type)
 	}
 	return {x:minX,y:minY,width:maxX-minX,height:maxY-minY};
 }
-function getObjectCenter(object)
+function getCenter(object,point,type)
 {
-	var point={};
-	if(object.objs!==undefined || object._img!==undefined || object._proto=='text')
-	{
-		var rect=object.getRect('poor');
-		point.x=(rect.x*2+rect.width)/2;
-		point.y=(rect.y*2+rect.height)/2;
-		return point;
-	}
-	if(object._width!==undefined && object._height!==undefined)
-	{
-		point.x=(object._x*2+object._width)/2;
-		point.y=(object._y*2+object._height)/2;
-		return point;
-	}
-	if(object._radius!==undefined)
-	{
-		point.x=object._x;
-		point.y=object._y;
-		return point;
-	}
-	if(object.shapesCount!==undefined)
-	{
-		point.x=object._x0;
-		point.y=object._y0;
-		for(var i=1;i<object.shapesCount;i++)
-		{
-			point.x+=object['_x'+i];
-			point.y+=object['_y'+i];
-		}
-		point.x=point.x/object.shapesCount;
-		point.y=point.y/object.shapesCount;
-		return point;
-	}
-	return false;
+	if(type=='poor')return point;
+	return multiplyPointM(point.x,point.y,multiplyM(object.matrix(),objectLayer(object).matrix()));
 }
 function parseColor(color)
 {
@@ -306,13 +287,22 @@ function parseColor(color)
 		r:0,
 		g:0,
 		b:0,
-		a:0};
+		a:1};
 	if(color.id!==undefined)
 	{
 		colorKeeper.color.notColor={
 			level:color._level,
-			canvas:color.optns.canvas.number,
-			layer:color.optns.layer.number
+			canvas:color._optns.canvas.number,
+			layer:color._optns.layer.number
+		}
+		return colorKeeper;
+	}
+	if(color.r!==undefined)
+	{
+		colorKeeper=checkDefaults(color,{r:0,g:0,b:0,a:1});
+		colorKeeper.color={
+			val:'rgba('+colorKeeper.r+','+colorKeeper.g+','+colorKeeper.b+','+colorKeeper.a+')',
+			notColor:undefined
 		}
 		return colorKeeper;
 	}
@@ -321,7 +311,6 @@ function parseColor(color)
 		colorKeeper.r=parseInt(color.substr(1,2),16);
 		colorKeeper.g=parseInt(color.substr(3,2),16);
 		colorKeeper.b=parseInt(color.substr(5,2),16);
-		colorKeeper.a=1;
 	}
 	else
 	{
@@ -342,7 +331,6 @@ function parseColor(color)
 			colorKeeper.r=parseInt(colorR[1]);
 			colorKeeper.g=parseInt(arr[1]);
 			colorKeeper.b=parseInt(colorB[0]);
-			colorKeeper.a=1;
 		}
 	}
 	colorKeeper.color.notColor = undefined;
@@ -371,7 +359,7 @@ function getOffsetSum(elem) {
 
 function getOffsetRect(elem) {
 	var box = elem.getBoundingClientRect()
-	var body = document.body
+	var body = document.body||{};
 	var docElem = document.documentElement
 	var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop
 	var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft
@@ -380,8 +368,8 @@ function getOffsetRect(elem) {
 	var top  = box.top +  scrollTop - clientTop
 	var left = box.left + scrollLeft - clientLeft
 	return {
-		top: Math.round(top),
-		left: Math.round(left)
+		top: m_round(top),
+		left: m_round(left)
 	}
 }
 function checkEvents(object,optns)
@@ -391,7 +379,7 @@ function checkEvents(object,optns)
 }
 function checkKeyboardEvents(object,optns)
 {
-	if(!object.optns.focused)return;
+	if(!object._optns.focused)return;
 	if(optns.keyDown.val!=false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keyDown);
 	if(optns.keyUp.val!=false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyUp);
 	if(optns.keyPress.val!=false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keyPress);
@@ -400,8 +388,8 @@ function isPointInPath(object,x,y)
 {
 	var point={};
 	var canvas=objectCanvas(object);
-	var ctx=canvas.optns.ctx;
-	var layer=canvas.layers[object.optns.layer.number];
+	var ctx=canvas._optns.ctx;
+	var layer=canvas.layers[object._optns.layer.number];
 	point.x=x;
 	point.y=y;
 	if(FireFox)
@@ -433,33 +421,38 @@ function checkMouseEvents(object,optns)
 	}
 	if(point)
 	{
-		if(optns.mousemove.x!=false)
-			optns.mousemove.object=object;
-		if(optns.mousedown.x!=false)
-			optns.mousedown.object=object;
-		if(optns.click.x!=false || optns.dblclick.x!=false)
-			optns.click.object=object;
-		if(optns.dblclick.x!=false)
-            optns.dblclick.object=object;
-		if(optns.mouseup.x!=false)
-			optns.mouseup.object=object;
+		var mm=optns.mousemove,
+			md=optns.mousedown,
+			mu=optns.mouseup,
+			c=optns.click,
+			dc=optns.dblclick;
+		if(mm.x!=false)
+			mm.object=object;
+		if(md.x!=false)
+			md.objects[md.objects.length]=object;
+		if(c.x!=false || dc.x!=false)
+			c.objects[c.objects.length]=object;
+		if(dc.x!=false)
+            dc.objects[dc.objects.length]=object;
+		if(mu.x!=false)
+			mu.objects[mu.objects.length]=object;
 		optns.point=point;
 	}
 }
 
 function objectLayer(object)
 {
-	return objectCanvas(object).layers[object.optns.layer.number];
+	return objectCanvas(object).layers[object._optns.layer.number];
 }
 function objectCanvas(object)
 {
-	return canvases[object.optns.canvas.number];
+	return canvases[object._optns.canvas.number];
 }
 function layer(idLayer,object,array)
 {
 	redraw(object);
-	var objectCanvas=object.optns.canvas;
-	var objectLayer=object.optns.layer;
+	var objectCanvas=object._optns.canvas;
+	var objectLayer=object._optns.layer;
 	if (idLayer===undefined)return objectLayer.id;
 	if(objectLayer.id==idLayer)return object;
 	var oldIndex={
@@ -469,19 +462,20 @@ function layer(idLayer,object,array)
 	objectLayer.id=idLayer;
 	var newLayer=jCanvaScript.layer(idLayer);
 	var newIndex={
-		i:newLayer.optns.canvas.number,
-		j:newLayer._level
+		i:newLayer._optns.canvas.number,
+		j:newLayer._optns.number
 	};
 	var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvases[newIndex.i].layers[newIndex.j][array];
-	oldArray.splice(object._level,1);
-	normalizeLevels(oldArray);
-	object._level=newArray.length;
+	oldArray.splice(object._optns.number,1);
+	object._level=object._optns.number=newArray.length;
 	newArray[object._level]=object;
 	objectLayer.number=newIndex.j;
 	objectCanvas.number=newIndex.i;
+	objectCanvas.id=newLayer._optns.canvas.id;
 	redraw(object);
 	return object;
 }
+
 function take(f,s) {
 	for(var key in s)
 	{
@@ -495,9 +489,10 @@ function take(f,s) {
 				if(key=='optns' || key=='animateQueue')break;
 				if(key=='objs' || key=='grdntsnptrns')
 				{
-					for(var i=0;i<s[key].length;i++)
+					for(var i in s[key])
 					{
-						s[key][i].clone().layer(f.optns.id);
+						if(s[key].hasOwnProperty(i))
+							s[key][i].clone().layer(f._optns.id);
 					}
 					break;
 				}
@@ -514,29 +509,31 @@ function take(f,s) {
 function canvas(idCanvas,object,array)
 {
 	redraw(object);
-	var objectCanvas=object.optns.canvas;
-	var objectLayer=object.optns.layer;
-	if(idCanvas===undefined)return canvases[objectCanvas.number].optns.id;
-	if(canvases[objectCanvas.number].optns.id==idCanvas)return object;
+	var objectCanvas=object._optns.canvas;
+	var objectLayer=object._optns.layer;
+	if(idCanvas===undefined)return canvases[objectCanvas.number]._optns.id;
+	if(canvases[objectCanvas.number]._optns.id==idCanvas)return object;
 	var oldIndex={
 		i:objectCanvas.number,
 		j:objectLayer.number
 	};
 	jCanvaScript.canvas(idCanvas);
 	for(var i=0;i<canvases.length;i++)
+	{
 		var canvasItem=canvases[i];
-		if(canvasItem.optns.id==idCanvas)
+		if(canvasItem._optns.id==idCanvas)
 		{
 			var oldArray=canvases[oldIndex.i].layers[oldIndex.j][array],newArray=canvasItem.layers[0][array];
-			oldArray.splice(object._level,1);
+			oldArray.splice(object._optns.number,1);
 			normalizeLevels(oldArray);
-			object._level=newArray.length;
+			object._level=object._optns.number=newArray.length;
 			newArray[object._level]=object;
 			objectLayer.number=0;
 			objectCanvas.number=i;
-			objectCanvas.id=canvasItem.optns.id;
-			objectLayer.id=canvasItem.layers[0].optns.id;
+			objectCanvas.id=canvasItem._optns.id;
+			objectLayer.id=canvasItem.layers[0]._optns.id;
 		}
+	}
 	redraw(object);
 	return object;
 }
@@ -544,48 +541,49 @@ function normalizeLevels(array)
 {
 	for(var i=0;i<array.length;i++)
 	{
-		array[i]._level=i;
+		array[i]._optns.number=i;
+	}
+}
+function setLayerAndCanvasToArray(array,newLayerId,newLayerNumber,newCanvasId,newCanvasNumber)
+{
+	var limit=array.length,
+	optns,canvas,layer;
+	for(var i=0;i<limit;i++)
+	{
+		optns=array[i]._optns;
+		canvas=optns.canvas;
+		layer=optns.layer;
+		canvas.id=newCanvasId;
+		canvas.number=newCanvasNumber;
+		layer.id=newLayerId;
+		layer.number=newLayerNumber;
 	}
 }
 function levelChanger(array)
 {
-	var limit=array.length;
-	var tmp;
-	for(var j=0;j<limit;j++)
-	{
-		if(array[j]._level!=j)
-		{
-			tmp=array[j];
-			var id=tmp._level;
-			if (id>=limit)id=limit-1;
-			if (id<0)id=0;
-			if(id>j)
-				for(var i=j;i<id;i++)
-				{
-					array[i]=array[i+1];
-					array[i]._level=i;
-				}
-			if(id<j)
-				for(i=j;i>id;i--)
-				{
-					array[i]=array[i-1];
-					array[i]._level=i;
-				}
-			array[id]=tmp;
-			array[id]._level=id;
-		}
-	}
+	array.sort(function(a,b){
+		if(a._level>b._level)return 1;
+		if(a._level<b._level)return -1;
+		return 0;
+	});
+	normalizeLevels(array);
+	return array.length;
 }
 function objDeleter(array)
 {
-	for(var i=0;i<array.length;i++)
-	{
-		if(array[i].optns.deleted)
+	var isAnyObjectDeleted;
+	do{
+		isAnyObjectDeleted=false;
+		for(var i=0;i<array.length;i++)
 		{
-			array.splice(i,1);
-			i--;
+			if(array[i]._optns.deleted)
+			{
+				array.splice(i,1);
+				isAnyObjectDeleted=true;
+			}
 		}
-	}
+	}while(isAnyObjectDeleted);
+	normalizeLevels(array);
 	return array.length;
 }
 var proto={};

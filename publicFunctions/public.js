@@ -51,19 +51,19 @@ jCanvaScript.addImageDataFilter=function(name,properties)
 }
 jCanvaScript.clear=function(idCanvas)
 {
-	if(canvases[0]===undefined)return;
-	if(idCanvas===undefined){canvases[0].clear();return;}
+	if(canvases[0]===undefined)return jCanvaScript;
+	if(idCanvas===undefined){canvases[0].clear();return jCanvaScript;}
 	jCanvaScript.canvas(idCanvas).clear();
 	return jCanvaScript;
 }
 jCanvaScript.pause=function(idCanvas)
 {
-	if(idCanvas===undefined){canvases[0].pause();return;}
+	if(idCanvas===undefined){canvases[0].pause();return jCanvaScript;}
 	jCanvaScript.canvas(idCanvas).pause();
 	return jCanvaScript;
 }
-jCanvaScript.start=function(idCanvas,fps)
+jCanvaScript.start=function(idCanvas,isAnimated)
 {
-	jCanvaScript.canvas(idCanvas).start(fps);
+	jCanvaScript.canvas(idCanvas).start(isAnimated);
 	return jCanvaScript;
 }

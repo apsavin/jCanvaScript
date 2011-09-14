@@ -1,22 +1,30 @@
 proto.object=function()
 {
+	this.getCenter=function(type){
+		var rect=this.getRect('poor'),
+		point = {
+					x:(rect.x*2+rect.width)/2,
+					y:(rect.y*2+rect.height)/2
+				};
+		return getCenter(this,point,type);
+	}
 	this.position=function(){
-		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));;
+		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
 	this.buffer=function(doBuffering){
-		var bufOptns=this.optns.buffer;
+		var bufOptns=this._optns.buffer;
 		if(doBuffering===undefined)
 			if(bufOptns.val)return bufOptns.cnv;
 			else return false;
 		if(bufOptns.val===doBuffering)return this;
 		if(doBuffering)
 		{
-			var cnv=bufOptns.cnv=document.createElement('canvas');
-			var ctx=bufOptns.ctx=cnv.getContext('2d');
-			var rect=bufOptns.rect=this.getRect();
+			var cnv=bufOptns.cnv=document.createElement('canvas'),
+				ctx=bufOptns.ctx=cnv.getContext('2d'),
+				rect=bufOptns.rect=this.getRect(),
+				oldM=this.transform();
 			cnv.setAttribute('width',rect.width);
 			cnv.setAttribute('height',rect.height);
-			var oldM=this.transform();
 			bufOptns.x=this._x;
 			bufOptns.y=this._y;
 			bufOptns.dx=this._transformdx;
@@ -24,20 +32,18 @@ proto.object=function()
 			this._x=this._y=0;
 			this.transform(1, 0, 0, 1, -rect.x+bufOptns.dx, -rect.y+bufOptns.dy,true);
 			this.setOptns(ctx);
-			take(bufOptns.optns={},objectCanvas(this).optns);
-			bufOptns.optns.ctx=ctx;
-			this.draw(ctx);
+			take(bufOptns._optns={},objectCanvas(this)._optns);
+			bufOptns._optns.ctx=ctx;
+			this.draw(bufOptns._optns);
 			this._x=bufOptns.x;
 			this._y=bufOptns.y;
-			oldM[0][2]=rect.x;
-			oldM[1][2]=rect.y;
-			this.matrix(oldM);
+			this.transform(oldM[0][0], oldM[1][0], oldM[0][1], oldM[1][1], rect.x, rect.y,true);
 			bufOptns.val=true;
 		}
 		else
 		{
 			this.translate(-bufOptns.rect.x+bufOptns.dx,-bufOptns.rect.y+bufOptns.dy);
-			this.optns.buffer={val:false};
+			this._optns.buffer={val:false};
 		}
 		return this;
 	}
@@ -46,7 +52,11 @@ proto.object=function()
 		var clone=new proto[this._proto];
 		proto[this._proto].prototype.base.call(clone);
 		take(clone,this);
-		clone.layer(objectLayer(this).optns.id);
+		clone.layer(objectLayer(this)._optns.id);
+		take(clone._optns.transformMatrix,this._optns.transformMatrix);
+		take(clone._optns.translateMatrix,this._optns.translateMatrix);
+		take(clone._optns.scaleMatrix,this._optns.scaleMatrix);
+		take(clone._optns.rotateMatrix,this._optns.rotateMatrix);
 		if(params===undefined) return clone;
 		return clone.animate(params);
 	}
@@ -84,48 +94,67 @@ proto.object=function()
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
 		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
-		if(this.scaleMatrix)
-		{
-			this.matrix(multiplyM(this.matrix(),this.scaleMatrix));
-			this.scaleMatrix=false;
-		}
-		if(this.rotateMatrix)
-		{
-			this.matrix(multiplyM(this.matrix(),this.rotateMatrix));
-			this.rotateMatrix=false;
-		}
 		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
 	this.up=function(n)
 	{
 		if(n === undefined)n=1;
-		if(n == 'top')n=objectLayer(this).objs.length-1;
-		this._level+=n;
-		objectLayer(this).optns.anyObjLevelChanged = true;
-		redraw(this);
+		if(n=='top')this.level(n);
+		else {
+			var next=objectLayer(this).objs[this._optns.number+n];
+			if(next!==undefined)
+			{
+				n=next._level+1-this._level;
+			}
+			this.level(this._level+n);
+		}
 		return this;
 	}
 	this.down=function(n)
 	{
 		if(n == undefined)n=1;
-		if(n == 'bottom')n=this._level;
-		this._level-=n;
-		objectLayer(this).optns.anyObjLevelChanged = true;
+		if(n == 'bottom')this.level(n);
+		else {
+			var previous=objectLayer(this).objs[this._optns.number-n];
+			if(previous!==undefined)
+			{
+				n=this._level-(previous._level-1);
+			}
+			this.level(this._level-n);
+		}
+		return this;
+	}
+	this.level=function(n)
+	{
+		if(n == undefined)return this._level;
+		var layer=objectLayer(this);
+		if(n=='bottom')
+		{
+			if(this._optns.number==0)n=this._level;
+			else n=layer.objs[0]._level-1;
+		}
+		if(n=='top')
+		{
+			if(this._optns.number==layer.objs.length)n=this._level;
+			else n=layer.objs[layer.objs.length-1]._level+1;
+		}
+		this._level=n;
+		layer._optns.anyObjLevelChanged = true;
 		redraw(this);
 		return this;
 	}
 	this.del=function()
 	{
-		this.optns.deleted=true;
-		objectLayer(this).optns.anyObjDeleted = true;
+		this._optns.deleted=true;
+		objectLayer(this)._optns.anyObjDeleted = true;
 		redraw(this);
 	}
 	this.focus=function(fn)
 	{
 		if(fn===undefined)
 		{
-			this.optns.focused=true;
+			this._optns.focused=true;
 			if(typeof this.onfocus=='function')this.onfocus();
 		}
 		else this.onfocus=fn;
@@ -135,7 +164,7 @@ proto.object=function()
 	{
 		if(fn===undefined)
 		{
-			this.optns.focused=false;
+			this._optns.focused=false;
 			if(typeof this.onblur == 'function')this.onblur();
 		}
 		else this.onblur=fn;
@@ -195,7 +224,7 @@ proto.object=function()
 		return this.animate(parameters);
 	}
 	this.queue=function(){
-		var animateQueueLength=this.animateQueue.length, queue,i,j,key,duration=0,longFn=0,fn,args=arguments;
+		var animateQueueLength=this.animateQueue.length, queue,i,j,duration=0,longFn=0,fn,args=arguments;
 		for (i=0;i<args.length;i++)
 		{
 			if(typeof args[i]=='function'){
@@ -207,16 +236,13 @@ proto.object=function()
 					for (j=animateQueueLength;j<this.animateQueue.length;j++)
 					{
 						queue=this.animateQueue[j];
-						for(key in queue)
-						{
-							if(queue[key].duration!==undefined){
-								if(queue[key].duration>duration)
-								{
-									duration=queue[key].duration;
-									longFn=j;
-								}
-								break;
+						if(queue.duration!==undefined){
+							if(queue.duration>duration)
+							{
+								duration=queue.duration;
+								longFn=j;
 							}
+							break;
 						}
 					}
 					if(duration){
@@ -237,7 +263,7 @@ proto.object=function()
 	}
 	this.stop=function(jumpToEnd,runCallbacks)
 	{
-		this.optns.animated=false;
+		this._optns.animated=false;
 		if(runCallbacks===undefined)runCallbacks=false;
 		if(jumpToEnd===undefined)jumpToEnd=false;
 		for(var q=0;q<this.animateQueue.length;q++)
@@ -273,7 +299,6 @@ proto.object=function()
 				duration=1;
 			}
 		}
-		if(duration!=1)duration=(duration/1000)*objectCanvas(this).fps;
 		if (easing===undefined)easing={fn:'linear',type:'in'};
 		else
 		{
@@ -320,6 +345,22 @@ proto.object=function()
 			}
 			options.translate=undefined;
 		}
+		if(options.translateTo!==undefined)
+		{
+			var point=this.position();
+			this._translateToX=point.x;
+			this._translateToY=point.y;
+			if(typeof options.translateTo!='object')
+			{
+				options.translateToX=options.translateToY=options.translateTo;
+			}
+			else
+			{
+				options.translateToX=options.translateTo.x||0;
+				options.translateToY=options.translateTo.y||0;
+			}
+			options.translateTo=undefined;
+		}
 		if(options.rotate!==undefined)
 		{
 			options.rotateAngle=options.rotate.angle;
@@ -332,7 +373,7 @@ proto.object=function()
 		{
 			var colorKeeper=parseColor(options.color);
 			if(colorKeeper.color.notColor)
-				this.optns.color.notColor=colorKeeper.color.notColor;
+				this._optns.color.notColor=colorKeeper.color.notColor;
 			else
 			{
 				options.colorR=colorKeeper.r;
@@ -355,34 +396,35 @@ proto.object=function()
 		{
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
 			queue.animateFn=fn||false;
-			this.optns.animated=true;
+			this._optns.animated=true;
+			queue.duration=duration;
+			queue.step=0;
+			queue.easing=easing;
+			queue.onstep=onstep;
 		}
 		for(var key in options)
 		{
 			if(this['_'+key] !== undefined && options[key]!==undefined)
 			{
-				if(options[key]!=this['_'+key])
+				var keyValue=options[key],privateKey='_'+key;
+				if(keyValue!=this[privateKey])
 				{
-					if(options[key].charAt)
+					if(keyValue.charAt)
 					{
-						if(key=='string')this._string=options[key];
-						else if(options[key].charAt(1)=='=')
+						if(key=='string')this._string=keyValue;
+						else if(keyValue.charAt(1)=='=')
 						{
-							options[key]=this['_'+key]+parseInt(options[key].charAt(0)+options[key].substr(2));
+							keyValue=this[privateKey]+parseInt(keyValue.charAt(0)+'1')*parseInt(keyValue.substr(2));
 						}
-						else if(!regHasLetters.test(options[key]))options[key]=parseInt(options[key]);
-						else this['_'+key]=options[key];
+						else if(!regHasLetters.test(keyValue))keyValue=parseInt(keyValue);
+						else this[privateKey]=keyValue;
 					}
-					if(duration==1)this['_'+key]=options[key];
+					if(duration==1)this[privateKey]=keyValue;
 					else
 					{
-						queue['_'+key]={
-							from:this['_'+key],
-							to:options[key],
-							duration:duration,
-							step:1,
-							easing:easing,
-							onstep:onstep,
+						queue[privateKey]={
+							from:this[privateKey],
+							to:keyValue,
 							prev:0
 						}
 						queue.animateKeyCount++;
@@ -396,6 +438,8 @@ proto.object=function()
 				this.rotate(this._rotateAngle,this._rotateX,this._rotateY);
 			if(options['translateX']||options['translateY'])
 				this.translate(this._translateX,this._translateY);
+			if(options['translateToX']||options['translateToY'])
+				this.translate(this._translateToX,this._translateToY);
 			if(options['scaleX']||options['scaleY'])
 				this.scale(this._scaleX,this._scaleY);
 		}
@@ -415,16 +459,22 @@ proto.object=function()
 	}
 	this.translateTo=function(newX,newY,duration,easing,onstep,fn)
 	{
+		if(duration!==undefined)
+			return this.animate({translateTo:{x:newX,y:newY}},duration,easing,onstep,fn);
 		var point=this.position(),
-			x=newX-point.x,y=newY-point.y;
-		return this.translate(x,y,duration,easing,onstep,fn);
+			x=0,y=0;
+		if(newX!==undefined)
+			x=newX-point.x;
+		if(newY!==undefined)
+			y=newY-point.y;
+		return this.translate(x,y);
 	}
 	this.translate=function(x,y,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
 			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		this.matrix(multiplyM(this.matrix(),[[1,0,x],[0,1,y]]));
-		redraw(this);
+		this._optns.translateMatrix=multiplyM(this._optns.translateMatrix,[[1,0,x],[0,1,y]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.scale=function(x,y,duration,easing,onstep,fn)
@@ -432,31 +482,24 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
-		if(this.scaleMatrix)
-			this.scaleMatrix=multiplyM(this.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
-		else
-			this.scaleMatrix=[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]];
-		redraw(this);
+		this._optns.scaleMatrix=multiplyM(this._optns.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.rotate=function(x,x1,y1,duration,easing,onstep,fn)
 	{
 		if(duration!==undefined)
 			return this.animate({rotate:{angle:x,x:x1,y:y1}},duration,easing,onstep,fn);
-		redraw(this);
 		x=x/radian;
-		var cos=Math.cos(x);
-		var sin=Math.sin(x);
-		var matrix=[];
-		if(x1===undefined)
-		{
-			matrix=[[cos,-sin,0],[sin,cos,0]];
-		}
-		else
+		var cos=m_cos(x),
+			sin=m_sin(x),
+			translateX=0,
+			translateY=0;
+		if(x1!==undefined)
 		{
 			if(x1=='center')
 			{
-				var point=getObjectCenter(this);
+				var point=this.getCenter('poor');
 				if(y1===undefined)
 				{
 					x1=point.x;
@@ -468,53 +511,56 @@ proto.object=function()
 					y1=point.y+y1.y;
 				}
 			}
-			matrix=[[cos,-sin,-x1*(cos-1)+y1*sin],[sin,cos,-y1*(cos-1)-x1*sin]];
+			translateX=-x1*(cos-1)+y1*sin;
+			translateY=-y1*(cos-1)-x1*sin;
 		}
-		if(this.rotateMatrix)
-				this.rotateMatrix=multiplyM(this.rotateMatrix,matrix);
-			else
-				this.rotateMatrix=matrix;
+		this._optns.rotateMatrix=multiplyM(this._optns.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
+		changeMatrix(this);
 		return this;
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
 	{
 		if(m11===undefined)return this.matrix();
+		var optns=this._optns;
 		if(reset!==undefined)
 		{
-			this.matrix([[m11,m21,dx],[m12,m22,dy]]);
+			optns.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
+			optns.rotateMatrix=[[1,0,0],[0,1,0]];
+			optns.scaleMatrix=[[1,0,0],[0,1,0]];
+			optns.translateMatrix=[[1,0,0],[0,1,0]];
 		}
 		else
 		{
-			var m=multiplyM(this.matrix(),[[m11,m21,dx],[m12,m22,dy]]);
-			this.matrix(m);
+			optns.transformMatrix=multiplyM(optns.transformMatrix,[[m11,m21,dx],[m12,m22,dy]]);
 		}
-		redraw(this);
+		changeMatrix(this);
 		return this;
 	}
-	this.beforeDraw=function(ctx)
+	this.beforeDraw=function(canvasOptns)
 	{
 		if(!this._visible)return false;
+		var ctx=canvasOptns.ctx;
 		ctx.save();
-		if(this.optns.clipObject)
+		if(this._optns.clipObject)
 		{
-			var clipObject=this.optns.clipObject;
+			var clipObject=this._optns.clipObject;
 			clipObject._visible=true;
-			if (clipObject.optns.animated)animating.call(clipObject);
+			if (clipObject._optns.animated)animating.call(clipObject,canvasOptns);
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
 		this.setOptns(ctx);
-		if (this.optns.animated)animating.call(this);
+		if (this._optns.animated)animating.call(this,canvasOptns);
 		ctx.beginPath();
 		return true;
 	}
 	this.clip=function(object)
 	{
-		if(object===undefined)return this.optns.clipObject;
-		objectLayer(this).objs.splice(object._level,1);
-		this.optns.clipObject=object;
+		if(object===undefined)return this._optns.clipObject;
+		objectLayer(this).objs.splice(object._optns.number,1);
+		this._optns.clipObject=object;
 		return this;
 	}
 	this.afterDraw=function(optns)
@@ -522,26 +568,45 @@ proto.object=function()
 		optns.ctx.closePath();
 		checkEvents(this,optns);
 		optns.ctx.restore();
-		if(this.optns.clipObject)
+		if(this._optns.clipObject)
 		{
-			proto.shape.prototype.afterDraw.call(this.optns.clipObject,optns);
+			proto.shape.prototype.afterDraw.call(this._optns.clipObject,optns);
 		}
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasOptns=objectCanvas(this).optns;
-		var ctx=canvasOptns.ctx;
+		var canvasOptns=objectCanvas(this)._optns,
+			ctx=canvasOptns.ctx,
+			thisAnimated=false,
+			optns=this._optns,
+			clipAnimated=false;
 		if(global!==undefined)
 		{
 			x-=canvasOptns.x;
 			y-=canvasOptns.y;
 		}
-		ctx.save();
-		ctx.beginPath();
+		if(optns.animated)thisAnimated=true;
+		optns.animated=false;
+		if(optns.clipObject)
+		{
+			var clipObject=optns.clipObject,
+				clipOptns=clipObject._optns;
+			if(clipOptns.animated)
+			{
+				clipAnimated=true;
+				clipOptns.animated=false;
+			}
+		}
+		this.beforeDraw(canvasOptns);
 		this.draw(ctx);
 		var point=isPointInPath(this,x,y);
 		ctx.closePath();
 		ctx.restore();
+		optns.animated=thisAnimated;
+		if(clipAnimated)
+		{
+			clipOptns.animated=clipAnimated;
+		}
 		if(point)return true;
 		return false;
 	}
@@ -553,18 +618,27 @@ proto.object=function()
 	{
 		return canvas(idCanvas,this,'objs');
 	}
-	this.draggable=function(object,params,fn)
+	this.draggable=function(object,params,drag)
 	{
+		if(params===undefined && typeof object=='object' && object._optns===undefined)
+		{
+			params=object.params;
+			drag=object.drag;
+			var start=object.start,
+				stop=object.stop,
+				disabled=object.disabled;
+			object=object.object;
+		}
 		var dragObj=this;
-		var dragOptns=this.optns.drag;
+		var dragOptns=this._optns.drag;
 		if(typeof params==='function')
 		{
-			fn=params;
+			drag=params;
 			params=undefined;
 		}
 		if(typeof object=='function')
 		{
-			fn=object;
+			drag=object;
 			object=undefined;
 		}
 		dragOptns.shiftX=0;
@@ -590,8 +664,11 @@ proto.object=function()
 		dragOptns.dy=this._transformdy;
 		dragOptns.object=dragObj;
 		dragOptns.params=params;
-		dragOptns.fn=fn||false;
-		var optns=objectCanvas(this).optns;
+		dragOptns.drag=drag||false;
+		dragOptns.start=start||false;
+		dragOptns.stop=stop||false;
+		dragOptns.disabled=disabled||false;
+		var optns=objectCanvas(this)._optns;
 		optns.mousemove.val=true;
 		optns.mousedown.val=true;
 		optns.mouseup.val=true;
@@ -599,8 +676,8 @@ proto.object=function()
 	}
 	this.droppable=function(fn)
 	{
-		this.optns.drop.val=true;
-		if(fn!==undefined)this.optns.drop.fn=fn;
+		this._optns.drop.val=true;
+		if(fn!==undefined)this._optns.drop.fn=fn;
 		return this;
 	}
 	this.name = function(name)
@@ -617,8 +694,8 @@ proto.object=function()
 	}
 	this.id=function(id)
 	{
-		if(id===undefined)return this.optns.id;
-		this.optns.id=id;
+		if(id===undefined)return this._optns.id;
+		this._optns.id=id;
 		return this;
 	}
 	this.opacity=function(n)
@@ -646,14 +723,6 @@ proto.object=function()
 			this.fadeIn(duration,easing,onstep,fn);
 		return this;
 	}
-	this.level=function(n)
-	{
-		if(n == undefined)return this._level;
-		this._level=n;
-		objectLayer(this).optns.anyObjLevelChanged = true;
-		redraw(this);
-		return this;
-	}
 	this.instanceOf=function(name)
 	{
 		if(name===undefined)return this._proto;
@@ -669,26 +738,33 @@ proto.object=function()
 		}
 		else{if(service===undefined)service=false;}
 		var canvasItem=canvases[lastCanvas];
-		this.optns={
+		this._optns={
 			animated:false,
 			clipObject:false,
 			drop:{val:false,fn:function(){}},
 			drag:{val:false},
-			layer:{id:canvasItem.optns.id+"Layer0",number:0},
+			layer:{id:canvasItem._optns.id+"Layer0",number:0},
 			canvas:{number:0},
 			focused:false,
-			buffer:{val:false}
+			buffer:{val:false},
+			rotateMatrix:[[1,0,0],[0,1,0]],
+			scaleMatrix:[[1,0,0],[0,1,0]],
+			translateMatrix:[[1,0,0],[0,1,0]],
+			transformMatrix:[[1,0,0],[0,1,0]]
 		}
 		this.animateQueue = [];
 		this._x=x;
 		this._y=y;
 		if(service==false && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
-			this.optns.layer.number=0;
-			this.optns.canvas.number=lastCanvas;
-			this._level=objectLayer(this).objs.length;
-			objectLayer(this).objs[this._level]=this;
-			this.optns.layer.id=objectLayer(this).optns.id;
+			this._optns.layer.number=0;
+			this._optns.canvas.number=lastCanvas;
+			var layer=objectLayer(this),
+			limit=layer.objs.length;
+			this._optns.number=limit;
+			this._level=limit?(layer.objs[limit-1]._level+1):0;
+			layer.objs[limit]=this;
+			this._optns.layer.id=layer._optns.id;
 			redraw(this);
 		}
 		return this;
@@ -718,6 +794,6 @@ proto.object=function()
 	this._transform22=1;
 	this._transformdx=0;
 	this._transformdy=0;
-	this.rotateMatrix=this.scaleMatrix=false;
+	this._matrixChanged=false;
 }
 proto.object.prototype=new proto.object();

@@ -3,170 +3,211 @@ jCanvaScript.canvas = function(idCanvas)
 	if(idCanvas===undefined)return canvases[0];
 	var limit=canvases.length;
 	for (var i=0;i<limit;i++)
-		if(canvases[i].optns.id==idCanvas)return canvases[i];
+		if(canvases[i]._optns)
+			if(canvases[i]._optns.id==idCanvas)return canvases[i];
 	var canvas={
 		id:function(id)
 		{
-			if(id===undefined)return this.optns.id;
-			this.optns.id=id;
+			if(id===undefined)return this._optns.id;
+			this._optns.id=id;
 			return this;
 		}
 	};
 	canvases[limit]=canvas;
 	lastCanvas=limit;
-	canvas.cnv=document.getElementById(idCanvas);
-	if ('\v'=='v' && G_vmlCanvasManager!==undefined)G_vmlCanvasManager.initElement(canvas.cnv);
-	canvas.optns =
+	canvas._cnv=document.getElementById(idCanvas);
+	if ('\v'=='v')
+	{
+		if(typeof G_vmlCanvasManager!=='undefined')
+			G_vmlCanvasManager.initElement(canvas._cnv);
+		if(typeof FlashCanvas !=='undefined')
+			FlashCanvas.initElement(canvas._cnv);
+	}
+	canvas._optns =
 	{
 		id:idCanvas,
 		number:lastCanvas,
-		ctx: canvas.cnv.getContext('2d'),
-		width: canvas.cnv.offsetWidth,
-		height: canvas.cnv.offsetHeight,
+		ctx: canvas._cnv.getContext('2d'),
+		width: canvas._cnv.offsetWidth||canvas._cnv.width,
+		height: canvas._cnv.offsetHeight||canvas._cnv.height,
 		anyLayerDeleted: false,
 		anyLayerLevelChanged:false,
 		keyDown:{val:false,code:false},
 		keyUp:{val:false,code:false},
 		keyPress:{val:false,code:false},
 		mousemove:{val:false,x:false,y:false,object:false},
-		click:{val:false,x:false,y:false,object:false},
-		dblclick:{val:false,x:false,y:false,object:false},
-		mouseup:{val:false,x:false,y:false,object:false},
-		mousedown:{val:false,x:false,y:false,object:false},
+		click:{val:false,x:false,y:false,objects:[]},
+		dblclick:{val:false,x:false,y:false,objects:[]},
+		mouseup:{val:false,x:false,y:false,objects:[]},
+		mousedown:{val:false,x:false,y:false,objects:[]},
 		drag:{object:false,x:0,y:0},
 		gCO: 'source-over',
 		redraw:1
 	}
-	canvas.toDataURL=function(){return canvas.cnv.toDataURL.apply(canvas.cnv,arguments);}
+	canvas.toDataURL=function(){return canvas._cnv.toDataURL.apply(canvas._cnv,arguments);}
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
-	canvas.start=function(fps)
+	canvas.start=function(isAnimated)
 	{
-		lastCanvas=this.layers[0].optns.canvas.number;
-		if(fps)
+		lastCanvas=this._optns.number;
+		if(isAnimated)
 		{
 			if(this.interval)return this;
-			this.fps=fps;
-			var offset=getOffset(this.cnv);
-			this.optns.x=offset.left;
-			this.optns.y=offset.top;
-			var canvas=canvases[this.optns.number];
-			this.cnv.onclick=function(e){
-				if(!canvas.optns.click.val)return;
-				mouseEvent(e,'click',canvas.optns);
-			};
-			this.cnv.ondblclick=function(e){
-				if(!canvas.optns.dblclick.val)return;
-				mouseEvent(e,'dblclick',canvas.optns);
+			this.isAnimated=isAnimated;
+			var offset=getOffset(this._cnv);
+			this._optns.x=offset.left+(parseInt(this._cnv.style.borderTopWidth)||0);
+			this._optns.y=offset.top+(parseInt(this._cnv.style.borderLeftWidth)||0);
+			var canvas=canvases[this._optns.number],
+			optns=canvas._optns;
+			this._cnv.onclick=function(e){
+				mouseEvent(e,'click',optns);
 			}
-			this.cnv.onmousedown=function(e){
-				if(!canvas.optns.mousedown.val)return;
-				mouseEvent(e,'mousedown',canvas.optns);
-			};
-			this.cnv.onmouseup=function(e){
-				if(!canvas.optns.mouseup.val)return;
-				mouseEvent(e,'mouseup',canvas.optns);
-			};
-			this.cnv.onkeyup=function(e){
-				keyEvent(e,'keyUp',canvas.optns);
+			this._cnv.ondblclick=function(e){
+				mouseEvent(e,'dblclick',optns);
+				optns.redraw++;
 			}
-			this.cnv.onkeydown=function(e)
+			this._cnv.onmousedown=function(e){
+				mouseEvent(e,'mousedown',optns);
+			}
+			this._cnv.onmouseup=function(e){
+				mouseEvent(e,'mouseup',optns);
+			}
+			this._cnv.onkeyup=function(e){
+				keyEvent(e,'keyUp',optns);
+			}
+			this._cnv.onkeydown=function(e)
 			{
-				keyEvent(e,'keyDown',canvas.optns);
+				keyEvent(e,'keyDown',optns);
 			}
-			this.cnv.onkeypress=function(e)
+			this._cnv.onkeypress=function(e)
 			{
-				keyEvent(e,'keyPress',canvas.optns);
+				keyEvent(e,'keyPress',optns);
 			}
-			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
+			this._cnv.onmouseout=this._cnv.onmousemove=function(e)
 			{
-				if(!canvas.optns.mousemove.val)return;
-				mouseEvent(e,'mousemove',canvas.optns);
-				if(canvas.optns.drag.object!=false)
-				{
-					var drag=canvas.optns.drag;
-					var mousemove=canvas.optns.mousemove;
-					var point=transformPoint(mousemove.x,mousemove.y,drag.object.matrix());
-					drag.object.transform(1,0,0,1,point.x-drag.x,point.y-drag.y);
-					if(drag.fn)drag.fn.call(drag.object,({x:mousemove.x,y:mousemove.y}));
-				}
-			};
-			this.interval=setInterval(function(){jCanvaScript.canvas(idCanvas).frame();},this.fps);
+				mouseEvent(e,'mousemove',optns);
+			}
+			optns.timeLast=new Date();
+			this.interval=requestAnimFrame(function(time){
+					canvas.interval=canvas.interval||1;
+					canvas.frame(time);},
+				this._cnv);
 		}
-		else this.frame();
+		else return this.frame();
 		return this;
 	}
 	canvas.pause=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
+	}
+	canvas.del=function()
+	{
+		cancelRequestAnimFrame(this.interval);
+		this.layers=[];
+		canvases.splice(this._optns.number,1);
+		for(var i=0;i<canvases.length;i++)
+		{
+			var canvas=canvases[i],
+			layers=canvas.layers,
+			limitL=layers.length;
+			canvas._optns.number=i;
+			for(var j=0;j<limitL;j++)
+			{
+				var layer=layers[j];
+				layer._optns.canvas.number=i;
+				setLayerAndCanvasToArray(layer.objs,layer._optns.id,layer._optns.number,canvas._optns.id,canvas._optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layer._optns.id,layer._optns.number,canvas._optns.id,canvas._optns.number);
+			}
+		}
+		if(this._cnv.parentNode)this._cnv.parentNode.removeChild(this._cnv);
+		lastCanvas=0;
+		return false;
 	}
 	canvas.clear=function()
 	{
-		clearInterval(this.interval);
+		cancelRequestAnimFrame(this.interval);
+		var optns=this._optns;
 		this.interval=0;
 		this.layers=[];
-		jCanvaScript.layer(this.optns.id+'Layer_0').canvas(this.optns.id);
-		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
-		this.optns.redraw++;
+		jCanvaScript.layer(optns.id+'Layer_0').canvas(optns.id);
+		optns.ctx.clearRect(0,0,optns.width,optns.height);
+		optns.redraw=1;
 		return this;
 	}
-	canvas.frame=function()
+	canvas.frame=function(time)
 	{
-		var optns=this.optns;
-		if(!optns.redraw)return;
+		var optns=this._optns,thisCanvas=this;
+		time=time||(new Date());
+		optns.timeDiff=time-optns.timeLast;
+		optns.timeLast=time;
+		if(this.interval)
+		{
+			this.interval=requestAnimFrame(function(time){thisCanvas.frame(time);},thisCanvas._cnv);
+			this.interval=this.interval||1;
+		}
+		if(!optns.redraw)return this;
 		optns.redraw--;
 		optns.ctx.clearRect(0,0,optns.width,optns.height);
-		var limit=this.layers.length;
-		if(limit==0)return;
+		if(this.layers.length==0)return this;
+		limit=this.layers.length;
 		if(optns.anyLayerLevelChanged)
-		{
-			levelChanger(this.layers);
-			optns.anyLayerLevelChanged=false;
-		}
+			limit=levelChanger(this.layers);
 		if(optns.anyLayerDeleted)
-		{
 			limit=objDeleter(this.layers);
-			optns.anyLayerDeleted=false;
+		if(optns.anyLayerLevelChanged || optns.anyLayerDeleted)
+		{
+			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
+			for(var i=0;i<limit;i++)
+			{
+				var layer=this.layers[i],layerOptns=layer._optns;
+				setLayerAndCanvasToArray(layer.objs,layerOptns.id,layerOptns.number,this._optns.id,this._optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layerOptns.id,layerOptns.number,idCanvas,this._optns.number);
+			}
 		}
-		for(var i=0;i<limit;i++)
+		for(i=0;i<limit;i++)
 		{
 			var object=this.layers[i];
 			if(typeof (object.draw)=='function')
-				if(object.beforeDraw(optns.ctx))
+				if(object.beforeDraw(optns))
 				{
 					if(typeof (object.draw)=='function')
 					{
-						object.draw(optns.ctx);
+						object.draw(optns);
 						object.afterDraw(optns);
 					}
 				}
 		}
 		if(optns.mousemove.x!=false)
 		{
-			var point = this.optns.point;
-			if(optns.mousemove.object!=false)
+			var mm=optns.mousemove;
+			if(optns.drag.object!=false)
 			{
-				var mousemoveObject=optns.mousemove.object;
+				var drag=optns.drag,
+					dobject=drag.object;
+				dobject.translate(mm.x-drag.x,mm.y-drag.y);
+				drag.x=mm.x;
+				drag.y=mm.y;
+				if(drag.drag)drag.drag.call(dobject,{x:mm.x,y:mm.y});
+			}
+			var point = this._optns.point||{};
+			point.event=mm.event;
+			if(mm.object!=false)
+			{
+				var mousemoveObject=mm.object;
 				if(underMouse===mousemoveObject)
 				{
 					if(typeof mousemoveObject.onmousemove=='function')
-					{
 						mousemoveObject.onmousemove(point);
-					}
 				}
 				else
 				{
-					if(underMouse==false)
-					{
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
-					}
-					else
-					{
-						if(typeof underMouse.onmouseout=='function'){underMouse.onmouseout(point);}
-						if(typeof mousemoveObject.onmouseover=='function'){mousemoveObject.onmouseover(point);}
-					}
+					if(underMouse!=false)
+						if(typeof underMouse.onmouseout=='function')
+							underMouse.onmouseout(point);
+					if(typeof mousemoveObject.onmouseover=='function')
+						mousemoveObject.onmouseover(point);
 					underMouse=mousemoveObject;
 				}
 			}
@@ -181,91 +222,118 @@ jCanvaScript.canvas = function(idCanvas)
 					underMouse=false;
 				}
 			}
+			optns.mousemove.object=false;
 		}
-		if(optns.mousedown.object!=false)
+		if(optns.mousedown.objects.length)
 		{
-			var mouseDown=this.optns.mousedown;
-			var mouseDownObjects=[mouseDown.object,objectLayer(mouseDown.object)];
-			for(i=0;i<2;i++)
+			var mouseDown=this._optns.mousedown;
+			mdCicle:
+			for(i=mouseDown.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseDownObjects[i].onmousedown=='function')mouseDownObjects[i].onmousedown({x:mouseDown.x,y:mouseDown.y});
-				if(mouseDownObjects[i].optns.drag.val==true)
+				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
+				for(var j=0;j<2;j++)
 				{
-					var drag=optns.drag;
-					drag.object=mouseDownObjects[i].optns.drag.object.visible(true);
-					drag.fn=mouseDownObjects[i].optns.drag.fn;
-					drag.init=mouseDownObjects[i];
-					if(drag.init.optns.drag.params!==undefined)drag.object.animate(drag.init.optns.drag.params);
-					var point=transformPoint(mouseDown.x,mouseDown.y,drag.object.matrix());
-					drag.x=point.x;
-					drag.y=point.y;
-					if(drag.object!=drag.init && drag.init.optns.drag.type!='clone')
+					mdObject=mouseDownObjects[j];
+					if(mdObject._optns.drag.val==true && mdObject._optns.drag.disabled==false)
 					{
-						point.x=-drag.object._x+point.x;
-						point.y=-drag.object._y+point.y;
-						drag.x-=point.x;
-						drag.y-=point.y;
-						drag.object.transform(1,0,0,1,point.x,point.y);
+						drag=optns.drag;
+						dobject=drag.object=mdObject._optns.drag.object.visible(true);
+						drag.drag=mdObject._optns.drag.drag;
+						drag.init=mdObject;
+						var initoptns=drag.init._optns;
+						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
+						drag.x=mouseDown.x;
+						drag.y=mouseDown.y;
+						if(dobject!=drag.init && initoptns.drag.type!='clone')
+						{
+							point=transformPoint(mouseDown.x,mouseDown.y,dobject.matrix());
+							dobject.translate(point.x-dobject._x,point.y-dobject._y);
+						}
+						dobject.translate(initoptns.drag.shiftX,initoptns.drag.shiftY);
+						if(typeof initoptns.drag.start=='function')
+							initoptns.drag.start.call(dobject,{x:mouseDown.x,y:mouseDown.y});
 					}
-					drag.object._transformdx+=drag.init.optns.drag.shiftX;
-					drag.object._transformdy+=drag.init.optns.drag.shiftY;
+					if(typeof mdObject.onmousedown=='function')
+						if(mdObject.onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event})===false)
+							break mdCicle;
 				}
 			}
-			mouseDown.object=false;
+			mouseDown.objects=[];
 		}
-		if(optns.mouseup.object!=false)
+		if(optns.mouseup.objects.length)
 		{
 			var mouseUp=optns.mouseup;
-			var mouseUpObjects=[mouseUp.object,objectLayer(mouseUp.object)];
-			drag=optns.drag;
-			for(i=0;i<2;i++)
+			muCicle:
+			for(i=mouseUp.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseUpObjects[i].onmouseup=='function')mouseUpObjects[i].onmouseup({x:mouseUp.x,y:mouseUp.y});
-				if(mouseUpObjects[i].optns.drop.val==true && optns.drag.init!==undefined)
+				var mouseUpObjects=[mouseUp.objects[i],objectLayer(mouseUp.objects[i])],muObject;
+				drag=optns.drag;
+				for(j=0;j<2;j++)
 				{
-					if(drag.init==drag.object)
-						drag.init.visible(true);
-					if(typeof mouseUpObjects[i].optns.drop.fn=='function')mouseUpObjects[i].optns.drop.fn.call(mouseUpObjects[i],drag.init);
-					this.optns.drag={object:false,x:0,y:0};
-				}
-				else
-				{
-					if(drag.init!==undefined)
+					muObject=mouseUpObjects[j];
+					if(muObject._optns.drop.val==true && optns.drag.init!==undefined)
 					{
-						drag.object.visible(false);
-						drag.init.visible(true);
-						drag.init._transformdx=drag.object._transformdx;
-						drag.init._transformdy=drag.object._transformdy;
-						if(drag.object!=drag.init)drag.object.visible(false);
-						this.optns.drag={object:false,x:0,y:0};
+						if(drag.init==drag.object)
+							drag.init.visible(true);
+						if(typeof muObject._optns.drop.fn=='function')
+							muObject._optns.drop.fn.call(muObject,drag.init);
 					}
+					else
+					{
+						if(drag.init!==undefined)
+						{
+							drag.object.visible(false);
+							drag.init.visible(true);
+							drag.init._optns.translateMatrix[0][2]=drag.object._optns.translateMatrix[0][2];
+							drag.init._optns.translateMatrix[1][2]=drag.object._optns.translateMatrix[1][2];
+							changeMatrix(drag.init);
+							if(drag.object!=drag.init)drag.object.visible(false);
+							if(typeof drag.init._optns.drag.stop=='function')
+								drag.init._optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
+						}
+					}
+					if(typeof muObject.onmouseup=='function')
+						if(muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
+							break muCicle;
 				}
 			}
-			mouseUp.object=false;
+			this._optns.drag={object:false,x:0,y:0};
+			mouseUp.objects=[];
 		}
-		if(this.optns.click.object!=false)
+		if(optns.click.objects.length)
 		{
-			var mouseClick=this.optns.click;
-			var mouseClickObjects=[mouseClick.object,objectLayer(mouseClick.object)];
-			for(i=0;i<2;i++)
+			var click=this._optns.click;
+			cCicle:
+			for(i=click.objects.length-1;i>-1;i--)
 			{
-				if(typeof mouseClickObjects[i].onclick == 'function')
-					mouseClickObjects[i].onclick({x:mouseClick.x,y:mouseClick.y});
+				var mouseClickObjects=[click.objects[i],objectLayer(click.objects[i])];
+				for(j=0;j<2;j++)
+				{
+					if(typeof mouseClickObjects[j].onclick == 'function')
+						if(mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event})===false)
+							break cCicle;
+				}
 			}
-			mouseClick.object=false;
+			click.objects=[];
 		}
-		if(this.optns.dblclick.object!=false)
+		if(optns.dblclick.objects.length)
         {
-            var mouseDblClick=this.optns.dblclick;
-            var mouseDblClickObjects=[mouseDblClick.object,objectLayer(mouseDblClick.object)];
-            for(i=0;i<2;i++)
-            {
-                if(typeof mouseDblClickObjects[i].ondblclick == 'function')
-                    mouseDblClickObjects[i].ondblclick({x:mouseDblClick.x,y:mouseDblClick.y});
-            }
-            mouseDblClick.object=false;
+            var dblClick=this._optns.dblclick;
+			dcCicle:
+			for(i=dblClick.objects.length-1;i>-1;i--)
+			{
+				var mouseDblClickObjects=[dblClick.objects[i],objectLayer(dblClick.objects[i])];
+				for(j=0;j<2;j++)
+				{
+					if(typeof mouseDblClickObjects[j].ondblclick == 'function')
+						if(mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event})===false)
+							break dcCicle;
+				}
+			}
+            dblClick.objects=[];
         }
-		this.optns.mousemove.object=this.optns.keyUp.val=this.optns.keyDown.val=this.optns.keyPress.val=this.optns.click.x=this.optns.dblclick.x=this.optns.mouseup.x=this.optns.mousedown.x=this.optns.mousemove.x=false;
+		optns.keyUp.val=optns.keyDown.val=optns.keyPress.val=optns.click.x=optns.dblclick.x=optns.mouseup.x=optns.mousedown.x=optns.mousemove.x=false;
+		return this;
 	}
 	return canvas;
 }

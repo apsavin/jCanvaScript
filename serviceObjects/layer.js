@@ -1,16 +1,12 @@
 jCanvaScript.layer=function(idLayer)
 {
 	if(idLayer===undefined)return canvases[0].layers[0];
-	var limit=0;
 	for(var i=0;i<canvases.length;i++)
 	{
-		var canvas=canvases[i];
-		limit=canvas.layers.length;
-		for (var j=0;j<limit;j++)
-		{
-			var layer=canvas.layers[j];
-			if(layer.optns.id==idLayer)return layer;
-		}
+		var layersArray=canvases[i].layers;
+		for (var j=0;j<layersArray.length;j++)
+			if(layersArray[j]._optns.id==idLayer)
+				return layersArray[j];
 	}
 	return layers(idLayer);
 }

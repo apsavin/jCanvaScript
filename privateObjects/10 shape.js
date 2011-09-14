@@ -42,7 +42,7 @@ proto.shape=function()
 		if(x.color===undefined)x.color='rgba(0,0,0,1)';
 		else
 		{
-			if(!x.color.charAt && x.color.id===undefined)
+			if(!x.color.charAt && x.color.id===undefined && x.color.r===undefined)
 			{
 				x.fill=x.color;
 				x.color='rgba(0,0,0,1)';
