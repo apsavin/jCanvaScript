@@ -125,7 +125,7 @@ jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
     return this;
 };
 jCanvaScript.Proto.Object.prototype.clone = function(params) {
-    var clone = new jCanvaScript.Proto[this._proto];
+    var clone = new jCanvaScript.Proto[this._proto]();
     take(clone, this);
     clone.layer(this.layer().optns.id);
     take(clone.optns.transformMatrix, this.optns.transformMatrix);
