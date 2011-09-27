@@ -204,7 +204,7 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
     if (mouseDown.objects.length) {
         mdCicle:
             for (i = mouseDown.objects.length - 1; i > -1; i--) {
-                var mouseDownObjects = [mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
+                var mouseDownObjects = [mouseDown.objects[i],mouseDown.objects[i].layer()], mdObject;
                 for (var j = 0; j < 2; j++) {
                     mdObject = mouseDownObjects[j];
                     if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled) {
@@ -234,7 +234,7 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
     if (mouseUp.objects.length) {
         muCicle:
             for (i = mouseUp.objects.length - 1; i > -1; i--) {
-                var mouseUpObjects = [mouseUp.objects[i],objectLayer(mouseUp.objects[i])],muObject;
+                var mouseUpObjects = [mouseUp.objects[i],mouseUp.objects[i].layer()],muObject;
                 drag = optns.drag;
                 for (j = 0; j < 2; j++) {
                     muObject = mouseUpObjects[j];
@@ -269,7 +269,7 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
     if (click.objects.length) {
         cCicle:
             for (i = click.objects.length - 1; i > -1; i--) {
-                var mouseClickObjects = [click.objects[i],objectLayer(click.objects[i])];
+                var mouseClickObjects = [click.objects[i],click.objects[i].layer()];
                 for (j = 0; j < 2; j++) {
                     if (typeof mouseClickObjects[j].onclick == 'function')
                         if (mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event}) === false)
@@ -281,7 +281,7 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
     if (dblClick.objects.length) {
         dcCicle:
             for (i = dblClick.objects.length - 1; i > -1; i--) {
-                var mouseDblClickObjects = [dblClick.objects[i],objectLayer(dblClick.objects[i])];
+                var mouseDblClickObjects = [dblClick.objects[i],dblClick.objects[i].layer()];
                 for (j = 0; j < 2; j++) {
                     if (typeof mouseDblClickObjects[j].ondblclick == 'function')
                         if (mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event}) === false)

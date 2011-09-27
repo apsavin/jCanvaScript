@@ -94,7 +94,7 @@ jCanvaScript.Proto.Layer.prototype.up = function(n) {
     if (n === undefined)n = 1;
     if (n == 'top')this.level(n);
     else {
-        var next = objectCanvas(this).layers[this.optns.number + n];
+        var next = this.canvas().layers[this.optns.number + n];
         if (next !== undefined) {
             n = next._level + 1 - this._level;
         }
@@ -106,7 +106,7 @@ jCanvaScript.Proto.Layer.prototype.down = function(n) {
     if (n == undefined)n = 1;
     if (n == 'bottom')this.level(n);
     else {
-        var previous = objectCanvas(this).layers[this.optns.number - n];
+        var previous = this.canvas().layers[this.optns.number - n];
         if (previous !== undefined) {
             n = this._level - (previous._level - 1);
         }
@@ -116,7 +116,7 @@ jCanvaScript.Proto.Layer.prototype.down = function(n) {
 };
 jCanvaScript.Proto.Layer.prototype.level = function(n) {
     if (n == undefined)return this._level;
-    var canvas = objectCanvas(this),
+    var canvas = this.canvas(),
         optns = canvas.optns;
     if (n == 'bottom')
         if (this.optns.number == 0)n = this._level;
@@ -130,7 +130,7 @@ jCanvaScript.Proto.Layer.prototype.level = function(n) {
     return this;
 };
 jCanvaScript.Proto.Layer.prototype.del = function() {
-    var optns = objectCanvas(this).optns;
+    var optns = this.canvas().optns;
     optns.anyLayerDeleted = true;
     this.draw = false;
     optns.redraw = 1;
