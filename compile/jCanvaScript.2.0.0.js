@@ -1505,6 +1505,7 @@ jCanvaScript.canvas = function(idCanvas) {
 };
 
 jCanvaScript.Proto.Group = function(elements) {
+    this.prototype = {};
     for (var Class in jCanvaScript.Proto)if (jCanvaScript.Proto.hasOwnProperty(Class)){
         if (Class == 'Group')continue;
         var tmp = jCanvaScript.Proto[Class].prototype;
