@@ -2345,8 +2345,8 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
         radian = jCanvaScript.constants.radian,
         points = {x:this._x, y:this._y},
         startAngle = this._startAngle, endAngle = this._endAngle, radius = this._radius,
-        startY = m_floor(m_sin(startAngle / radian) * radius), startX = m_floor(m_cos(startAngle / radian) * radius),
-        endY = m_floor(m_sin(endAngle / radian) * radius), endX = m_floor(m_cos(endAngle / radian) * radius),
+        startY = Math.floor(Math.sin(startAngle / radian) * radius), startX = Math.floor(Math.cos(startAngle / radian) * radius),
+        endY = Math.floor(Math.sin(endAngle / radian) * radius), endX = Math.floor(Math.cos(endAngle / radian) * radius),
         positiveXs = startX > 0 && endX > 0, negtiveXs = startX < 0 && endX < 0,
         positiveYs = startY > 0 && endY > 0,negtiveYs = startY < 0 && endY < 0;
 
@@ -2364,13 +2364,13 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
             }
             else
             if (endX > 0 && endY < 0 && startX < 0) {
-                points.y += m_min(endY, startY);
-                points.height -= m_min(endY, startY);
+                points.y += Math.min(endY, startY);
+                points.height -= Math.min(endY, startY);
             }
             else {
-                if (negtiveYs)points.y -= m_max(endY, startY);
+                if (negtiveYs)points.y -= Math.max(endY, startY);
                 else points.y -= radius;
-                points.height += m_max(endY, startY);
+                points.height += Math.max(endY, startY);
             }
         }
         if (((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY == 0 && endY == 0)) {
@@ -2379,13 +2379,13 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
         }
         else {
             if (endY < 0 && startY > 0) {
-                points.x += m_min(endX, startX);
-                points.width -= m_min(endX, startX);
+                points.x += Math.min(endX, startX);
+                points.width -= Math.min(endX, startX);
             }
             else {
-                if (negtiveXs)points.x -= m_max(endX, startX);
+                if (negtiveXs)points.x -= Math.max(endX, startX);
                 else points.x -= radius;
-                points.width += m_max(endX, startX);
+                points.width += Math.max(endX, startX);
             }
         }
     }
@@ -2395,44 +2395,44 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
         negtiveXs = startX <= 0 && endX <= 0;
         negtiveYs = startY <= 0 && endY <= 0;
         if (negtiveYs && positiveXs) {
-            points.x += m_min(endX, startX);
-            points.width -= m_min(endX, startX);
-            points.y += m_min(endY, startY);
-            points.height += m_max(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width -= Math.min(endX, startX);
+            points.y += Math.min(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (negtiveYs && negtiveXs) {
-            points.x += m_min(endX, startX);
-            points.width += m_max(endX, startX);
-            points.y += m_min(endY, startY);
-            points.height += m_max(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width += Math.max(endX, startX);
+            points.y += Math.min(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (negtiveYs) {
-            points.x += m_min(endX, startX);
-            points.width += m_max(endX, startX);
+            points.x += Math.min(endX, startX);
+            points.width += Math.max(endX, startX);
             points.y -= radius;
-            points.height += m_max(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (positiveXs && positiveYs) {
-            points.x += m_min(endX, startX);
-            points.width = m_abs(endX - startX);
-            points.y += m_min(endY, startY);
-            points.height -= m_min(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width = Math.abs(endX - startX);
+            points.y += Math.min(endY, startY);
+            points.height -= Math.min(endY, startY);
         }
         else if (positiveYs) {
-            points.x += m_min(endX, startX);
-            points.width = m_abs(endX) + m_abs(startX);
-            points.y += m_min(endY, startY);
-            points.height -= m_min(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width = Math.abs(endX) + Math.abs(startX);
+            points.y += Math.min(endY, startY);
+            points.height -= Math.min(endY, startY);
         }
         else if (negtiveXs) {
             points.x -= radius;
-            points.width += m_max(endX, startX);
+            points.width += Math.max(endX, startX);
             points.y -= radius;
-            points.height += m_max(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (positiveXs) {
             points.x -= radius;
-            points.width += m_max(endX, startX);
+            points.width += Math.max(endX, startX);
             points.y -= radius;
             points.height += radius;
         }
