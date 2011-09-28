@@ -2259,6 +2259,9 @@ jCanvaScript.Proto.Shape = function(options) {
     this._join = 'miter';
     this._miterLimit = 1;
     if (options === undefined)options = {};
+    if(options.color !== undefined){
+        options.lineColor = options.fillColor = options.color;
+    }
     if(options.lineColor !== undefined){
         if(options.lineColor === 0 || options.lineColor === false || options.lineColor === 1 || options.lineColor === true){
             options.fillColor = options.lineColor;
@@ -2290,6 +2293,15 @@ jCanvaScript.Proto.Shape.prototype.fillColor = function(color) {
 jCanvaScript.Proto.Shape.prototype.lineColor = function(color) {
     if (color === undefined)return [this._lineColorR,this._lineColorG,this._lineColorB,this._lineColorA];
     return this.attr('lineColor', color);
+};
+jCanvaScript.Proto.Shape.prototype.color = function(color){
+    if(color === undefined) return {
+        fillColor: this.fillColor(),
+        lineColor: this.lineColor()
+    }
+    this.fillColor(color);
+    this.lineColor(color);
+    return this;
 };
 jCanvaScript.Proto.Shape.prototype.lineStyle = function(options) {
     return this.attr(options);
