@@ -630,7 +630,7 @@ jCanvaScript.Proto.Object.prototype.isPointIn = function(x, y, global) {
     if (clipAnimated) {
         clipOptns.animated = clipAnimated;
     }
-    return point;
+    return (typeof point == 'object');
 
 };
 jCanvaScript.Proto.Object.prototype.layer = function(idLayer) {
