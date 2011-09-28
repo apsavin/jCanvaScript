@@ -71,7 +71,7 @@ jCanvaScript.Proto.Shape.prototype.setOptns = function(ctx) {
     ctx.strokeStyle = lineColor.val;
 };
 jCanvaScript.Proto.Shape.prototype.afterDraw = function(optns) {
-    optns.ctx.fill();
     optns.ctx.stroke();
+    optns.ctx.fill();
     jCanvaScript.Proto.Object.prototype.afterDraw.call(this, optns);
 };
