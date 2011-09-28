@@ -784,7 +784,7 @@ jCanvaScript.Proto.Object.prototype.stop = function(jumpToEnd, runCallbacks) {
             for (var key in queue) {
                 if (queue[key]['from'] !== undefined) {
                     this[key] = queue[key]['to'];
-                    animateTransforms(key, this, queue);
+                    jCanvaScript._helpers.animateTransforms(key, this, queue);
                 }
             }
     }
