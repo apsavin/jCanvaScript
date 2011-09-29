@@ -290,7 +290,7 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
             }
         dblClick.objects = [];
     }
-    click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
+    optns.keyup.code = optns.keydown.code = optns.keypress.code = click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
     return this;
 };
 jCanvaScript.canvas = function(idCanvas) {
