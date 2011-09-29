@@ -18,9 +18,9 @@ jCanvaScript.Proto.Canvas = function(idCanvas){
         height: this.cnv.offsetHeight || this.cnv.height,
         anyLayerDeleted: false,
         anyLayerLevelChanged:false,
-        keyDown:{val:false,code:false},
-        keyUp:{val:false,code:false},
-        keyPress:{val:false,code:false},
+        keydown:{val:false,code:false},
+        keyup:{val:false,code:false},
+        keypress:{val:false,code:false},
         mousemove:{val:false,x:false,y:false,object:false},
         click:{val:false,x:false,y:false,objects:[]},
         dblclick:{val:false,x:false,y:false,objects:[]},
@@ -68,13 +68,13 @@ jCanvaScript.Proto.Canvas.prototype.start = function(isAnimated) {
             mouseEvent(e, 'mouseup', optns);
         };
         this.cnv.onkeyup = function(e) {
-            keyEvent(e, 'keyUp', optns);
+            keyEvent(e, 'keyup', optns);
         };
         this.cnv.onkeydown = function(e) {
-            keyEvent(e, 'keyDown', optns);
+            keyEvent(e, 'keydown', optns);
         };
         this.cnv.onkeypress = function(e) {
-            keyEvent(e, 'keyPress', optns);
+            keyEvent(e, 'keypress', optns);
         };
         this.cnv.onmouseout = this.cnv.onmousemove = function(e) {
             mouseEvent(e, 'mousemove', optns);
@@ -202,7 +202,7 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
         optns.mousemove.object = false;
     }
     if (mouseDown.objects.length) {
-        mdCicle:
+        mdCycle:
             for (i = mouseDown.objects.length - 1; i > -1; i--) {
                 var mouseDownObjects = [mouseDown.objects[i],mouseDown.objects[i].layer()], mdObject;
                 for (var j = 0; j < 2; j++) {
@@ -226,13 +226,13 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
                     }
                     if (typeof mdObject.onmousedown == 'function')
                         if (mdObject.onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event}) === false)
-                            break mdCicle;
+                            break mdCycle;
                 }
             }
         mouseDown.objects = [];
     }
     if (mouseUp.objects.length) {
-        muCicle:
+        muCycle:
             for (i = mouseUp.objects.length - 1; i > -1; i--) {
                 var mouseUpObjects = [mouseUp.objects[i],mouseUp.objects[i].layer()],muObject;
                 drag = optns.drag;
@@ -260,37 +260,37 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
                     }
                     if (typeof muObject.onmouseup == 'function')
                         if (muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event}) === false)
-                            break muCicle;
+                            break muCycle;
                 }
             }
         this.optns.drag = {object:false,x:0,y:0};
         mouseUp.objects = [];
     }
     if (click.objects.length) {
-        cCicle:
+        cCycle:
             for (i = click.objects.length - 1; i > -1; i--) {
                 var mouseClickObjects = [click.objects[i],click.objects[i].layer()];
                 for (j = 0; j < 2; j++) {
                     if (typeof mouseClickObjects[j].onclick == 'function')
                         if (mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event}) === false)
-                            break cCicle;
+                            break cCycle;
                 }
             }
         click.objects = [];
     }
     if (dblClick.objects.length) {
-        dcCicle:
+        dcCycle:
             for (i = dblClick.objects.length - 1; i > -1; i--) {
                 var mouseDblClickObjects = [dblClick.objects[i],dblClick.objects[i].layer()];
                 for (j = 0; j < 2; j++) {
                     if (typeof mouseDblClickObjects[j].ondblclick == 'function')
                         if (mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event}) === false)
-                            break dcCicle;
+                            break dcCycle;
                 }
             }
         dblClick.objects = [];
     }
-    optns.keyUp.val = optns.keyDown.val = optns.keyPress.val = click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
+    click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
     return this;
 };
 jCanvaScript.canvas = function(idCanvas) {

@@ -42,9 +42,9 @@ function checkEvents(object,optns)
 function checkKeyboardEvents(object,optns)
 {
 	if(!object.optns.focused)return;
-	if(optns.keyDown.val!=false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keyDown);
-	if(optns.keyUp.val!=false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyUp);
-	if(optns.keyPress.val!=false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keyPress);
+	if(optns.keydown.val!=false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keydown);
+	if(optns.keyup.val!=false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyup);
+	if(optns.keypress.val!=false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keypress);
 }
 function isPointInPath(object,x,y)
 {
