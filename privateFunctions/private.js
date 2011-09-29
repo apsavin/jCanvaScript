@@ -54,7 +54,7 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox)
+	if(FireFox_lt_7)
 	{
 		point=jCanvaScript.Matrix.transformPoint(x,y,layer.matrix());
 		point=jCanvaScript.Matrix.transformPoint(point.x,point.y,object.matrix());
