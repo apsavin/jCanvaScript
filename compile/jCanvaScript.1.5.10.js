@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.9
+ * jCanvaScript JavaScript Library v 1.5.10
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -41,8 +41,8 @@
 			window.oCancelRequestAnimationFrame     ||
 			window.msCancelRequestAnimationFrame        ||
 			clearTimeout})();
-	if (FireFox!="" && FireFox!==null)FireFox=true;
-	else FireFox=false;
+    if (FireFox!="" && FireFox!==null)
+        var FireFox_lt_7=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<7);
 
 	function findById(i, j, stroke)
 	{
@@ -600,11 +600,10 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox)
+	if(FireFox_lt_7)
 	{
 		point=transformPoint(x,y,layer.matrix());
 		point=transformPoint(point.x,point.y,object.matrix());
-		//point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
 	}
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
