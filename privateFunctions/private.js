@@ -385,10 +385,17 @@ function checkEvents(object,optns)
 }
 function checkKeyboardEvents(object,optns)
 {
+<<<<<<< HEAD
 	if(!object._optns.focused)return;
 	if(optns.keyDown.val!=false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keyDown);
 	if(optns.keyUp.val!=false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyUp);
 	if(optns.keyPress.val!=false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keyPress);
+=======
+	if(!object.optns.focused)return;
+	if(optns.keydown.val && optns.keydown.code!==false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keydown);
+	if(optns.keyup.val && optns.keyup.code!==false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyup);
+	if(optns.keypress.val && optns.keypress.code!==false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keypress);
+>>>>>>> 1eb95e5467614ebe4bf5aa929f70e65cc9b11106
 }
 function isPointInPath(object,x,y)
 {
@@ -404,7 +411,7 @@ function isPointInPath(object,x,y)
 >>>>>>> e0e2d8dd77d7a8d6a317ec6dc86c018b213e9434
 	point.x=x;
 	point.y=y;
-	if(FireFox)
+	if(FireFox_lt_7)
 	{
 		point=jCanvaScript.Matrix.transformPoint(x,y,layer.matrix());
 		point=jCanvaScript.Matrix.transformPoint(point.x,point.y,object.matrix());
@@ -412,7 +419,7 @@ function isPointInPath(object,x,y)
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=object.getRect('poor');
-		point=transformPoint(x,y,jCanvaScript.Matrix.multiplyMatrixAndMatrix(object.matrix(),layer.matrix()));
+		point=jCanvaScript.Matrix.transformPoint(x,y,jCanvaScript.Matrix.multiplyMatrixAndMatrix(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
 	else

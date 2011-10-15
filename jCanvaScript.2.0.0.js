@@ -26,7 +26,8 @@
 			window.oCancelRequestAnimationFrame     ||
 			window.msCancelRequestAnimationFrame        ||
 			clearTimeout})();
-	FireFox = FireFox != "" && FireFox !== null;
+	if (FireFox!="" && FireFox!==null)
+        var FireFox_lt_7=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<7);
     if (typeof Object.create !== 'function') {
         Object.create = function (o) {
             function F() {}

@@ -3,9 +3,9 @@ jCanvaScript.Proto.Group = function(elements) {
         if (Class == 'Group')continue;
         var tmp = jCanvaScript.Proto[Class].prototype;
         for (var key in tmp) if(tmp.hasOwnProperty(key)){
-            if (typeof tmp[key] == 'function' && this.prototype[key] === undefined) {
+            if (typeof tmp[key] == 'function' && jCanvaScript.Proto.Group.prototype[key] === undefined) {
                 (function(group, key) {
-                    group.prototype[key] = function() {
+                    jCanvaScript.Proto.Group.prototype[key] = function() {
                         var argumentsClone = [];
                         var args = [];
                         var i = 0;
@@ -13,7 +13,7 @@ jCanvaScript.Proto.Group = function(elements) {
                             args[i] = arguments[i++];
                         for (i = 0; i < this.elements.length; i++) {
                             var element = this.elements[i];
-                            jCanvaScript.take(argumentsClone, args);
+                            take(argumentsClone, args);
                             if (typeof element[key] == 'function') {
                                 element[key].apply(element, argumentsClone);
                             }

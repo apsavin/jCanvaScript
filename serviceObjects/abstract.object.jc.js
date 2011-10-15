@@ -125,7 +125,7 @@ jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
     return this;
 };
 jCanvaScript.Proto.Object.prototype.clone = function(params) {
-    var clone = new jCanvaScript.Proto[this._proto];
+    var clone = new jCanvaScript.Proto[this._proto]();
     take(clone, this);
     clone.layer(this.layer().optns.id);
     take(clone.optns.transformMatrix, this.optns.transformMatrix);
@@ -322,7 +322,7 @@ jCanvaScript.Proto.Object.prototype.stop = function(jumpToEnd, runCallbacks) {
             for (var key in queue) {
                 if (queue[key]['from'] !== undefined) {
                     this[key] = queue[key]['to'];
-                    animateTransforms(key, this, queue);
+                    jCanvaScript._helpers.animateTransforms(key, this, queue);
                 }
             }
     }
@@ -630,7 +630,7 @@ jCanvaScript.Proto.Object.prototype.isPointIn = function(x, y, global) {
     if (clipAnimated) {
         clipOptns.animated = clipAnimated;
     }
-    return point;
+    return (typeof point == 'object');
 
 };
 jCanvaScript.Proto.Object.prototype.layer = function(idLayer) {

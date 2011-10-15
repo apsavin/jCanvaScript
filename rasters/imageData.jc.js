@@ -3,18 +3,18 @@ jCanvaScript.Proto.ImageData = function(width, height) {
     this._getX = 0;
     this._getY = 0;
     this._putData = false;
-    this._proto = 'imageData';
+    if (width === undefined) width={};
     if (height === undefined) {
         var oldImageData = width;
-        if (oldImageData._width !== undefined) {
-            width = oldImageData._width;
-            height = oldImageData._height;
+        if(oldImageData._width !== undefined) {
+            width = {
+                width: oldImageData._width,
+                height: oldImageData._height
+            }
         }
-        else {
-            width = jCanvaScript.checkDefaults(width, {width:0, height:0});
-            height = width.height;
-            width = width.width;
-        }
+        width = jCanvaScript.checkDefaults(width, {width:0, height:0});
+        height = width.height;
+        width = width.width;
     }
     this._width = width;
     this._height = height;
@@ -96,7 +96,7 @@ jCanvaScript.Proto.ImageData.prototype.putData = function(x, y) {
 };
 
 jCanvaScript.Proto.ImageData.prototype.clone = function() {
-    var clone = this.proto().clone.call(this);
+    var clone = jCanvaScript.Proto.Object.prototype.clone.call(this);
     clone._imgData = undefined;
     return clone;
 };

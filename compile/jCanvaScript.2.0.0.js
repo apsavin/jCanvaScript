@@ -26,7 +26,8 @@
 			window.oCancelRequestAnimationFrame     ||
 			window.msCancelRequestAnimationFrame        ||
 			clearTimeout})();
-	FireFox = FireFox != "" && FireFox !== null;
+	if (FireFox!="" && FireFox!==null)
+        var FireFox_lt_7=(parseInt(FireFox[0].split(/[ \/\.]/i)[1])<7);
     if (typeof Object.create !== 'function') {
         Object.create = function (o) {
             function F() {}
@@ -222,9 +223,9 @@ function checkEvents(object,optns)
 function checkKeyboardEvents(object,optns)
 {
 	if(!object.optns.focused)return;
-	if(optns.keyDown.val!=false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keyDown);
-	if(optns.keyUp.val!=false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyUp);
-	if(optns.keyPress.val!=false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keyPress);
+	if(optns.keydown.val && optns.keydown.code!==false)if(typeof object.onkeydown=='function')object.onkeydown(optns.keydown);
+	if(optns.keyup.val && optns.keyup.code!==false)if(typeof object.onkeyup=='function')object.onkeyup(optns.keyup);
+	if(optns.keypress.val && optns.keypress.code!==false)if(typeof object.onkeypress=='function')object.onkeypress(optns.keypress);
 }
 function isPointInPath(object,x,y)
 {
@@ -234,7 +235,7 @@ function isPointInPath(object,x,y)
 	var layer=canvas.layers[object.optns.layer.number];
 	point.x=x;
 	point.y=y;
-	if(FireFox)
+	if(FireFox_lt_7)
 	{
 		point=jCanvaScript.Matrix.transformPoint(x,y,layer.matrix());
 		point=jCanvaScript.Matrix.transformPoint(point.x,point.y,object.matrix());
@@ -242,7 +243,7 @@ function isPointInPath(object,x,y)
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=object.getRect('poor');
-		point=transformPoint(x,y,jCanvaScript.Matrix.multiplyMatrixAndMatrix(object.matrix(),layer.matrix()));
+		point=jCanvaScript.Matrix.transformPoint(x,y,jCanvaScript.Matrix.multiplyMatrixAndMatrix(object.matrix(),layer.matrix()));
 		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
 	}
 	else
@@ -587,7 +588,7 @@ jCanvaScript.Proto.Object.prototype.buffer = function(doBuffering) {
     return this;
 };
 jCanvaScript.Proto.Object.prototype.clone = function(params) {
-    var clone = new jCanvaScript.Proto[this._proto];
+    var clone = new jCanvaScript.Proto[this._proto]();
     take(clone, this);
     clone.layer(this.layer().optns.id);
     take(clone.optns.transformMatrix, this.optns.transformMatrix);
@@ -784,7 +785,7 @@ jCanvaScript.Proto.Object.prototype.stop = function(jumpToEnd, runCallbacks) {
             for (var key in queue) {
                 if (queue[key]['from'] !== undefined) {
                     this[key] = queue[key]['to'];
-                    animateTransforms(key, this, queue);
+                    jCanvaScript._helpers.animateTransforms(key, this, queue);
                 }
             }
     }
@@ -1092,7 +1093,7 @@ jCanvaScript.Proto.Object.prototype.isPointIn = function(x, y, global) {
     if (clipAnimated) {
         clipOptns.animated = clipAnimated;
     }
-    return point;
+    return (typeof point == 'object');
 
 };
 jCanvaScript.Proto.Object.prototype.layer = function(idLayer) {
@@ -1220,9 +1221,9 @@ jCanvaScript.Proto.Canvas = function(idCanvas){
         height: this.cnv.offsetHeight || this.cnv.height,
         anyLayerDeleted: false,
         anyLayerLevelChanged:false,
-        keyDown:{val:false,code:false},
-        keyUp:{val:false,code:false},
-        keyPress:{val:false,code:false},
+        keydown:{val:false,code:false},
+        keyup:{val:false,code:false},
+        keypress:{val:false,code:false},
         mousemove:{val:false,x:false,y:false,object:false},
         click:{val:false,x:false,y:false,objects:[]},
         dblclick:{val:false,x:false,y:false,objects:[]},
@@ -1270,13 +1271,13 @@ jCanvaScript.Proto.Canvas.prototype.start = function(isAnimated) {
             mouseEvent(e, 'mouseup', optns);
         };
         this.cnv.onkeyup = function(e) {
-            keyEvent(e, 'keyUp', optns);
+            keyEvent(e, 'keyup', optns);
         };
         this.cnv.onkeydown = function(e) {
-            keyEvent(e, 'keyDown', optns);
+            keyEvent(e, 'keydown', optns);
         };
         this.cnv.onkeypress = function(e) {
-            keyEvent(e, 'keyPress', optns);
+            keyEvent(e, 'keypress', optns);
         };
         this.cnv.onmouseout = this.cnv.onmousemove = function(e) {
             mouseEvent(e, 'mousemove', optns);
@@ -1404,9 +1405,9 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
         optns.mousemove.object = false;
     }
     if (mouseDown.objects.length) {
-        mdCicle:
+        mdCycle:
             for (i = mouseDown.objects.length - 1; i > -1; i--) {
-                var mouseDownObjects = [mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
+                var mouseDownObjects = [mouseDown.objects[i],mouseDown.objects[i].layer()], mdObject;
                 for (var j = 0; j < 2; j++) {
                     mdObject = mouseDownObjects[j];
                     if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled) {
@@ -1428,15 +1429,15 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
                     }
                     if (typeof mdObject.onmousedown == 'function')
                         if (mdObject.onmousedown({x:mouseDown.x,y:mouseDown.y,event:mouseDown.event}) === false)
-                            break mdCicle;
+                            break mdCycle;
                 }
             }
         mouseDown.objects = [];
     }
     if (mouseUp.objects.length) {
-        muCicle:
+        muCycle:
             for (i = mouseUp.objects.length - 1; i > -1; i--) {
-                var mouseUpObjects = [mouseUp.objects[i],objectLayer(mouseUp.objects[i])],muObject;
+                var mouseUpObjects = [mouseUp.objects[i],mouseUp.objects[i].layer()],muObject;
                 drag = optns.drag;
                 for (j = 0; j < 2; j++) {
                     muObject = mouseUpObjects[j];
@@ -1462,37 +1463,37 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
                     }
                     if (typeof muObject.onmouseup == 'function')
                         if (muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event}) === false)
-                            break muCicle;
+                            break muCycle;
                 }
             }
         this.optns.drag = {object:false,x:0,y:0};
         mouseUp.objects = [];
     }
     if (click.objects.length) {
-        cCicle:
+        cCycle:
             for (i = click.objects.length - 1; i > -1; i--) {
-                var mouseClickObjects = [click.objects[i],objectLayer(click.objects[i])];
+                var mouseClickObjects = [click.objects[i],click.objects[i].layer()];
                 for (j = 0; j < 2; j++) {
                     if (typeof mouseClickObjects[j].onclick == 'function')
                         if (mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event}) === false)
-                            break cCicle;
+                            break cCycle;
                 }
             }
         click.objects = [];
     }
     if (dblClick.objects.length) {
-        dcCicle:
+        dcCycle:
             for (i = dblClick.objects.length - 1; i > -1; i--) {
-                var mouseDblClickObjects = [dblClick.objects[i],objectLayer(dblClick.objects[i])];
+                var mouseDblClickObjects = [dblClick.objects[i],dblClick.objects[i].layer()];
                 for (j = 0; j < 2; j++) {
                     if (typeof mouseDblClickObjects[j].ondblclick == 'function')
                         if (mouseDblClickObjects[j].ondblclick({x:dblClick.x,y:dblClick.y, event:dblClick.event}) === false)
-                            break dcCicle;
+                            break dcCycle;
                 }
             }
         dblClick.objects = [];
     }
-    optns.keyUp.val = optns.keyDown.val = optns.keyPress.val = click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
+    optns.keyup.code = optns.keydown.code = optns.keypress.code = click.x = dblClick.x = mouseUp.x = mouseDown.x = mm.x = false;
     return this;
 };
 jCanvaScript.canvas = function(idCanvas) {
@@ -1509,9 +1510,9 @@ jCanvaScript.Proto.Group = function(elements) {
         if (Class == 'Group')continue;
         var tmp = jCanvaScript.Proto[Class].prototype;
         for (var key in tmp) if(tmp.hasOwnProperty(key)){
-            if (typeof tmp[key] == 'function' && this.prototype[key] === undefined) {
+            if (typeof tmp[key] == 'function' && jCanvaScript.Proto.Group.prototype[key] === undefined) {
                 (function(group, key) {
-                    group.prototype[key] = function() {
+                    jCanvaScript.Proto.Group.prototype[key] = function() {
                         var argumentsClone = [];
                         var args = [];
                         var i = 0;
@@ -1519,7 +1520,7 @@ jCanvaScript.Proto.Group = function(elements) {
                             args[i] = arguments[i++];
                         for (i = 0; i < this.elements.length; i++) {
                             var element = this.elements[i];
-                            jCanvaScript.take(argumentsClone, args);
+                            take(argumentsClone, args);
                             if (typeof element[key] == 'function') {
                                 element[key].apply(element, argumentsClone);
                             }
@@ -1721,7 +1722,7 @@ jCanvaScript.Proto.Layer.prototype.up = function(n) {
     if (n === undefined)n = 1;
     if (n == 'top')this.level(n);
     else {
-        var next = objectCanvas(this).layers[this.optns.number + n];
+        var next = this.canvas().layers[this.optns.number + n];
         if (next !== undefined) {
             n = next._level + 1 - this._level;
         }
@@ -1733,7 +1734,7 @@ jCanvaScript.Proto.Layer.prototype.down = function(n) {
     if (n == undefined)n = 1;
     if (n == 'bottom')this.level(n);
     else {
-        var previous = objectCanvas(this).layers[this.optns.number - n];
+        var previous = this.canvas().layers[this.optns.number - n];
         if (previous !== undefined) {
             n = this._level - (previous._level - 1);
         }
@@ -1743,7 +1744,7 @@ jCanvaScript.Proto.Layer.prototype.down = function(n) {
 };
 jCanvaScript.Proto.Layer.prototype.level = function(n) {
     if (n == undefined)return this._level;
-    var canvas = objectCanvas(this),
+    var canvas = this.canvas(),
         optns = canvas.optns;
     if (n == 'bottom')
         if (this.optns.number == 0)n = this._level;
@@ -1757,7 +1758,7 @@ jCanvaScript.Proto.Layer.prototype.level = function(n) {
     return this;
 };
 jCanvaScript.Proto.Layer.prototype.del = function() {
-    var optns = objectCanvas(this).optns;
+    var optns = this.canvas().optns;
     optns.anyLayerDeleted = true;
     this.draw = false;
     optns.redraw = 1;
@@ -1873,35 +1874,35 @@ jCanvaScript.animateFunctions = {
     },
     exp:function(progress, params) {
         var n = params.n || 2;
-        return m_pow(progress, n);
+        return Math.pow(progress, n);
     },
     circ:function(progress, params) {
-        return 1 - m_sqrt(1 - progress * progress);
+        return 1 - Math.sqrt(1 - progress * progress);
     },
     sine:function(progress, params) {
-        return 1 - m_sin((1 - progress) * m_pi / 2);
+        return 1 - Math.sin((1 - progress) * Math.PI / 2);
     },
     back:function(progress, params) {
         var n = params.n || 2;
         var x = params.x || 1.5;
-        return m_pow(progress, n) * ((x + 1) * progress - x);
+        return Math.pow(progress, n) * ((x + 1) * progress - x);
     },
     elastic:function(progress, params) {
         var n = params.n || 2;
         var m = params.m || 20;
         var k = params.k || 3;
         var x = params.x || 1.5;
-        return m_pow(n, 10 * (progress - 1)) * m_cos(m * progress * m_pi * x / k);
+        return Math.pow(n, 10 * (progress - 1)) * Math.cos(m * progress * Math.PI * x / k);
     },
     bounce:function(progress, params) {
         var n = params.n || 4;
         var b = params.b || 0.25;
         var sum = [1];
-        for (var i = 1; i < n; i++) sum[i] = sum[i - 1] + m_pow(b, i / 2);
+        for (var i = 1; i < n; i++) sum[i] = sum[i - 1] + Math.pow(b, i / 2);
         var x = 2 * sum[n - 1] - 1;
         for (i = 0; i < n; i++) {
             if (x * progress >= (i > 0 ? 2 * sum[i - 1] - 1 : 0) && x * progress <= 2 * sum[i] - 1)
-                return m_pow(x * (progress - (2 * sum[i] - 1 - m_pow(b, i / 2)) / x), 2) + 1 - m_pow(b, i);
+                return Math.pow(x * (progress - (2 * sum[i] - 1 - Math.pow(b, i / 2)) / x), 2) + 1 - Math.pow(b, i);
         }
         return 1;
     }
@@ -2143,6 +2144,7 @@ jCanvaScript.Matrix = {
     }
 }
 
+
 jCanvaScript.parseColor = function(color)
 {
 	var colorKeeper={
@@ -2257,6 +2259,9 @@ jCanvaScript.Proto.Shape = function(options) {
     this._join = 'miter';
     this._miterLimit = 1;
     if (options === undefined)options = {};
+    if(options.color !== undefined){
+        options.lineColor = options.fillColor = options.color;
+    }
     if(options.lineColor !== undefined){
         if(options.lineColor === 0 || options.lineColor === false || options.lineColor === 1 || options.lineColor === true){
             options.fillColor = options.lineColor;
@@ -2289,6 +2294,15 @@ jCanvaScript.Proto.Shape.prototype.lineColor = function(color) {
     if (color === undefined)return [this._lineColorR,this._lineColorG,this._lineColorB,this._lineColorA];
     return this.attr('lineColor', color);
 };
+jCanvaScript.Proto.Shape.prototype.color = function(color){
+    if(color === undefined) return {
+        fillColor: this.fillColor(),
+        lineColor: this.lineColor()
+    }
+    this.fillColor(color);
+    this.lineColor(color);
+    return this;
+};
 jCanvaScript.Proto.Shape.prototype.lineStyle = function(options) {
     return this.attr(options);
 };
@@ -2304,8 +2318,8 @@ jCanvaScript.Proto.Shape.prototype.setOptns = function(ctx) {
     ctx.strokeStyle = lineColor.val;
 };
 jCanvaScript.Proto.Shape.prototype.afterDraw = function(optns) {
-    optns.ctx.fill();
     optns.ctx.stroke();
+    optns.ctx.fill();
     jCanvaScript.Proto.Object.prototype.afterDraw.call(this, optns);
 };
 
@@ -2343,8 +2357,8 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
         radian = jCanvaScript.constants.radian,
         points = {x:this._x, y:this._y},
         startAngle = this._startAngle, endAngle = this._endAngle, radius = this._radius,
-        startY = m_floor(m_sin(startAngle / radian) * radius), startX = m_floor(m_cos(startAngle / radian) * radius),
-        endY = m_floor(m_sin(endAngle / radian) * radius), endX = m_floor(m_cos(endAngle / radian) * radius),
+        startY = Math.floor(Math.sin(startAngle / radian) * radius), startX = Math.floor(Math.cos(startAngle / radian) * radius),
+        endY = Math.floor(Math.sin(endAngle / radian) * radius), endX = Math.floor(Math.cos(endAngle / radian) * radius),
         positiveXs = startX > 0 && endX > 0, negtiveXs = startX < 0 && endX < 0,
         positiveYs = startY > 0 && endY > 0,negtiveYs = startY < 0 && endY < 0;
 
@@ -2362,13 +2376,13 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
             }
             else
             if (endX > 0 && endY < 0 && startX < 0) {
-                points.y += m_min(endY, startY);
-                points.height -= m_min(endY, startY);
+                points.y += Math.min(endY, startY);
+                points.height -= Math.min(endY, startY);
             }
             else {
-                if (negtiveYs)points.y -= m_max(endY, startY);
+                if (negtiveYs)points.y -= Math.max(endY, startY);
                 else points.y -= radius;
-                points.height += m_max(endY, startY);
+                points.height += Math.max(endY, startY);
             }
         }
         if (((positiveYs || (negtiveYs && (negtiveXs || positiveXs) ))) || (startY == 0 && endY == 0)) {
@@ -2377,13 +2391,13 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
         }
         else {
             if (endY < 0 && startY > 0) {
-                points.x += m_min(endX, startX);
-                points.width -= m_min(endX, startX);
+                points.x += Math.min(endX, startX);
+                points.width -= Math.min(endX, startX);
             }
             else {
-                if (negtiveXs)points.x -= m_max(endX, startX);
+                if (negtiveXs)points.x -= Math.max(endX, startX);
                 else points.x -= radius;
-                points.width += m_max(endX, startX);
+                points.width += Math.max(endX, startX);
             }
         }
     }
@@ -2393,44 +2407,44 @@ jCanvaScript.Proto.Arc.prototype.getRect = function(type) {
         negtiveXs = startX <= 0 && endX <= 0;
         negtiveYs = startY <= 0 && endY <= 0;
         if (negtiveYs && positiveXs) {
-            points.x += m_min(endX, startX);
-            points.width -= m_min(endX, startX);
-            points.y += m_min(endY, startY);
-            points.height += m_max(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width -= Math.min(endX, startX);
+            points.y += Math.min(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (negtiveYs && negtiveXs) {
-            points.x += m_min(endX, startX);
-            points.width += m_max(endX, startX);
-            points.y += m_min(endY, startY);
-            points.height += m_max(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width += Math.max(endX, startX);
+            points.y += Math.min(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (negtiveYs) {
-            points.x += m_min(endX, startX);
-            points.width += m_max(endX, startX);
+            points.x += Math.min(endX, startX);
+            points.width += Math.max(endX, startX);
             points.y -= radius;
-            points.height += m_max(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (positiveXs && positiveYs) {
-            points.x += m_min(endX, startX);
-            points.width = m_abs(endX - startX);
-            points.y += m_min(endY, startY);
-            points.height -= m_min(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width = Math.abs(endX - startX);
+            points.y += Math.min(endY, startY);
+            points.height -= Math.min(endY, startY);
         }
         else if (positiveYs) {
-            points.x += m_min(endX, startX);
-            points.width = m_abs(endX) + m_abs(startX);
-            points.y += m_min(endY, startY);
-            points.height -= m_min(endY, startY);
+            points.x += Math.min(endX, startX);
+            points.width = Math.abs(endX) + Math.abs(startX);
+            points.y += Math.min(endY, startY);
+            points.height -= Math.min(endY, startY);
         }
         else if (negtiveXs) {
             points.x -= radius;
-            points.width += m_max(endX, startX);
+            points.width += Math.max(endX, startX);
             points.y -= radius;
-            points.height += m_max(endY, startY);
+            points.height += Math.max(endY, startY);
         }
         else if (positiveXs) {
             points.x -= radius;
-            points.width += m_max(endX, startX);
+            points.width += Math.max(endX, startX);
             points.y -= radius;
             points.height += radius;
         }
@@ -2659,18 +2673,18 @@ jCanvaScript.Proto.ImageData = function(width, height) {
     this._getX = 0;
     this._getY = 0;
     this._putData = false;
-    this._proto = 'imageData';
+    if (width === undefined) width={};
     if (height === undefined) {
         var oldImageData = width;
-        if (oldImageData._width !== undefined) {
-            width = oldImageData._width;
-            height = oldImageData._height;
+        if(oldImageData._width !== undefined) {
+            width = {
+                width: oldImageData._width,
+                height: oldImageData._height
+            }
         }
-        else {
-            width = jCanvaScript.checkDefaults(width, {width:0, height:0});
-            height = width.height;
-            width = width.width;
-        }
+        width = jCanvaScript.checkDefaults(width, {width:0, height:0});
+        height = width.height;
+        width = width.width;
     }
     this._width = width;
     this._height = height;
@@ -2752,7 +2766,7 @@ jCanvaScript.Proto.ImageData.prototype.putData = function(x, y) {
 };
 
 jCanvaScript.Proto.ImageData.prototype.clone = function() {
-    var clone = this.proto().clone.call(this);
+    var clone = jCanvaScript.Proto.Object.prototype.clone.call(this);
     clone._imgData = undefined;
     return clone;
 };
