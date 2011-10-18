@@ -23,6 +23,22 @@ jCanvaScript.canvas = function(idCanvas)
 		if(typeof FlashCanvas !=='undefined')
 			FlashCanvas.initElement(canvas.cnv);
 	}
+    canvas.width = function(width){
+        if(width === undefined)
+            return this.cnv.width;
+        this.optns.width = this.cnv.width = width;
+        this.cnv.style.width = width + 'px';
+        this.optns.redraw = 1;
+        return this;
+    }
+    canvas.height = function(height){
+        if(height === undefined)
+            return this.cnv.height;
+        this.optns.heigth = this.cnv.height = height;
+        this.cnv.style.height = height + 'px';
+        this.optns.redraw = 1;
+        return this;
+    }
 	canvas.optns =
 	{
 		id:idCanvas,
