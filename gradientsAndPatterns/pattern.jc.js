@@ -15,7 +15,7 @@ jCanvaScript.Proto.Pattern = function(image, type) {
     this._proto = 'pattern';
     return this;
 };
-jCanvaScript.Proto.Pattern.prototype = Object.create(jCanvaScript.Proto.GradientsAndPatterns.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Pattern, jCanvaScript.Proto.GradientsAndPatterns);
 /*@private*/
 jCanvaScript.Proto.Pattern.prototype.draw = function(canvasOptions) {
     if (this.optns.animated) jCanvaScript._helpers.animating.call(this, canvasOptions);

@@ -20,7 +20,7 @@ jCanvaScript.Proto.Text = function(string, x, y, maxWidth, lineColor, fillColor)
     return this;
 };
 
-jCanvaScript.Proto.Text.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Text, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Text.prototype.setOptns = function(ctx) {
     jCanvaScript.Proto.Shape.prototype.setOptns.call(this, ctx);

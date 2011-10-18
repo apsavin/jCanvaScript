@@ -4,7 +4,7 @@ jCanvaScript.Proto.Line = function(points, lineColor, fillColor){
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 };
 
-jCanvaScript.Proto.Line.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Line, jCanvaScript.Proto.Lines);
 
 jCanvaScript.Proto.Line.prototype.draw = function(ctx) {
     if (this._x0 === undefined)return;

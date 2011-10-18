@@ -4,7 +4,7 @@ jCanvaScript.Proto.BCurve = function(points, lineColor, fillColor) {
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 }
 
-jCanvaScript.Proto.BCurve.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.BCurve, jCanvaScript.Proto.Lines);
 
 jCanvaScript.Proto.BCurve.prototype.draw = function(ctx) {
     if (this._x0 === undefined) return;

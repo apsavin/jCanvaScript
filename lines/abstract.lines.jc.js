@@ -10,7 +10,7 @@ jCanvaScript.Proto.Lines = function(points, lineColor, fillColor) {
         this.points(options.points);
     return this;
 };
-jCanvaScript.Proto.Lines.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Lines, jCanvaScript.Proto.Shape);
 jCanvaScript.Proto.Lines.prototype.getCenter = function(type) {
     var point = {
         x: this._x0,

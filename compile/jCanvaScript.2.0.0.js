@@ -186,6 +186,10 @@ jCanvaScript.getOffset = function(elem){
 		return getOffsetSum(elem)
 	}
 }
+jCanvaScript.inherite = function(Child, Parent){
+	Child.prototype = Object.create(Parent.prototype);
+	Child.prototype.constructor = Child;
+}
 
 function getOffsetSum(elem) {
 	var top = 0, left = 0;
@@ -1238,6 +1242,23 @@ jCanvaScript.Proto.Canvas = function(idCanvas){
     this._proto = 'Canvas';
     jCanvaScript.layer(idCanvas+'_default').canvas(idCanvas);
 }
+
+jCanvaScript.Proto.Canvas.prototype.width = function(width){
+	if(width === undefined)
+		return this.cnv.width;
+	this.optns.width = this.cnv.width = width;
+	this.cnv.style.width = width + 'px';
+	this.optns.redraw = 1;
+	return this;
+};
+jCanvaScript.Proto.Canvas.prototype.height = function(height){
+	if(height === undefined)
+		return this.cnv.height;
+	this.optns.heigth = this.cnv.height = height;
+	this.cnv.style.height = height + 'px';
+	this.optns.redraw = 1;
+	return this;
+};
 jCanvaScript.Proto.Canvas.prototype.id = jCanvaScript.Proto.Object.prototype.id
 jCanvaScript.Proto.Canvas.prototype.toDataURL = function() {
     return canvas.cnv.toDataURL.apply(canvas.cnv, arguments);
@@ -1647,7 +1668,7 @@ jCanvaScript.Proto.Layer =function(idLayer) {
     thisOptns.canvas.number = jCanvaScript._lastCanvas;
     return this;
 }
-jCanvaScript.Proto.Layer.prototype = Object.create(jCanvaScript.Proto.Object.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Layer, jCanvaScript.Proto.Object);
 jCanvaScript.Proto.Layer.prototype.position = function() {
     var objs = this.objs,
         points,point,i,
@@ -2284,7 +2305,7 @@ jCanvaScript.Proto.Shape = function(options) {
     this.lineColor(options.lineColor);
     return this;
 }
-jCanvaScript.Proto.Shape.prototype = Object.create(jCanvaScript.Proto.Object.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Shape, jCanvaScript.Proto.Object);
 
 jCanvaScript.Proto.Shape.prototype.fillColor = function(color) {
     if (color === undefined)return [this._fillColorR,this._fillColorG,this._fillColorB,this._fillColorA];
@@ -2345,7 +2366,7 @@ jCanvaScript.Proto.Arc = function(x, y, radius, startAngle, endAngle, anticlockw
     return this;
 };
 
-jCanvaScript.Proto.Arc.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Arc, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Arc.prototype.draw = function(ctx) {
     var radian = jCanvaScript.constants.radian;
@@ -2467,7 +2488,7 @@ jCanvaScript.Proto.Circle = function(x, y, radius, lineColor, fillColor) {
     return this;
 };
 
-jCanvaScript.Proto.Circle.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Circle, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Circle.prototype.draw = function(ctx) {
     ctx.arc(this._x, this._y, this._radius, 0, jCanvaScript.constants.PIx2, true);
@@ -2519,7 +2540,7 @@ jCanvaScript.Proto.Rect = function(x, y, width, height, lineColor, fillColor) {
     return this;
 };
 
-jCanvaScript.Proto.Rect.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Rect, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Rect.prototype.draw = function(ctx) {
     ctx.rect(this._x, this._y, this._width, this._height);
@@ -2555,7 +2576,7 @@ jCanvaScript.Proto.Text = function(string, x, y, maxWidth, lineColor, fillColor)
     return this;
 };
 
-jCanvaScript.Proto.Text.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Text, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Text.prototype.setOptns = function(ctx) {
     jCanvaScript.Proto.Shape.prototype.setOptns.call(this, ctx);
@@ -2653,7 +2674,7 @@ jCanvaScript.Proto.Image = function(image, x, y, width, height, sx, sy, swidth, 
     return this;
 };
 
-jCanvaScript.Proto.Image.prototype = Object.create(jCanvaScript.Proto.Object.prototype)
+jCanvaScript.inherite(jCanvaScript.Proto.Image, jCanvaScript.Proto.Object)
 
 jCanvaScript.Proto.Image.prototype.draw = function(ctx) {
     ctx.drawImage(this._img, this._sx, this._sy, this._swidth, this._sheight, this._x, this._y, this._width, this._height);
@@ -2701,7 +2722,7 @@ jCanvaScript.Proto.ImageData = function(width, height) {
     return this;
 };
 
-jCanvaScript.Proto.ImageData.prototype = Object.create(jCanvaScript.Proto.Object.prototype)
+jCanvaScript.inherite(jCanvaScript.Proto.ImageData, jCanvaScript.Proto.Object)
 
 jCanvaScript.Proto.ImageData.prototype.draw = function(ctx) {
     if (this._imgData === undefined) {
@@ -2794,7 +2815,7 @@ jCanvaScript.Proto.Lines = function(points, lineColor, fillColor) {
         this.points(options.points);
     return this;
 };
-jCanvaScript.Proto.Lines.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Lines, jCanvaScript.Proto.Shape);
 jCanvaScript.Proto.Lines.prototype.getCenter = function(type) {
     var point = {
         x: this._x0,
@@ -2881,7 +2902,7 @@ jCanvaScript.Proto.BCurve = function(points, lineColor, fillColor) {
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 }
 
-jCanvaScript.Proto.BCurve.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.BCurve, jCanvaScript.Proto.Lines);
 
 jCanvaScript.Proto.BCurve.prototype.draw = function(ctx) {
     if (this._x0 === undefined) return;
@@ -2901,7 +2922,7 @@ jCanvaScript.Proto.Line = function(points, lineColor, fillColor){
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 };
 
-jCanvaScript.Proto.Line.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Line, jCanvaScript.Proto.Lines);
 
 jCanvaScript.Proto.Line.prototype.draw = function(ctx) {
     if (this._x0 === undefined)return;
@@ -2921,7 +2942,7 @@ jCanvaScript.Proto.QCurve = function(points, lineColor, fillColor) {
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 }
 
-jCanvaScript.Proto.QCurve.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.QCurve, jCanvaScript.Proto.Lines);
 
 jCanvaScript.Proto.QCurve.prototype.draw = function(ctx) {
     if (this._x0 === undefined) return;
@@ -2981,7 +3002,7 @@ jCanvaScript.Proto.Gradients = function(colors) {
         return this.colorStops(colors);
 };
 
-jCanvaScript.Proto.Gradients.prototype = Object.create(jCanvaScript.Proto.GradientsAndPatterns.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Gradients, jCanvaScript.Proto.GradientsAndPatterns);
 /*
  * @param {Number} pos
  * @param {String} color
@@ -3084,7 +3105,7 @@ jCanvaScript.Proto.LGradient = function(x1, y1, x2, y2, colors) {
     this._proto = 'lGradient';
     return this;
 };
-jCanvaScript.Proto.LGradient.prototype = Object.create(jCanvaScript.Proto.Gradients.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.LGradient, jCanvaScript.Proto.Gradients);
 /*
  * @private
  * @param {Object} canvasOptions
@@ -3116,7 +3137,7 @@ jCanvaScript.Proto.Pattern = function(image, type) {
     this._proto = 'pattern';
     return this;
 };
-jCanvaScript.Proto.Pattern.prototype = Object.create(jCanvaScript.Proto.GradientsAndPatterns.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Pattern, jCanvaScript.Proto.GradientsAndPatterns);
 /*@private*/
 jCanvaScript.Proto.Pattern.prototype.draw = function(canvasOptions) {
     if (this.optns.animated) jCanvaScript._helpers.animating.call(this, canvasOptions);
@@ -3147,7 +3168,7 @@ jCanvaScript.Proto.RGradient = function(x1, y1, r1, x2, y2, r2, colors) {
     return this;
 };
 
-jCanvaScript.Proto.RGradient.prototype = Object.create(jCanvaScript.Proto.Gradients.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.RGradient, jCanvaScript.Proto.Gradients);
 /*
  * @private
  * @param {Object} canvasOptions

@@ -9,7 +9,7 @@ jCanvaScript.Proto.Circle = function(x, y, radius, lineColor, fillColor) {
     return this;
 };
 
-jCanvaScript.Proto.Circle.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Circle, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Circle.prototype.draw = function(ctx) {
     ctx.arc(this._x, this._y, this._radius, 0, jCanvaScript.constants.PIx2, true);

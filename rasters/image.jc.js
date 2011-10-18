@@ -23,7 +23,7 @@ jCanvaScript.Proto.Image = function(image, x, y, width, height, sx, sy, swidth, 
     return this;
 };
 
-jCanvaScript.Proto.Image.prototype = Object.create(jCanvaScript.Proto.Object.prototype)
+jCanvaScript.inherite(jCanvaScript.Proto.Image, jCanvaScript.Proto.Object)
 
 jCanvaScript.Proto.Image.prototype.draw = function(ctx) {
     ctx.drawImage(this._img, this._sx, this._sy, this._swidth, this._sheight, this._x, this._y, this._width, this._height);

@@ -10,7 +10,7 @@ jCanvaScript.Proto.Gradients = function(colors) {
         return this.colorStops(colors);
 };
 
-jCanvaScript.Proto.Gradients.prototype = Object.create(jCanvaScript.Proto.GradientsAndPatterns.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Gradients, jCanvaScript.Proto.GradientsAndPatterns);
 /*
  * @param {Number} pos
  * @param {String} color

@@ -18,7 +18,7 @@ jCanvaScript.Proto.RGradient = function(x1, y1, r1, x2, y2, r2, colors) {
     return this;
 };
 
-jCanvaScript.Proto.RGradient.prototype = Object.create(jCanvaScript.Proto.Gradients.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.RGradient, jCanvaScript.Proto.Gradients);
 /*
  * @private
  * @param {Object} canvasOptions

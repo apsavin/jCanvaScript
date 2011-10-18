@@ -11,7 +11,7 @@ jCanvaScript.Proto.LGradient = function(x1, y1, x2, y2, colors) {
     this._proto = 'lGradient';
     return this;
 };
-jCanvaScript.Proto.LGradient.prototype = Object.create(jCanvaScript.Proto.Gradients.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.LGradient, jCanvaScript.Proto.Gradients);
 /*
  * @private
  * @param {Object} canvasOptions

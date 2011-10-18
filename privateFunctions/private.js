@@ -5,6 +5,10 @@ jCanvaScript.getOffset = function(elem){
 		return getOffsetSum(elem)
 	}
 }
+jCanvaScript.inherite = function(Child, Parent){
+	Child.prototype = Object.create(Parent.prototype);
+	Child.prototype.constructor = Child;
+}
 
 function getOffsetSum(elem) {
 	var top = 0, left = 0;

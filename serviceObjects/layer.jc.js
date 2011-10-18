@@ -19,7 +19,7 @@ jCanvaScript.Proto.Layer =function(idLayer) {
     thisOptns.canvas.number = jCanvaScript._lastCanvas;
     return this;
 }
-jCanvaScript.Proto.Layer.prototype = Object.create(jCanvaScript.Proto.Object.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Layer, jCanvaScript.Proto.Object);
 jCanvaScript.Proto.Layer.prototype.position = function() {
     var objs = this.objs,
         points,point,i,
