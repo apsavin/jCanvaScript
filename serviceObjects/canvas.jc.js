@@ -35,6 +35,23 @@ jCanvaScript.Proto.Canvas = function(idCanvas){
     this._proto = 'Canvas';
     jCanvaScript.layer(idCanvas+'_default').canvas(idCanvas);
 }
+
+jCanvaScript.Proto.Canvas.prototype.width = function(width){
+	if(width === undefined)
+		return this.cnv.width;
+	this.optns.width = this.cnv.width = width;
+	this.cnv.style.width = width + 'px';
+	this.optns.redraw = 1;
+	return this;
+};
+jCanvaScript.Proto.Canvas.prototype.height = function(height){
+	if(height === undefined)
+		return this.cnv.height;
+	this.optns.heigth = this.cnv.height = height;
+	this.cnv.style.height = height + 'px';
+	this.optns.redraw = 1;
+	return this;
+};
 jCanvaScript.Proto.Canvas.prototype.id = jCanvaScript.Proto.Object.prototype.id
 jCanvaScript.Proto.Canvas.prototype.toDataURL = function() {
     return canvas.cnv.toDataURL.apply(canvas.cnv, arguments);
