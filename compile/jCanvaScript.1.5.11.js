@@ -3244,14 +3244,15 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(mouseDown.objects.length)
 		{
+			var mdObjectsLength = mouseDown.objects.length - 1;
 			mdCicle:
-			for(i=mouseDown.objects.length-1;i>-1;i--)
+			for(i=mdObjectsLength;i>-1;i--)
 			{
 				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
 				for(var j=0;j<2;j++)
 				{
 					mdObject=mouseDownObjects[j];
-					if(mdObject.optns.drag.val==true && mdObject.optns.drag.disabled==false)
+					if(mdObject.optns.drag.val==true && mdObject.optns.drag.disabled==false && i == mdObjectsLength)
 					{
 						drag=optns.drag;
 						dobject=drag.object=mdObject.optns.drag.object.visible(true);
