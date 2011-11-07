@@ -219,12 +219,13 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
         optns.mousemove.object = false;
     }
     if (mouseDown.objects.length) {
+		var mdObjectsLength = mouseDown.objects.length - 1;
         mdCycle:
             for (i = mouseDown.objects.length - 1; i > -1; i--) {
                 var mouseDownObjects = [mouseDown.objects[i],mouseDown.objects[i].layer()], mdObject;
                 for (var j = 0; j < 2; j++) {
                     mdObject = mouseDownObjects[j];
-                    if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled) {
+                    if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled && i == mdObjectsLength) {
                         drag = optns.drag;
                         dobject = drag.object = mdObject.optns.drag.object.visible(true);
                         drag.drag = mdObject.optns.drag.drag;
