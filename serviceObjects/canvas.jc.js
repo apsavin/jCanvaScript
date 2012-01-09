@@ -35,6 +35,23 @@ jCanvaScript.Proto.Canvas = function(idCanvas){
     this._proto = 'Canvas';
     jCanvaScript.layer(idCanvas+'_default').canvas(idCanvas);
 }
+
+jCanvaScript.Proto.Canvas.prototype.width = function(width){
+	if(width === undefined)
+		return this.cnv.width;
+	this.optns.width = this.cnv.width = width;
+	this.cnv.style.width = width + 'px';
+	this.optns.redraw = 1;
+	return this;
+};
+jCanvaScript.Proto.Canvas.prototype.height = function(height){
+	if(height === undefined)
+		return this.cnv.height;
+	this.optns.heigth = this.cnv.height = height;
+	this.cnv.style.height = height + 'px';
+	this.optns.redraw = 1;
+	return this;
+};
 jCanvaScript.Proto.Canvas.prototype.id = jCanvaScript.Proto.Object.prototype.id
 jCanvaScript.Proto.Canvas.prototype.toDataURL = function() {
     return canvas.cnv.toDataURL.apply(canvas.cnv, arguments);
@@ -202,12 +219,13 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
         optns.mousemove.object = false;
     }
     if (mouseDown.objects.length) {
+		var mdObjectsLength = mouseDown.objects.length - 1;
         mdCycle:
             for (i = mouseDown.objects.length - 1; i > -1; i--) {
                 var mouseDownObjects = [mouseDown.objects[i],mouseDown.objects[i].layer()], mdObject;
                 for (var j = 0; j < 2; j++) {
                     mdObject = mouseDownObjects[j];
-                    if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled) {
+                    if (mdObject.optns.drag.val && !mdObject.optns.drag.disabled && i == mdObjectsLength) {
                         drag = optns.drag;
                         dobject = drag.object = mdObject.optns.drag.object.visible(true);
                         drag.drag = mdObject.optns.drag.drag;

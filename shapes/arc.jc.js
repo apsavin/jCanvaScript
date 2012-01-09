@@ -19,7 +19,7 @@ jCanvaScript.Proto.Arc = function(x, y, radius, startAngle, endAngle, anticlockw
     return this;
 };
 
-jCanvaScript.Proto.Arc.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Arc, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Arc.prototype.draw = function(ctx) {
     var radian = jCanvaScript.constants.radian;

@@ -31,7 +31,7 @@ jCanvaScript.Proto.ImageData = function(width, height) {
     return this;
 };
 
-jCanvaScript.Proto.ImageData.prototype = Object.create(jCanvaScript.Proto.Object.prototype)
+jCanvaScript.inherite(jCanvaScript.Proto.ImageData, jCanvaScript.Proto.Object)
 
 jCanvaScript.Proto.ImageData.prototype.draw = function(ctx) {
     if (this._imgData === undefined) {

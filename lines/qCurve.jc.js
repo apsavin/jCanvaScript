@@ -4,7 +4,7 @@ jCanvaScript.Proto.QCurve = function(points, lineColor, fillColor) {
     jCanvaScript.Proto.Lines.call(this, points, lineColor, fillColor);
 }
 
-jCanvaScript.Proto.QCurve.prototype = Object.create(jCanvaScript.Proto.Lines.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.QCurve, jCanvaScript.Proto.Lines);
 
 jCanvaScript.Proto.QCurve.prototype.draw = function(ctx) {
     if (this._x0 === undefined) return;

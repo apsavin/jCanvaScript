@@ -10,7 +10,7 @@ jCanvaScript.Proto.Rect = function(x, y, width, height, lineColor, fillColor) {
     return this;
 };
 
-jCanvaScript.Proto.Rect.prototype = Object.create(jCanvaScript.Proto.Shape.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Rect, jCanvaScript.Proto.Shape);
 
 jCanvaScript.Proto.Rect.prototype.draw = function(ctx) {
     ctx.rect(this._x, this._y, this._width, this._height);

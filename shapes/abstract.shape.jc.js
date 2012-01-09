@@ -37,7 +37,7 @@ jCanvaScript.Proto.Shape = function(options) {
     this.lineColor(options.lineColor);
     return this;
 }
-jCanvaScript.Proto.Shape.prototype = Object.create(jCanvaScript.Proto.Object.prototype);
+jCanvaScript.inherite(jCanvaScript.Proto.Shape, jCanvaScript.Proto.Object);
 
 jCanvaScript.Proto.Shape.prototype.fillColor = function(color) {
     if (color === undefined)return [this._fillColorR,this._fillColorG,this._fillColorB,this._fillColorA];
