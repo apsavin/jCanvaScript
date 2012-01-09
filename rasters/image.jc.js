@@ -1,6 +1,6 @@
 jCanvaScript.Proto.Image = function(image, x, y, width, height, sx, sy, swidth, sheight) {
     var options = image;
-    if (typeof image != 'object' || image.src !== undefined)
+    if (typeof image != 'object' || image.src !== undefined || image.nodeName !== undefined)
         options = {image:image, x:x, y:y, width:width, height:height, sx:sx, sy:sy, swidth:swidth, sheight:sheight};
     options = jCanvaScript.checkDefaults(options, {width:false, height:false, sx:0, sy:0, swidth:false, sheight:false});
     if (options.width === false) {
@@ -23,7 +23,7 @@ jCanvaScript.Proto.Image = function(image, x, y, width, height, sx, sy, swidth, 
     return this;
 };
 
-jCanvaScript.inherite(jCanvaScript.Proto.Image, jCanvaScript.Proto.Object)
+jCanvaScript.inherite(jCanvaScript.Proto.Image, jCanvaScript.Proto.Object);
 
 jCanvaScript.Proto.Image.prototype.draw = function(ctx) {
     ctx.drawImage(this._img, this._sx, this._sy, this._swidth, this._sheight, this._x, this._y, this._width, this._height);
@@ -36,4 +36,4 @@ jCanvaScript.Proto.Image.prototype.getRect = function(type) {
 
 jCanvaScript.image = function(image, x, y, width, height, sx, sy, swidth, sheight){
     return new jCanvaScript.Proto.Image(image, x, y, width, height, sx, sy, swidth, sheight);
-}
+};
