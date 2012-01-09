@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.10
+ * jCanvaScript JavaScript Library v 1.5.12
  * http://jcscript.com/
  *
  * Copyright 2011, Alexander Savin
@@ -2682,7 +2682,7 @@ proto.image=function()
 	}
 	this.base=function(image,x,y,width,height,sx,sy,swidth,sheight)
 	{
-		if(typeof image!='object' || image.src!==undefined)
+		if(typeof image!='object' || image.src!==undefined || image.nodeName !== undefined)
 			image={image:image,x:x,y:y,width:width,height:height,sx:sx,sy:sy,swidth:swidth,sheight:sheight};
 		image=checkDefaults(image,{width:false,height:false,sx:0,sy:0,swidth:false,sheight:false});
 		if(image.width===false)
@@ -3020,6 +3020,22 @@ jCanvaScript.canvas = function(idCanvas)
 		if(typeof FlashCanvas !=='undefined')
 			FlashCanvas.initElement(canvas.cnv);
 	}
+    canvas.width = function(width){
+        if(width === undefined)
+            return this.cnv.width;
+        this.optns.width = this.cnv.width = width;
+        this.cnv.style.width = width + 'px';
+        this.optns.redraw = 1;
+        return this;
+    }
+    canvas.height = function(height){
+        if(height === undefined)
+            return this.cnv.height;
+        this.optns.heigth = this.cnv.height = height;
+        this.cnv.style.height = height + 'px';
+        this.optns.redraw = 1;
+        return this;
+    }
 	canvas.optns =
 	{
 		id:idCanvas,
@@ -3228,14 +3244,15 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(mouseDown.objects.length)
 		{
+			var mdObjectsLength = mouseDown.objects.length - 1;
 			mdCicle:
-			for(i=mouseDown.objects.length-1;i>-1;i--)
+			for(i=mdObjectsLength;i>-1;i--)
 			{
 				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
 				for(var j=0;j<2;j++)
 				{
 					mdObject=mouseDownObjects[j];
-					if(mdObject.optns.drag.val==true && mdObject.optns.drag.disabled==false)
+					if(mdObject.optns.drag.val==true && mdObject.optns.drag.disabled==false && i == mdObjectsLength)
 					{
 						drag=optns.drag;
 						dobject=drag.object=mdObject.optns.drag.object.visible(true);
@@ -3337,6 +3354,7 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	return canvas;
 }
+
 
 jCanvaScript.layer=function(idLayer)
 {

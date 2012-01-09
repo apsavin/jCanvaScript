@@ -3,33 +3,49 @@ jCanvaScript.canvas = function(idCanvas)
 	if(idCanvas===undefined)return canvases[0];
 	var limit=canvases.length;
 	for (var i=0;i<limit;i++)
-		if(canvases[i]._optns)
-			if(canvases[i]._optns.id==idCanvas)return canvases[i];
+		if(canvases[i].optns)
+			if(canvases[i].optns.id==idCanvas)return canvases[i];
 	var canvas={
 		id:function(id)
 		{
-			if(id===undefined)return this._optns.id;
-			this._optns.id=id;
+			if(id===undefined)return this.optns.id;
+			this.optns.id=id;
 			return this;
 		}
 	};
 	canvases[limit]=canvas;
 	lastCanvas=limit;
-	canvas._cnv=document.getElementById(idCanvas);
+	canvas.cnv=document.getElementById(idCanvas);
 	if ('\v'=='v')
 	{
 		if(typeof G_vmlCanvasManager!=='undefined')
-			G_vmlCanvasManager.initElement(canvas._cnv);
+			G_vmlCanvasManager.initElement(canvas.cnv);
 		if(typeof FlashCanvas !=='undefined')
-			FlashCanvas.initElement(canvas._cnv);
+			FlashCanvas.initElement(canvas.cnv);
 	}
-	canvas._optns =
+    canvas.width = function(width){
+        if(width === undefined)
+            return this.cnv.width;
+        this.optns.width = this.cnv.width = width;
+        this.cnv.style.width = width + 'px';
+        this.optns.redraw = 1;
+        return this;
+    }
+    canvas.height = function(height){
+        if(height === undefined)
+            return this.cnv.height;
+        this.optns.heigth = this.cnv.height = height;
+        this.cnv.style.height = height + 'px';
+        this.optns.redraw = 1;
+        return this;
+    }
+	canvas.optns =
 	{
 		id:idCanvas,
 		number:lastCanvas,
-		ctx: canvas._cnv.getContext('2d'),
-		width: canvas._cnv.offsetWidth||canvas._cnv.width,
-		height: canvas._cnv.offsetHeight||canvas._cnv.height,
+		ctx: canvas.cnv.getContext('2d'),
+		width: canvas.cnv.offsetWidth||canvas.cnv.width,
+		height: canvas.cnv.offsetHeight||canvas.cnv.height,
 		anyLayerDeleted: false,
 		anyLayerLevelChanged:false,
 		keyDown:{val:false,code:false},
@@ -44,35 +60,17 @@ jCanvaScript.canvas = function(idCanvas)
 		gCO: 'source-over',
 		redraw:1
 	}
-	canvas.toDataURL=function(){return canvas._cnv.toDataURL.apply(canvas._cnv,arguments);}
+	canvas.toDataURL=function(){return canvas.cnv.toDataURL.apply(canvas.cnv,arguments);}
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
 	canvas.start=function(isAnimated)
 	{
-		lastCanvas=this._optns.number;
+		lastCanvas=this.optns.number;
 		if(isAnimated)
 		{
 			if(this.interval)return this;
 			this.isAnimated=isAnimated;
-<<<<<<< HEAD
-			var offset=getOffset(this._cnv);
-			this._optns.x=offset.left+(parseInt(this._cnv.style.borderTopWidth)||0);
-			this._optns.y=offset.top+(parseInt(this._cnv.style.borderLeftWidth)||0);
-			var canvas=canvases[this._optns.number],
-			optns=canvas._optns;
-			this._cnv.onclick=function(e){
-				mouseEvent(e,'click',optns);
-			}
-			this._cnv.ondblclick=function(e){
-				mouseEvent(e,'dblclick',optns);
-				optns.redraw++;
-			}
-			this._cnv.onmousedown=function(e){
-				mouseEvent(e,'mousedown',optns);
-			}
-			this._cnv.onmouseup=function(e){
-=======
 			var offset=getOffset(this.cnv);
 			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
 			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
@@ -91,29 +89,28 @@ jCanvaScript.canvas = function(idCanvas)
 				mouseEvent(e,'mousedown',optns);
 			}
 			this.cnv.onmouseup=function(e){
->>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 				mouseEvent(e,'mouseup',optns);
 			}
-			this._cnv.onkeyup=function(e){
+			this.cnv.onkeyup=function(e){
 				keyEvent(e,'keyUp',optns);
 			}
-			this._cnv.onkeydown=function(e)
+			this.cnv.onkeydown=function(e)
 			{
 				keyEvent(e,'keyDown',optns);
 			}
-			this._cnv.onkeypress=function(e)
+			this.cnv.onkeypress=function(e)
 			{
 				keyEvent(e,'keyPress',optns);
 			}
-			this._cnv.onmouseout=this._cnv.onmousemove=function(e)
+			this.cnv.onmouseout=this.cnv.onmousemove=function(e)
 			{
 				mouseEvent(e,'mousemove',optns);
-			}
+			};
 			optns.timeLast=new Date();
 			this.interval=requestAnimFrame(function(time){
 					canvas.interval=canvas.interval||1;
 					canvas.frame(time);},
-				this._cnv);
+				this.cnv);
 		}
 		else return this.frame();
 		return this;
@@ -127,45 +124,44 @@ jCanvaScript.canvas = function(idCanvas)
 	{
 		cancelRequestAnimFrame(this.interval);
 		this.layers=[];
-		canvases.splice(this._optns.number,1);
+		canvases.splice(this.optns.number,1);
 		for(var i=0;i<canvases.length;i++)
 		{
 			var canvas=canvases[i],
 			layers=canvas.layers,
 			limitL=layers.length;
-			canvas._optns.number=i;
+			canvas.optns.number=i;
 			for(var j=0;j<limitL;j++)
 			{
 				var layer=layers[j];
-				layer._optns.canvas.number=i;
-				setLayerAndCanvasToArray(layer.objs,layer._optns.id,layer._optns.number,canvas._optns.id,canvas._optns.number);
-				setLayerAndCanvasToArray(layer.grdntsnptrns,layer._optns.id,layer._optns.number,canvas._optns.id,canvas._optns.number);
+				layer.optns.canvas.number=i;
+				setLayerAndCanvasToArray(layer.objs,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layer.optns.id,layer.optns.number,canvas.optns.id,canvas.optns.number);
 			}
 		}
-		if(this._cnv.parentNode)this._cnv.parentNode.removeChild(this._cnv);
+		if(this.cnv.parentNode)this.cnv.parentNode.removeChild(this.cnv);
 		lastCanvas=0;
 		return false;
 	}
 	canvas.clear=function()
 	{
 		cancelRequestAnimFrame(this.interval);
-		var optns=this._optns;
 		this.interval=0;
 		this.layers=[];
-		jCanvaScript.layer(optns.id+'Layer_0').canvas(optns.id);
-		optns.ctx.clearRect(0,0,optns.width,optns.height);
-		optns.redraw=1;
+		jCanvaScript.layer(this.optns.id+'Layer_0').canvas(this.optns.id);
+		this.optns.ctx.clearRect(0,0,this.optns.width,this.optns.height);
+		this.optns.redraw++;
 		return this;
 	}
 	canvas.frame=function(time)
 	{
-		var optns=this._optns,thisCanvas=this;
+		var optns=this.optns,thisCanvas=this;
 		time=time||(new Date());
 		optns.timeDiff=time-optns.timeLast;
 		optns.timeLast=time;
 		if(this.interval)
 		{
-			this.interval=requestAnimFrame(function(time){thisCanvas.frame(time);},thisCanvas._cnv);
+			this.interval=requestAnimFrame(function(time){thisCanvas.frame(time);},thisCanvas.cnv);
 			this.interval=this.interval||1;
 		}
 		if(!optns.redraw)return this;
@@ -182,9 +178,9 @@ jCanvaScript.canvas = function(idCanvas)
 			optns.anyLayerLevelChanged=optns.anyLayerDeleted=false;
 			for(var i=0;i<limit;i++)
 			{
-				var layer=this.layers[i],layerOptns=layer._optns;
-				setLayerAndCanvasToArray(layer.objs,layerOptns.id,layerOptns.number,this._optns.id,this._optns.number);
-				setLayerAndCanvasToArray(layer.grdntsnptrns,layerOptns.id,layerOptns.number,idCanvas,this._optns.number);
+				var layer=this.layers[i],layerOptns=layer.optns;
+				setLayerAndCanvasToArray(layer.objs,layerOptns.id,layerOptns.number,this.optns.id,this.optns.number);
+				setLayerAndCanvasToArray(layer.grdntsnptrns,layerOptns.id,layerOptns.number,idCanvas,this.optns.number);
 			}
 		}
 		for(i=0;i<limit;i++)
@@ -216,7 +212,7 @@ jCanvaScript.canvas = function(idCanvas)
 				drag.y=mm.y;
 				if(drag.drag)drag.drag.call(dobject,{x:mm.x,y:mm.y});
 			}
-			var point = this._optns.point||{};
+			var point = this.optns.point||{};
 			point.event=mm.event;
 			if(mm.object!=false)
 			{
@@ -251,24 +247,21 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(mouseDown.objects.length)
 		{
-<<<<<<< HEAD
-			var mouseDown=this._optns.mousedown;
-=======
->>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
+			var mdObjectsLength = mouseDown.objects.length - 1;
 			mdCicle:
-			for(i=mouseDown.objects.length-1;i>-1;i--)
+			for(i=mdObjectsLength;i>-1;i--)
 			{
 				var mouseDownObjects=[mouseDown.objects[i],objectLayer(mouseDown.objects[i])], mdObject;
 				for(var j=0;j<2;j++)
 				{
 					mdObject=mouseDownObjects[j];
-					if(mdObject._optns.drag.val==true && mdObject._optns.drag.disabled==false)
+					if(mdObject.optns.drag.val==true && mdObject.optns.drag.disabled==false && i == mdObjectsLength)
 					{
 						drag=optns.drag;
-						dobject=drag.object=mdObject._optns.drag.object.visible(true);
-						drag.drag=mdObject._optns.drag.drag;
+						dobject=drag.object=mdObject.optns.drag.object.visible(true);
+						drag.drag=mdObject.optns.drag.drag;
 						drag.init=mdObject;
-						var initoptns=drag.init._optns;
+						var initoptns=drag.init.optns;
 						if(initoptns.drag.params!==undefined)dobject.animate(initoptns.drag.params);
 						drag.x=drag.startX=mouseDown.x;
 						drag.y=drag.startY=mouseDown.y;
@@ -298,18 +291,6 @@ jCanvaScript.canvas = function(idCanvas)
 				for(j=0;j<2;j++)
 				{
 					muObject=mouseUpObjects[j];
-<<<<<<< HEAD
-					if(muObject._optns.drop.val==true && optns.drag.init!==undefined)
-					{
-						if(drag.init==drag.object)
-							drag.init.visible(true);
-						if(typeof muObject._optns.drop.fn=='function')
-							muObject._optns.drop.fn.call(muObject,drag.init);
-					}
-					else
-					{
-						if(drag.init!==undefined)
-=======
 					if(optns.drag.init!==undefined)
 					{
 						if(muObject.optns.drop.val==true)
@@ -321,16 +302,15 @@ jCanvaScript.canvas = function(idCanvas)
 								muObject.optns.drop.fn.call(muObject,drag.init);
 						}
 						else
->>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 						{
 							drag.object.visible(false);
 							drag.init.visible(true);
-							drag.init._optns.translateMatrix[0][2]=drag.object._optns.translateMatrix[0][2];
-							drag.init._optns.translateMatrix[1][2]=drag.object._optns.translateMatrix[1][2];
+							drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
+							drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
 							changeMatrix(drag.init);
 							if(drag.object!=drag.init)drag.object.visible(false);
-							if(typeof drag.init._optns.drag.stop=='function')
-								drag.init._optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
+							if(typeof drag.init.optns.drag.stop=='function')
+								drag.init.optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
 						}
 						if(drag.x!=drag.startX || drag.y!==drag.startY)click.objects=[];
 					}
@@ -339,15 +319,11 @@ jCanvaScript.canvas = function(idCanvas)
 							break muCicle;
 				}
 			}
-			this._optns.drag={object:false,x:0,y:0};
+			this.optns.drag={object:false,x:0,y:0};
 			mouseUp.objects=[];
 		}
 		if(click.objects.length)
 		{
-<<<<<<< HEAD
-			var click=this._optns.click;
-=======
->>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 			cCicle:
 			for(i=click.objects.length-1;i>-1;i--)
 			{
@@ -363,10 +339,6 @@ jCanvaScript.canvas = function(idCanvas)
 		}
 		if(dblClick.objects.length)
         {
-<<<<<<< HEAD
-            var dblClick=this._optns.dblclick;
-=======
->>>>>>> 7f0450d1a077fbe3515c208bd38183ffb8500e02
 			dcCicle:
 			for(i=dblClick.objects.length-1;i>-1;i--)
 			{

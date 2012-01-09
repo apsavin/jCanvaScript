@@ -5,7 +5,7 @@ jCanvaScript.layer=function(idLayer)
 	{
 		var layersArray=canvases[i].layers;
 		for (var j=0;j<layersArray.length;j++)
-			if(layersArray[j]._optns.id==idLayer)
+			if(layersArray[j].optns.id==idLayer)
 				return layersArray[j];
 	}
 	return layers(idLayer);

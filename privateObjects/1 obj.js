@@ -12,7 +12,7 @@ proto.object=function()
 		return multiplyPointM(this._x,this._y,multiplyM(this.matrix(),objectLayer(this).matrix()));
 	}
 	this.buffer=function(doBuffering){
-		var bufOptns=this._optns.buffer;
+		var bufOptns=this.optns.buffer;
 		if(doBuffering===undefined)
 			if(bufOptns.val)return bufOptns.cnv;
 			else return false;
@@ -32,9 +32,9 @@ proto.object=function()
 			this._x=this._y=0;
 			this.transform(1, 0, 0, 1, -rect.x+bufOptns.dx, -rect.y+bufOptns.dy,true);
 			this.setOptns(ctx);
-			take(bufOptns._optns={},objectCanvas(this)._optns);
-			bufOptns._optns.ctx=ctx;
-			this.draw(bufOptns._optns);
+			take(bufOptns.optns={},objectCanvas(this).optns);
+			bufOptns.optns.ctx=ctx;
+			this.draw(bufOptns.optns);
 			this._x=bufOptns.x;
 			this._y=bufOptns.y;
 			this.transform(oldM[0][0], oldM[1][0], oldM[0][1], oldM[1][1], rect.x, rect.y,true);
@@ -43,7 +43,7 @@ proto.object=function()
 		else
 		{
 			this.translate(-bufOptns.rect.x+bufOptns.dx,-bufOptns.rect.y+bufOptns.dy);
-			this._optns.buffer={val:false};
+			this.optns.buffer={val:false};
 		}
 		return this;
 	}
@@ -52,11 +52,11 @@ proto.object=function()
 		var clone=new proto[this._proto];
 		proto[this._proto].prototype.base.call(clone);
 		take(clone,this);
-		clone.layer(objectLayer(this)._optns.id);
-		take(clone._optns.transformMatrix,this._optns.transformMatrix);
-		take(clone._optns.translateMatrix,this._optns.translateMatrix);
-		take(clone._optns.scaleMatrix,this._optns.scaleMatrix);
-		take(clone._optns.rotateMatrix,this._optns.rotateMatrix);
+		clone.layer(objectLayer(this).optns.id);
+		take(clone.optns.transformMatrix,this.optns.transformMatrix);
+		take(clone.optns.translateMatrix,this.optns.translateMatrix);
+		take(clone.optns.scaleMatrix,this.optns.scaleMatrix);
+		take(clone.optns.rotateMatrix,this.optns.rotateMatrix);
 		if(params===undefined) return clone;
 		return clone.animate(params);
 	}
@@ -102,7 +102,7 @@ proto.object=function()
 		if(n === undefined)n=1;
 		if(n=='top')this.level(n);
 		else {
-			var next=objectLayer(this).objs[this._optns.number+n];
+			var next=objectLayer(this).objs[this.optns.number+n];
 			if(next!==undefined)
 			{
 				n=next._level+1-this._level;
@@ -116,7 +116,7 @@ proto.object=function()
 		if(n == undefined)n=1;
 		if(n == 'bottom')this.level(n);
 		else {
-			var previous=objectLayer(this).objs[this._optns.number-n];
+			var previous=objectLayer(this).objs[this.optns.number-n];
 			if(previous!==undefined)
 			{
 				n=this._level-(previous._level-1);
@@ -131,30 +131,30 @@ proto.object=function()
 		var layer=objectLayer(this);
 		if(n=='bottom')
 		{
-			if(this._optns.number==0)n=this._level;
+			if(this.optns.number==0)n=this._level;
 			else n=layer.objs[0]._level-1;
 		}
 		if(n=='top')
 		{
-			if(this._optns.number==layer.objs.length)n=this._level;
+			if(this.optns.number==layer.objs.length)n=this._level;
 			else n=layer.objs[layer.objs.length-1]._level+1;
 		}
 		this._level=n;
-		layer._optns.anyObjLevelChanged = true;
+		layer.optns.anyObjLevelChanged = true;
 		redraw(this);
 		return this;
 	}
 	this.del=function()
 	{
-		this._optns.deleted=true;
-		objectLayer(this)._optns.anyObjDeleted = true;
+		this.optns.deleted=true;
+		objectLayer(this).optns.anyObjDeleted = true;
 		redraw(this);
 	}
 	this.focus=function(fn)
 	{
 		if(fn===undefined)
 		{
-			this._optns.focused=true;
+			this.optns.focused=true;
 			if(typeof this.onfocus=='function')this.onfocus();
 		}
 		else this.onfocus=fn;
@@ -164,7 +164,7 @@ proto.object=function()
 	{
 		if(fn===undefined)
 		{
-			this._optns.focused=false;
+			this.optns.focused=false;
 			if(typeof this.onblur == 'function')this.onblur();
 		}
 		else this.onblur=fn;
@@ -263,7 +263,7 @@ proto.object=function()
 	}
 	this.stop=function(jumpToEnd,runCallbacks)
 	{
-		this._optns.animated=false;
+		this.optns.animated=false;
 		if(runCallbacks===undefined)runCallbacks=false;
 		if(jumpToEnd===undefined)jumpToEnd=false;
 		for(var q=0;q<this.animateQueue.length;q++)
@@ -373,7 +373,7 @@ proto.object=function()
 		{
 			var colorKeeper=parseColor(options.color);
 			if(colorKeeper.color.notColor)
-				this._optns.color.notColor=colorKeeper.color.notColor;
+				this.optns.color.notColor=colorKeeper.color.notColor;
 			else
 			{
 				options.colorR=colorKeeper.r;
@@ -396,7 +396,7 @@ proto.object=function()
 		{
 			var queue=this.animateQueue[this.animateQueue.length]={animateKeyCount:0};
 			queue.animateFn=fn||false;
-			this._optns.animated=true;
+			this.optns.animated=true;
 			queue.duration=duration;
 			queue.step=0;
 			queue.easing=easing;
@@ -473,7 +473,7 @@ proto.object=function()
 	{
 		if(duration!==undefined)
 			return this.animate({translate:{x:x,y:y}},duration,easing,onstep,fn);
-		this._optns.translateMatrix=multiplyM(this._optns.translateMatrix,[[1,0,x],[0,1,y]]);
+		this.optns.translateMatrix=multiplyM(this.optns.translateMatrix,[[1,0,x],[0,1,y]]);
 		changeMatrix(this);
 		return this;
 	}
@@ -482,7 +482,7 @@ proto.object=function()
 		if(duration!==undefined)
 			return this.animate({scale:{x:x,y:y}},duration,easing,onstep,fn);
 		if(y===undefined)y=x;
-		this._optns.scaleMatrix=multiplyM(this._optns.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
+		this.optns.scaleMatrix=multiplyM(this.optns.scaleMatrix,[[x,0,this._x*(1-x)],[0,y,this._y*(1-y)]]);
 		changeMatrix(this);
 		return this;
 	}
@@ -514,14 +514,14 @@ proto.object=function()
 			translateX=-x1*(cos-1)+y1*sin;
 			translateY=-y1*(cos-1)-x1*sin;
 		}
-		this._optns.rotateMatrix=multiplyM(this._optns.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
+		this.optns.rotateMatrix=multiplyM(this.optns.rotateMatrix,[[cos,-sin,translateX],[sin,cos,translateY]]);
 		changeMatrix(this);
 		return this;
 	}
 	this.transform=function(m11,m12,m21,m22,dx,dy,reset)
 	{
 		if(m11===undefined)return this.matrix();
-		var optns=this._optns;
+		var optns=this.optns;
 		if(reset!==undefined)
 		{
 			optns.transformMatrix=[[m11,m21,dx],[m12,m22,dy]];
@@ -541,26 +541,26 @@ proto.object=function()
 		if(!this._visible)return false;
 		var ctx=canvasOptns.ctx;
 		ctx.save();
-		if(this._optns.clipObject)
+		if(this.optns.clipObject)
 		{
-			var clipObject=this._optns.clipObject;
+			var clipObject=this.optns.clipObject;
 			clipObject._visible=true;
-			if (clipObject._optns.animated)animating.call(clipObject,canvasOptns);
+			if (clipObject.optns.animated)animating.call(clipObject,canvasOptns);
 			clipObject.setOptns(ctx);
 			ctx.beginPath();
 			clipObject.draw(ctx);
 			ctx.clip();
 		}
 		this.setOptns(ctx);
-		if (this._optns.animated)animating.call(this,canvasOptns);
+		if (this.optns.animated)animating.call(this,canvasOptns);
 		ctx.beginPath();
 		return true;
 	}
 	this.clip=function(object)
 	{
-		if(object===undefined)return this._optns.clipObject;
-		objectLayer(this).objs.splice(object._optns.number,1);
-		this._optns.clipObject=object;
+		if(object===undefined)return this.optns.clipObject;
+		objectLayer(this).objs.splice(object.optns.number,1);
+		this.optns.clipObject=object;
 		return this;
 	}
 	this.afterDraw=function(optns)
@@ -568,17 +568,17 @@ proto.object=function()
 		optns.ctx.closePath();
 		checkEvents(this,optns);
 		optns.ctx.restore();
-		if(this._optns.clipObject)
+		if(this.optns.clipObject)
 		{
-			proto.shape.prototype.afterDraw.call(this._optns.clipObject,optns);
+			proto.shape.prototype.afterDraw.call(this.optns.clipObject,optns);
 		}
 	}
 	this.isPointIn=function(x,y,global)
 	{
-		var canvasOptns=objectCanvas(this)._optns,
+		var canvasOptns=objectCanvas(this).optns,
 			ctx=canvasOptns.ctx,
 			thisAnimated=false,
-			optns=this._optns,
+			optns=this.optns,
 			clipAnimated=false;
 		if(global!==undefined)
 		{
@@ -590,7 +590,7 @@ proto.object=function()
 		if(optns.clipObject)
 		{
 			var clipObject=optns.clipObject,
-				clipOptns=clipObject._optns;
+				clipOptns=clipObject.optns;
 			if(clipOptns.animated)
 			{
 				clipAnimated=true;
@@ -620,7 +620,7 @@ proto.object=function()
 	}
 	this.draggable=function(object,params,drag)
 	{
-		if(params===undefined && typeof object=='object' && object._optns===undefined)
+		if(params===undefined && typeof object=='object' && object.optns===undefined)
 		{
 			params=object.params;
 			drag=object.drag;
@@ -630,7 +630,7 @@ proto.object=function()
 			object=object.object;
 		}
 		var dragObj=this;
-		var dragOptns=this._optns.drag;
+		var dragOptns=this.optns.drag;
 		if(typeof params==='function')
 		{
 			drag=params;
@@ -668,7 +668,7 @@ proto.object=function()
 		dragOptns.start=start||false;
 		dragOptns.stop=stop||false;
 		dragOptns.disabled=disabled||false;
-		var optns=objectCanvas(this)._optns;
+		var optns=objectCanvas(this).optns;
 		optns.mousemove.val=true;
 		optns.mousedown.val=true;
 		optns.mouseup.val=true;
@@ -676,8 +676,8 @@ proto.object=function()
 	}
 	this.droppable=function(fn)
 	{
-		this._optns.drop.val=true;
-		if(fn!==undefined)this._optns.drop.fn=fn;
+		this.optns.drop.val=true;
+		if(fn!==undefined)this.optns.drop.fn=fn;
 		return this;
 	}
 	this.name = function(name)
@@ -694,8 +694,8 @@ proto.object=function()
 	}
 	this.id=function(id)
 	{
-		if(id===undefined)return this._optns.id;
-		this._optns.id=id;
+		if(id===undefined)return this.optns.id;
+		this.optns.id=id;
 		return this;
 	}
 	this.opacity=function(n)
@@ -738,12 +738,12 @@ proto.object=function()
 		}
 		else{if(service===undefined)service=false;}
 		var canvasItem=canvases[lastCanvas];
-		this._optns={
+		this.optns={
 			animated:false,
 			clipObject:false,
 			drop:{val:false,fn:function(){}},
 			drag:{val:false},
-			layer:{id:canvasItem._optns.id+"Layer0",number:0},
+			layer:{id:canvasItem.optns.id+"Layer0",number:0},
 			canvas:{number:0},
 			focused:false,
 			buffer:{val:false},
@@ -757,14 +757,14 @@ proto.object=function()
 		this._y=y;
 		if(service==false && canvasItem!==undefined && canvasItem.layers[0]!==undefined)
 		{
-			this._optns.layer.number=0;
-			this._optns.canvas.number=lastCanvas;
+			this.optns.layer.number=0;
+			this.optns.canvas.number=lastCanvas;
 			var layer=objectLayer(this),
 			limit=layer.objs.length;
-			this._optns.number=limit;
+			this.optns.number=limit;
 			this._level=limit?(layer.objs[limit-1]._level+1):0;
 			layer.objs[limit]=this;
-			this._optns.layer.id=layer._optns.id;
+			this.optns.layer.id=layer.optns.id;
 			redraw(this);
 		}
 		return this;
