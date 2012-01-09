@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-jCanvaScript is a JavaSript library that provides you methods to manage with the content of a HTML5 canvas element.Documentation and examples: http://jcscript.com/documentationYou may use jCanvaScript library under the terms of either the MIT License or the GNU General Public License (GPL) Version 2. 
-=======
-jCanvaScript is a JavaSript library that provides you methods to manage with the content of a HTML5 canvas element.version 2.x is development version!You may use jCanvaScript library under the terms of either the MIT License or the GNU General Public License (GPL) Version 2. 
->>>>>>> e0e2d8dd77d7a8d6a317ec6dc86c018b213e9434
+jCanvaScript is a JavaSript library that provides you methods to manage with the content of a HTML5 canvas element.version 2.x is development version!You may use jCanvaScript library under the terms of either the MIT License or the GNU General Public License (GPL) Version 2. 
