@@ -29,9 +29,16 @@ jCanvaScript.parseColor = function(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.r=parseInt(color.substr(1,2),16);
-		colorKeeper.g=parseInt(color.substr(3,2),16);
-		colorKeeper.b=parseInt(color.substr(5,2),16);
+		if(color.length > 4){
+			colorKeeper.r=parseInt(color.substr(1,2),16);
+			colorKeeper.g=parseInt(color.substr(3,2),16);
+			colorKeeper.b=parseInt(color.substr(5,2),16);
+		}
+		else {
+			colorKeeper.r=parseInt((colorKeeper.r=color.charAt(1))+colorKeeper.r);
+			colorKeeper.g=parseInt((colorKeeper.g=color.charAt(2))+colorKeeper.g);
+			colorKeeper.b=parseInt((colorKeeper.b=color.charAt(3))+colorKeeper.b);
+		}
 	}
 	else
 	{
