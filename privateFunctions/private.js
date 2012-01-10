@@ -306,9 +306,17 @@ function parseColor(color)
 	}
 	if(color.charAt(0)=='#')
 	{
-		colorKeeper.r=parseInt(color.substr(1,2),16);
-		colorKeeper.g=parseInt(color.substr(3,2),16);
-		colorKeeper.b=parseInt(color.substr(5,2),16);
+        if (color.length > 4) {
+            colorKeeper.r = parseInt(color.substr(1, 2), 16);
+            colorKeeper.g = parseInt(color.substr(3, 2), 16);
+            colorKeeper.b = parseInt(color.substr(5, 2), 16);
+        }
+        else {
+            var r = color.charAt(1), g = color.charAt(2), b = color.charAt(3);
+            colorKeeper.r = parseInt(r + r, 16);
+            colorKeeper.g = parseInt(g + g, 16);
+            colorKeeper.b = parseInt(b + b, 16);
+        }
 	}
 	else
 	{
