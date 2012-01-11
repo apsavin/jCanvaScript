@@ -119,6 +119,7 @@ jCanvaScript.canvas = function(idCanvas)
 	{
 		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
+        return this;
 	}
 	canvas.del=function()
 	{

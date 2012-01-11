@@ -1,37 +1,150 @@
 <html>
-	<head>
-		<script src="jCanvaScript.1.5.11.js" type="text/javascript"></script>
-		<style>
-			canvas {
-				border: 1px solid;
-			}
-		</style>
-		<script type="text/javascript">
-			function start1(a)
-			{
-				jc.start(a,true);
-				//jc.rect(5,5,140,10,'rgba(0,0,0,0)').rotate(45,10,10).layer('myLayer');
-				//jc.line([[10,10],[100,100]]).layer('myLayer');
-				//jc.layer('myLayer').draggable();
-				//jc.start('canvas', true);
-				 for(i = 0; i < 10; i++) {
-					 var r = (i*23) % 256;
-					 var g = (i*29) % 256;
-					 var b = (i*31) % 256;
-					 jc.rect(50+5*i, 50+5*i, 150, 100, 'rgb(' + r + ',' + g + ',' + b + ')', 1)
-					.draggable();
-				 }
-			}
-            function resize(canvasId){
-                jc.canvas(canvasId).width(600).height(700);
+<head>
+    <script src="jCanvaScript.1.5.13.js" type="text/javascript"></script>
+    <style>
+        canvas {
+            border: 1px solid;
+        }
+        .viewCode .capture .start {
+            background: green;
+        }
+        .viewCode .capture .stop, .viewCode .capture .start {
+            cursor: pointer;
+            float: right;
+            height: 24px;
+            margin-right: 4px;
+            margin-top: 4px;
+            width: 24px;
+        }
+        .viewCode .capture .stop {
+            background: red;
+        }
+        .viewCode .capture .stop, .viewCode .capture .start {
+            cursor: pointer;
+            float: right;
+            height: 24px;
+            margin-right: 4px;
+            margin-top: 4px;
+            width: 24px;
+        }
+    </style>
+    <script type="text/javascript">
+        function start1(a) {
+            jc.start(a, true);
+            //jc.rect(5,5,140,10,'rgba(0,0,0,0)').rotate(45,10,10).layer('myLayer');
+            //jc.line([[10,10],[100,100]]).layer('myLayer');
+            //jc.layer('myLayer').draggable();
+            //jc.start('canvas', true);
+            for (i = 0; i < 10; i++) {
+                var r = (i * 23) % 256;
+                var g = (i * 29) % 256;
+                var b = (i * 31) % 256;
+                jc.rect(50 + 5 * i, 50 + 5 * i, 150, 100, 'rgb(' + r + ',' + g + ',' + b + ')', 1)
+                        .draggable();
             }
-		</script>
-	</head>
-	<body>
-		<input type=button value="start" onclick="start1('canvas')" />
-        <input type=button value="resize" onclick="resize('canvas')" />
-		<br />
-		<canvas id="canvas" width="500px" height="500px" border="1">
-		</canvas>
-	</body>
+        }
+        function resize(canvasId) {
+            jc.canvas(canvasId).width(600).height(700);
+        }
+    </script>
+</head>
+<body onload="onload_1('canvas_1');">
+<div class="mainExampleHolder">
+    <div class="text">Example</div>
+    <div class="mainExample">
+        <div class="text">Growing circles</div>
+        <div class="clr"></div>
+        <div class="exCode">
+
+            <div class="capture">
+                <div class="name">Code of examle</div>
+            </div>
+			<pre class="code">var interval_1=0;
+function startShow()
+{
+	var r = Math.floor(Math.random() * (254)),
+		g = Math.floor(Math.random() * (254)),
+		b = Math.floor(Math.random() * (254)),
+		x = Math.floor(Math.random() * (439)),
+		y = Math.floor(Math.random() * (554)),
+		color = "rgba("+r+", "+g+", "+b+", 0.5)",
+		filled = true,
+		radius = 1;
+	jc.circle(x, y, radius, color, filled)
+		.animate({radius:100, opacity:0}, 1500, function(){
+			this.del();
+		});
+}
+
+function onload_1()
+{
+	jc.start(idCanvas, true);
+	interval_1 = setInterval(startShow, 200);
+}
+
+function start_1(idCanvas)
+{
+	if(interval_1)return;
+	onload_1();
+}
+
+function stop_1(idCanvas)
+{
+	clearInterval(interval_1);
+	interval_1 = 0;
+	jc.clear(idCanvas);
+}</pre>
+        </div>
+        <div class="viewCode">
+            <div class="capture">
+                <div class="name">View of example
+                </div>
+
+                <div class="stop" id="stop_1" onclick="stop_1('canvas_1')">
+                </div>
+                <div class="start" id="start_1" onclick="start_1('canvas_1')">
+                </div>
+            </div>
+            <div>
+                <script type="text/javascript">
+                    var interval_1 = 0;
+                    function startShow() {
+                        var r = Math.floor(Math.random() * (254)),
+                                g = Math.floor(Math.random() * (254)),
+                                b = Math.floor(Math.random() * (254)),
+                                x = Math.floor(Math.random() * (439)),
+                                y = Math.floor(Math.random() * (554)),
+                                color = "rgba(" + r + ", " + g + ", " + b + ", 0.5)",
+                                filled = true,
+                                radius = 1;
+                        jc.circle(x, y, radius, color, filled)
+                                .animate({radius:100, opacity:0}, 1500, function () {
+                                    this.del();
+                                });
+                    }
+
+                    function onload_1(idCanvas) {
+                        jc.start(idCanvas, 25);
+                        interval_1 = setInterval(startShow, 200);
+                    }
+
+                    function start_1(idCanvas) {
+                        if (interval_1)return;
+                        onload_1();
+                    }
+
+                    function stop_1(idCanvas) {
+                        clearInterval(interval_1);
+                        interval_1 = 0;
+                        jc.clear(idCanvas);
+                    }
+                </script>
+                <canvas id="canvas_1" width="440px" height="520px"></canvas>
+
+            </div>
+        </div>
+        <div class="clr"></div>
+    </div>
+</div>
+</body>
 </html>

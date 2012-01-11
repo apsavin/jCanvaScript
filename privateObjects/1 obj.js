@@ -93,7 +93,20 @@ proto.object=function()
 		ctx.shadowOffsetY = this._shadowY;
 		ctx.shadowBlur = this._shadowBlur;
 		ctx.globalCompositeOperation=this._composite;
-		ctx.shadowColor = 'rgba('+this._shadowColorR+','+this._shadowColorG+','+this._shadowColorB+','+this._shadowColorA+')';
+        var rInt = parseInt(this._shadowColorR),
+            gInt = parseInt(this._shadowColorG),
+            bInt = parseInt(this._shadowColorB),
+            aInt = parseInt(this._shadowColorA * 100) / 100;
+        if (this._shadowColorRPrev !== rInt || this._shadowColorGPrev !== gInt || this._shadowColorBPrev !== bInt || this._shadowColorAPrev !== aInt) {
+            ctx.shadowColor = this._shadowColor = 'rgba(' + rInt + ', ' + gInt + ', ' + bInt + ', ' + aInt+ ')';
+            this._shadowColorRPrev = rInt;
+            this._shadowColorGPrev = gInt;
+            this._shadowColorBPrev = bInt;
+            this._shadowColorAPrev = aInt;
+        }
+        else {
+            ctx.shadowColor = this._shadowColor;
+        }
 		ctx.transform(this._transform11,this._transform12,this._transform21,this._transform22,this._transformdx,this._transformdy);
 		return this;
 	}
@@ -781,6 +794,10 @@ proto.object=function()
 	this._shadowColorG= 0;
 	this._shadowColorB= 0;
 	this._shadowColorA= 0;
+    this._shadowColorRPrev= 0;
+    this._shadowColorGPrev= 0;
+    this._shadowColorBPrev= 0;
+    this._shadowColorAPrev= 0;
 	this._translateX=0;
 	this._translateY=0;
 	this._scaleX=1;

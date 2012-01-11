@@ -17,8 +17,22 @@ proto.shape=function()
 		ctx.lineJoin = this._join;
 		ctx.miterLimit = this._miterLimit;
 		var color=this.optns.color;
-		if(color.notColor===undefined)
-			color.val='rgba('+parseInt(this._colorR)+','+parseInt(this._colorG)+','+parseInt(this._colorB)+','+parseInt(this._alpha*100)/100+')';
+		if(color.notColor===undefined){
+            var rInt = parseInt(this._colorR),
+                gInt = parseInt(this._colorG),
+                bInt = parseInt(this._colorB),
+                aInt = parseInt(this._alpha * 100) / 100;
+            if (this._colorRPrev !== rInt || this._colorGPrev !== gInt || this._colorBPrev !== bInt || this._alphaPrev !== aInt) {
+                color.val = this._color = 'rgba(' + rInt + ', ' + gInt + ', ' + bInt + ', ' + aInt + ')';
+                this._colorRPrev = rInt;
+                this._colorGPrev = gInt;
+                this._colorBPrev = bInt;
+                this._alphaPrev = aInt;
+            }
+            else {
+                color.val = this._color;
+            }
+        }
 		else
 		{
 			var notColor=color.notColor;
@@ -58,6 +72,11 @@ proto.shape=function()
 	this._colorG=0;
 	this._colorB=0;
 	this._alpha=0;
+    this._colorRPrev=0;
+    this._colorGPrev=0;
+    this._colorBPrev=0;
+    this._alphaPrev=0;
+    this._color = 'rgba(0,0,0,0)';
 	this._lineWidth = 1;
 	this._cap = 'butt';
 	this._join = 'miter';
