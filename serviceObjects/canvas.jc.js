@@ -109,7 +109,11 @@ jCanvaScript.Proto.Canvas.prototype.start = function(isAnimated) {
 jCanvaScript.Proto.Canvas.prototype.pause = function() {
     cancelRequestAnimFrame(this.interval);
     this.interval = 0;
+    return this;
 };
+jCanvaScript.Proto.Canvas.prototype.restart = function() {
+    return this.pause().start(true);
+}
 jCanvaScript.Proto.Canvas.prototype.del = function() {
     cancelRequestAnimFrame(this.interval);
     this.layers = [];
