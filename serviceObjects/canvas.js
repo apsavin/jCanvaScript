@@ -220,32 +220,61 @@ jCanvaScript.canvas = function(idCanvas)
 			point.event=mm.event;
 			if(mm.object!=false)
 			{
-				var mousemoveObject=mm.object;
-				if(underMouse===mousemoveObject)
-				{
-					if(typeof mousemoveObject.onmousemove=='function')
-						mousemoveObject.onmousemove(point);
-				}
-				else
-				{
-					if(underMouse!=false)
-						if(typeof underMouse.onmouseout=='function')
-							underMouse.onmouseout(point);
-					if(typeof mousemoveObject.onmouseover=='function')
-						mousemoveObject.onmouseover(point);
-					underMouse=mousemoveObject;
-				}
+				var mousemoveObject=mm.object,
+                    mousemoveLayer = objectLayer(mousemoveObject);
+                if(underMouse===mousemoveObject)
+                {
+                    if(typeof mousemoveObject.onmousemove === 'function'){
+                        mousemoveObject.onmousemove(point);
+                    }
+                    if(mousemoveLayer === underMouseLayer){
+                        if(typeof mousemoveLayer.onmousemove === 'function'){
+                            mousemoveLayer.onmousemove(point);
+                        }
+                    }
+                    else {
+                        if(underMouseLayer){
+                            if(typeof underMouseLayer.onmouseout === 'function'){
+                                underMouseLayer.onmouseout(point);
+                            }
+                        }
+                        if(typeof mousemoveLayer.onmouseover === 'function'){
+                            mousemoveLayer.onmouseover(point);
+                        }
+                        underMouseLayer = mousemoveLayer;
+                    }
+                }
+                else
+                {
+                    if(underMouse){
+                        if(typeof underMouse.onmouseout === 'function'){
+                            underMouse.onmouseout(point);
+                        }
+                    }
+                    if(typeof mousemoveObject.onmouseover === 'function'){
+                        mousemoveObject.onmouseover(point);
+                    }
+                    underMouse = mousemoveObject;
+                }
 			}
 			else
 			{
-				if(underMouse!==false)
-				{
-					if(typeof underMouse.onmouseout=='function')
-					{
-						underMouse.onmouseout(point);
-					}
-					underMouse=false;
-				}
+                if(underMouse)
+                {
+                    if(typeof underMouse.onmouseout=='function')
+                    {
+                        underMouse.onmouseout(point);
+                    }
+                    underMouse=false;
+                }
+                if(underMouseLayer)
+                {
+                    if(typeof underMouseLayer.onmouseout=='function')
+                    {
+                        underMouseLayer.onmouseout(point);
+                    }
+                    underMouseLayer=false;
+                }
 			}
 			optns.mousemove.object=false;
 		}

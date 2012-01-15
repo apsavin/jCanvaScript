@@ -13,6 +13,7 @@
 	pi2 = m_pi*2,
 	lastCanvas = 0,lastLayer = 0,
 	underMouse = false,
+    underMouseLayer = false,
 	regHasLetters = /[A-z]+?/,
 	regNumsWithMeasure = /\d.\w\w/,
 	FireFox = window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),
@@ -3122,7 +3123,11 @@ jCanvaScript.canvas = function(idCanvas)
 	{
 		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
+        return this;
 	}
+    canvas.restart = function() {
+        return this.pause().start(true);
+    }
 	canvas.del=function()
 	{
 		cancelRequestAnimFrame(this.interval);
@@ -3219,32 +3224,61 @@ jCanvaScript.canvas = function(idCanvas)
 			point.event=mm.event;
 			if(mm.object!=false)
 			{
-				var mousemoveObject=mm.object;
-				if(underMouse===mousemoveObject)
-				{
-					if(typeof mousemoveObject.onmousemove=='function')
-						mousemoveObject.onmousemove(point);
-				}
-				else
-				{
-					if(underMouse!=false)
-						if(typeof underMouse.onmouseout=='function')
-							underMouse.onmouseout(point);
-					if(typeof mousemoveObject.onmouseover=='function')
-						mousemoveObject.onmouseover(point);
-					underMouse=mousemoveObject;
-				}
+				var mousemoveObject=mm.object,
+                    mousemoveLayer = objectLayer(mousemoveObject);
+                if(underMouse===mousemoveObject)
+                {
+                    if(typeof mousemoveObject.onmousemove === 'function'){
+                        mousemoveObject.onmousemove(point);
+                    }
+                    if(mousemoveLayer === underMouseLayer){
+                        if(typeof mousemoveLayer.onmousemove === 'function'){
+                            mousemoveLayer.onmousemove(point);
+                        }
+                    }
+                    else {
+                        if(underMouseLayer){
+                            if(typeof underMouseLayer.onmouseout === 'function'){
+                                underMouseLayer.onmouseout(point);
+                            }
+                        }
+                        if(typeof mousemoveLayer.onmouseover === 'function'){
+                            mousemoveLayer.onmouseover(point);
+                        }
+                        underMouseLayer = mousemoveLayer;
+                    }
+                }
+                else
+                {
+                    if(underMouse){
+                        if(typeof underMouse.onmouseout === 'function'){
+                            underMouse.onmouseout(point);
+                        }
+                    }
+                    if(typeof mousemoveObject.onmouseover === 'function'){
+                        mousemoveObject.onmouseover(point);
+                    }
+                    underMouse = mousemoveObject;
+                }
 			}
 			else
 			{
-				if(underMouse!==false)
-				{
-					if(typeof underMouse.onmouseout=='function')
-					{
-						underMouse.onmouseout(point);
-					}
-					underMouse=false;
-				}
+                if(underMouse)
+                {
+                    if(typeof underMouse.onmouseout=='function')
+                    {
+                        underMouse.onmouseout(point);
+                    }
+                    underMouse=false;
+                }
+                if(underMouseLayer)
+                {
+                    if(typeof underMouseLayer.onmouseout=='function')
+                    {
+                        underMouseLayer.onmouseout(point);
+                    }
+                    underMouseLayer=false;
+                }
 			}
 			optns.mousemove.object=false;
 		}

@@ -13,6 +13,7 @@
 	pi2 = m_pi*2,
 	lastCanvas = 0,lastLayer = 0,
 	underMouse = false,
+    underMouseLayer = false,
 	regHasLetters = /[A-z]+?/,
 	regNumsWithMeasure = /\d.\w\w/,
 	FireFox = window.navigator.userAgent.match(/Firefox\/\w+\.\w+/i),

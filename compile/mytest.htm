@@ -9,10 +9,16 @@
         jc.circle(50.6, 50.3, 25.5, '#f00', 1).layer('myLayer');
 
 
-        jc.layer('myLayer').buffer(true).translateTo(
+        jc.layer('myLayer').translateTo(
                 100.53,
                 100.7,
-                50);
+                50).mousemove(function(){
+                    console.log('move');
+                }).mouseover(function(){
+                    console.log('over');
+                }).mouseout(function(){
+                    console.log('out');
+                });
 
 
     }
