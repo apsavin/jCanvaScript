@@ -1316,7 +1316,11 @@ jCanvaScript.Proto.Canvas.prototype.start = function(isAnimated) {
 jCanvaScript.Proto.Canvas.prototype.pause = function() {
     cancelRequestAnimFrame(this.interval);
     this.interval = 0;
+    return this;
 };
+jCanvaScript.Proto.Canvas.prototype.restart = function() {
+    return this.pause().start(true);
+}
 jCanvaScript.Proto.Canvas.prototype.del = function() {
     cancelRequestAnimFrame(this.interval);
     this.layers = [];
@@ -1401,26 +1405,46 @@ jCanvaScript.Proto.Canvas.prototype.frame = function(time) {
         var point = this.optns.point || {};
         point.event = mm.event;
         if (mm.object != false) {
-            var mousemoveObject = mm.object;
+            var mousemoveObject = mm.object,
+                mousemoveLayer = mm.object.layer();
             if (underMouse === mousemoveObject) {
-                if (typeof mousemoveObject.onmousemove == 'function')
+                if (typeof mousemoveObject.onmousemove === 'function'){
                     mousemoveObject.onmousemove(point);
+                }
+                if (underMouseLayer === mousemoveLayer) {
+                    if (typeof mousemoveLayer.onmousemove === 'function')
+                        mousemoveLayer.onmousemove(point);
+                }
+                else {
+                    if (underMouseLayer)
+                        if (typeof underMouseLayer.onmouseout === 'function')
+                            underMouseLayer.onmouseout(point);
+                    if (typeof mousemoveLayer.onmouseover === 'function')
+                        mousemoveLayer.onmouseover(point);
+                    underMouseLayer = mousemoveLayer;
+                }
             }
             else {
-                if (underMouse != false)
-                    if (typeof underMouse.onmouseout == 'function')
+                if (underMouse)
+                    if (typeof underMouse.onmouseout === 'function')
                         underMouse.onmouseout(point);
-                if (typeof mousemoveObject.onmouseover == 'function')
+                if (typeof mousemoveObject.onmouseover === 'function')
                     mousemoveObject.onmouseover(point);
                 underMouse = mousemoveObject;
             }
         }
         else {
-            if (underMouse !== false) {
-                if (typeof underMouse.onmouseout == 'function') {
+            if (underMouse) {
+                if (typeof underMouse.onmouseout === 'function') {
                     underMouse.onmouseout(point);
                 }
                 underMouse = false;
+            }
+            if (underMouseLayer) {
+                if (typeof underMouseLayer.onmouseout === 'function') {
+                    underMouseLayer.onmouseout(point);
+                }
+                underMouseLayer = false;
             }
         }
         optns.mousemove.object = false;
