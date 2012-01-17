@@ -697,6 +697,38 @@ proto.object=function()
 	{
 		return this.attr('name',name);
 	}
+    this.hasName = function(name){
+        var namesArray = this.attr('name').split(' '), i = 0;
+        while(i < namesArray.length){
+            if(namesArray[i] === name){
+                return true;
+            }
+            i++;
+        }
+        return false;
+    }
+    this.addName = function(name)
+    {
+        var namesArray = this.attr('name').split(' '), i = 0;
+        while(i < namesArray.length){
+            if(namesArray[i] === name){
+                return this;
+            }
+            i++;
+        }
+        return this.attr('name', namesArray.push(name).join(' '));
+    }
+    this.removeName = function(name)
+    {
+        var namesArray = this.attr('name').split(' '), i = 0;
+        while(i < namesArray.length){
+            if(namesArray[i] === name){
+                return this.attr('name', namesArray.splice(i, 1).join(' '));
+            }
+            i++;
+        }
+        return this;
+    }
 	this.visible=function(visibility)
 	{
 		return this.attr('visible',visibility);

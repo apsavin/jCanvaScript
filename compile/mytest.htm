@@ -1,12 +1,12 @@
 <body onload="start()">
-<script src="jCanvaScript.1.5.14.js" type="text/javascript"></script>
+<script src="jCanvaScript.1.5.15.js" type="text/javascript"></script>
 <script type="text/javascript">
     function start() {
         jc.start('myCanvas', true);
 
         jc.rect(0, 0, 400, 400, '#ccc', true);
 
-        jc.circle(50.6, 50.3, 25.5, '#f00', 1).layer('myLayer');
+        jc.circle(50.6, 50.3, 25.5, '#f00', 1).name('a b').layer('myLayer');
 
 
         jc.layer('myLayer').translateTo(
@@ -19,8 +19,13 @@
                 }).mouseout(function(){
                     console.log('out');
                 });
-
-
+        console.log(jc('.a.b').elements);
+        console.log(jc('.a.b.c').elements);
+        console.log(jc('.a').elements);
+        console.log(jc('.b').elements);
+        console.log(jc('.a', {layer: 'myLayer'}).elements);
+        console.log(jc('.a.b', {layer: 'myLayer'}).elements);
+        console.log(jc('.a.b.c', {layer: 'myLayer'}).elements);
     }
 
     var testObject = {
