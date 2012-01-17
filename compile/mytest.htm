@@ -23,6 +23,7 @@
         console.log(jc('.a.b.c').elements);
         console.log(jc('.a').elements);
         console.log(jc('.b').elements);
+        jc('.b').elements[0].addName('c');
         console.log(jc('.a', {layer: 'myLayer'}).elements);
         console.log(jc('.a.b', {layer: 'myLayer'}).elements);
         console.log(jc('.a.b.c', {layer: 'myLayer'}).elements);

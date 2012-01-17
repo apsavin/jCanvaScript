@@ -87,6 +87,7 @@
                     }
                     if(!strokesClone.length){
                         myGroup.elements.push(objs[k]);
+                        break;
                     }
                 }
             }

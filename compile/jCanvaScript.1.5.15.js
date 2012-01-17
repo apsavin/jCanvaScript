@@ -87,6 +87,7 @@
                     }
                     if(!strokesClone.length){
                         myGroup.elements.push(objs[k]);
+                        break;
                     }
                 }
             }
@@ -1524,14 +1525,16 @@ proto.object=function()
             }
             i++;
         }
-        return this.attr('name', namesArray.push(name).join(' '));
+        namesArray.push(name);
+        return this.attr('name', namesArray.join(' '));
     }
     this.removeName = function(name)
     {
         var namesArray = this.attr('name').split(' '), i = 0;
         while(i < namesArray.length){
             if(namesArray[i] === name){
-                return this.attr('name', namesArray.splice(i, 1).join(' '));
+                namesArray.splice(i, 1);
+                return this.attr('name', namesArray.join(' '));
             }
             i++;
         }
