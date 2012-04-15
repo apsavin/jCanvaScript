@@ -1419,7 +1419,8 @@ proto.object=function()
 				clipOptns.animated=false;
 			}
 		}
-		this.beforeDraw(canvasOptns);
+        objectLayer(this).setOptns(ctx);
+        this.beforeDraw(canvasOptns);
 		this.draw(ctx);
 		var point=isPointInPath(this,x,y);
 		ctx.closePath();
@@ -1429,8 +1430,7 @@ proto.object=function()
 		{
 			clipOptns.animated=clipAnimated;
 		}
-		if(point)return true;
-		return false;
+		return point;
 	}
 	this.layer=function(idLayer)
 	{
@@ -3356,33 +3356,10 @@ jCanvaScript.canvas = function(idCanvas)
 			for(i=mouseUp.objects.length-1;i>-1;i--)
 			{
 				var mouseUpObjects=[mouseUp.objects[i],objectLayer(mouseUp.objects[i])],muObject;
-				drag=optns.drag;
 				for(j=0;j<2;j++)
 				{
 					muObject=mouseUpObjects[j];
-					if(optns.drag.init!==undefined)
-					{
-						if(muObject.optns.drop.val==true)
-						{
-
-							if(drag.init==drag.object)
-								drag.init.visible(true);
-							if(typeof muObject.optns.drop.fn=='function')
-								muObject.optns.drop.fn.call(muObject,drag.init);
-						}
-						else
-						{
-							drag.object.visible(false);
-							drag.init.visible(true);
-							drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
-							drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
-							changeMatrix(drag.init);
-							if(drag.object!=drag.init)drag.object.visible(false);
-							if(typeof drag.init.optns.drag.stop=='function')
-								drag.init.optns.drag.stop.call(drag.init,{x:mouseUp.x,y:mouseUp.y});
-						}
-						if(drag.x!=drag.startX || drag.y!==drag.startY)click.objects=[];
-					}
+					if(stopDrag(muObject, mouseUp, optns))click.objects=[];
 					if(typeof muObject.onmouseup=='function')
 						if(muObject.onmouseup({x:mouseUp.x,y:mouseUp.y,event:mouseUp.event})===false)
 							break muCicle;
@@ -3396,14 +3373,17 @@ jCanvaScript.canvas = function(idCanvas)
 			cCicle:
 			for(i=click.objects.length-1;i>-1;i--)
 			{
-				var mouseClickObjects=[click.objects[i],objectLayer(click.objects[i])];
+				var mouseClickObjects=[click.objects[i],objectLayer(click.objects[i])], clickObject;
 				for(j=0;j<2;j++)
 				{
-					if(typeof mouseClickObjects[j].onclick == 'function')
-						if(mouseClickObjects[j].onclick({x:click.x,y:click.y,event:click.event})===false)
+                    clickObject = mouseClickObjects[j];
+                    stopDrag(clickObject, click, optns);
+					if(typeof clickObject.onclick == 'function')
+						if(clickObject.onclick({x:click.x,y:click.y,event:click.event})===false)
 							break cCicle;
 				}
 			}
+            this.optns.drag={object:false,x:0,y:0};
 			click.objects=[];
 		}
 		if(dblClick.objects.length)
@@ -3426,7 +3406,33 @@ jCanvaScript.canvas = function(idCanvas)
 	}
 	return canvas;
 }
+function stopDrag(object, event, optns){
+    var drag=optns.drag;
+    if(optns.drag.init && optns.drag.object)
+    {
+        if(object.optns.drop.val==true)
+        {
 
+            if(drag.init==drag.object)
+                drag.init.visible(true);
+            if(typeof object.optns.drop.fn=='function')
+                object.optns.drop.fn.call(object,drag.init);
+        }
+        else
+        {
+            drag.object.visible(false);
+            drag.init.visible(true);
+            drag.init.optns.translateMatrix[0][2]=drag.object.optns.translateMatrix[0][2];
+            drag.init.optns.translateMatrix[1][2]=drag.object.optns.translateMatrix[1][2];
+            changeMatrix(drag.init);
+            if(drag.object!=drag.init)drag.object.visible(false);
+            if(typeof drag.init.optns.drag.stop=='function')
+                drag.init.optns.drag.stop.call(drag.init,{x:event.x,y:event.y});
+        }
+        return (drag.x!=drag.startX || drag.y!==drag.startY)
+    }
+    return false;
+}
 
 jCanvaScript.layer=function(idLayer)
 {
