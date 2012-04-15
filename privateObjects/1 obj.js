@@ -610,7 +610,8 @@ proto.object=function()
 				clipOptns.animated=false;
 			}
 		}
-		this.beforeDraw(canvasOptns);
+        objectLayer(this).setOptns(ctx);
+        this.beforeDraw(canvasOptns);
 		this.draw(ctx);
 		var point=isPointInPath(this,x,y);
 		ctx.closePath();
@@ -620,8 +621,7 @@ proto.object=function()
 		{
 			clipOptns.animated=clipAnimated;
 		}
-		if(point)return true;
-		return false;
+		return point;
 	}
 	this.layer=function(idLayer)
 	{
