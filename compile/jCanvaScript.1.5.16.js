@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.15
+ * jCanvaScript JavaScript Library v 1.5.16
  * http://jcscript.com/
  *
  * Copyright 2012, Alexander Savin
@@ -1419,12 +1419,13 @@ proto.object=function()
 				clipOptns.animated=false;
 			}
 		}
-        objectLayer(this).setOptns(ctx);
-        this.beforeDraw(canvasOptns);
+		objectLayer(this).setOptns(ctx);
+		this.beforeDraw(canvasOptns);
 		this.draw(ctx);
 		var point=isPointInPath(this,x,y);
 		ctx.closePath();
 		ctx.restore();
+		ctx.setTransform(1,0,0,1,0,0);
 		optns.animated=thisAnimated;
 		if(clipAnimated)
 		{
