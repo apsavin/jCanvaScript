@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.16
+ * jCanvaScript JavaScript Library v 1.5.17
  * http://jcscript.com/
  *
  * Copyright 2012, Alexander Savin
@@ -615,8 +615,8 @@ function isPointInPath(object,x,y)
 	if(ctx.isPointInPath===undefined || object._img!==undefined || object._imgData!==undefined || object._proto=='text')
 	{
 		var rectangle=object.getRect('poor');
-		point=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
-		if(rectangle.x<=point.x && rectangle.y<=point.y && (rectangle.x+rectangle.width)>=point.x && (rectangle.y+rectangle.height)>=point.y)return point;
+		var poorPoint=transformPoint(x,y,multiplyM(object.matrix(),layer.matrix()));
+		if(rectangle.x<=poorPoint.x && rectangle.y<=poorPoint.y && (rectangle.x+rectangle.width)>=poorPoint.x && (rectangle.y+rectangle.height)>=poorPoint.y)return point;
 	}
 	else
 	{
