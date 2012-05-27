@@ -1,5 +1,5 @@
 /*!
- * jCanvaScript JavaScript Library v 1.5.17
+ * jCanvaScript JavaScript Library v 1.5.18 
  * http://jcscript.com/
  *
  * Copyright 2012, Alexander Savin
@@ -3101,16 +3101,19 @@ jCanvaScript.canvas = function(idCanvas)
 	canvas.layers=[];
 	canvas.interval=0;
 	jCanvaScript.layer(idCanvas+'Layer_0').canvas(idCanvas);
-	canvas.start=function(isAnimated)
-	{
+    canvas.recalculateOffset = function() {
+        var offset=getOffset(this.cnv);
+        this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
+        this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
+        return this;
+    }
+	canvas.start=function(isAnimated) {
 		lastCanvas=this.optns.number;
 		if(isAnimated)
 		{
 			if(this.interval)return this;
 			this.isAnimated=isAnimated;
-			var offset=getOffset(this.cnv);
-			this.optns.x=offset.left+(parseInt(this.cnv.style.borderTopWidth)||0);
-			this.optns.y=offset.top+(parseInt(this.cnv.style.borderLeftWidth)||0);
+			this.recalculateOffset();
 			var canvas=canvases[this.optns.number],
 			optns=canvas.optns;
 			this.cnv.onclick=function(e){
@@ -3152,8 +3155,7 @@ jCanvaScript.canvas = function(idCanvas)
 		else return this.frame();
 		return this;
 	}
-	canvas.pause=function()
-	{
+	canvas.pause=function() {
 		cancelRequestAnimFrame(this.interval);
 		this.interval=0;
         return this;
