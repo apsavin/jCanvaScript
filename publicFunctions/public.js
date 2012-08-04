@@ -20,8 +20,9 @@ jCanvaScript.addObject=function(name,parameters,drawfn,parent)
 		var i=0;
 		for(var key in parameters)
 		{
-			this['_'+key]=args[i]||parameters[key];
-			if(key=='color')this.color(args[i]||parameters[key]);
+			var parameter = (args[i] !== undefined)?args[i]:parameters[key];
+			this['_'+key]=parameter;
+			if(key=='color')this.color(parameter);
 			i++;
 		}
 		return this;
