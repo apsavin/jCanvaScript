@@ -121,6 +121,7 @@ proto.layer=function()
 	{
 		var optns=objectCanvas(this).optns;
 		optns.anyLayerDeleted = true;
+		this.optns.deleted = true;
 		this.draw = false;
 		optns.redraw=1;
 		return;
